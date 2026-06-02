@@ -32,7 +32,7 @@ function renderAnalise(){
     const bd=nivelBadge(parseFloat(avg));
     // hero com donut grande
     const heroRow=document.createElement('div');heroRow.style.cssText='display:flex;align-items:center;gap:14px;margin-bottom:4px';
-    const dw=nivelDonutEl(parseFloat(avg),64);heroRow.appendChild(dw);
+    const dw=nivelDonutEl(parseFloat(avg),72);heroRow.appendChild(dw);
     const heroRight=document.createElement('div');
     const heroUnit=document.createElement('div');heroUnit.className='a-hero-unit';heroUnit.textContent='/100 · nível médio';
     const heroBadge=document.createElement('div');heroBadge.className='a-hero-badge';
@@ -48,10 +48,10 @@ function renderAnalise(){
       if(arr.length){const v=parseFloat((arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1));sdData.push({lbl:s,val:v});}
     });
     // donut grid for status
-    const sdGrid=document.createElement('div');sdGrid.style.cssText='display:flex;flex-wrap:wrap;gap:10px 16px;margin-bottom:6px';
+    const sdGrid=document.createElement('div');sdGrid.style.cssText='display:flex;flex-wrap:wrap;justify-content:space-between;margin-bottom:6px';
     sdData.forEach(function(d){
       const item=document.createElement('div');item.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px';
-      item.appendChild(nivelDonutEl(d.val,64));
+      item.appendChild(nivelDonutEl(d.val,56));
       const lbl=document.createElement('div');lbl.style.cssText='font-family:Barlow Condensed,sans-serif;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);text-align:center;max-width:54px;line-height:1.2';lbl.textContent=d.lbl;
       item.appendChild(lbl);sdGrid.appendChild(item);
     });
@@ -67,9 +67,9 @@ function renderAnalise(){
     function makeEscDonut(val,col,lblTxt){
       const item=document.createElement('div');item.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px';
       // build donut diretamente com a cor certa
-      const size=64,wrap=document.createElement('div');wrap.className='donut-wrap';wrap.style.width=size+'px';wrap.style.height=size+'px';
+      const size=56,wrap=document.createElement('div');wrap.className='donut-wrap donut-wrap--lg';wrap.style.width=size+'px';wrap.style.height=size+'px';
       const cv=document.createElement('canvas');drawDonut(cv,val,col,size);
-      const num=document.createElement('div');num.className='donut-num';num.style.cssText='font-size:15px;color:'+col+';top:50%;left:50%;transform:translate(-50%,-50%)';num.textContent=val;
+      const num=document.createElement('div');num.className='donut-num';num.style.cssText='font-size:13px;color:'+col;num.textContent=val;
       wrap.appendChild(cv);wrap.appendChild(num);item.appendChild(wrap);
       const lbl=document.createElement('div');lbl.style.cssText='font-family:Barlow Condensed,sans-serif;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:'+col+';text-align:center;max-width:54px;line-height:1.2;font-weight:700';lbl.textContent=lblTxt;
       item.appendChild(lbl);return item;
@@ -236,10 +236,10 @@ function renderAnalise(){
   c7.appendChild(c7title);
 
   // layout: inputs (esquerda) + gráfico (direita)
-  const c7body=document.createElement('div');c7body.style.cssText='display:flex;gap:20px;align-items:flex-start;overflow-x:auto';
+  const c7body=document.createElement('div');c7body.style.cssText='display:flex;gap:20px;align-items:flex-start';
 
   // ─ inputs grid
-  const igrid=document.createElement('div');igrid.className='sa-grid';igrid.style.cssText='width:290px;flex-shrink:0;min-width:200px';
+  const igrid=document.createElement('div');igrid.className='sa-grid';igrid.style.width='290px';igrid.style.flexShrink='0';
   ST.serieA.forEach(function(c,ci){
     const row=document.createElement('div');row.className='sa-row';
     const lbl=document.createElement('span');lbl.className='sa-lbl'+(c.fla?' fla':'');lbl.textContent=c.clube;lbl.title=c.clube;
@@ -250,14 +250,22 @@ function renderAnalise(){
     inp.oninput=function(){
       ST.serieA[ci].nivel=parseFloat(inp.value)||0;
       save();
+      // atualiza donut inline
+      var existing=row.querySelector('.sa-row-donut');
+      var nd=nivelDonutEl(ST.serieA[ci].nivel,28);nd.className+=' sa-row-donut';
+      if(existing)row.replaceChild(nd,existing);
       buildC7Chart();
     };
-    row.appendChild(lbl);row.appendChild(inp);igrid.appendChild(row);
+    row.appendChild(lbl);row.appendChild(inp);
+    // donut inline — visível só no mobile via CSS
+    const rowDonut=nivelDonutEl(c.nivel||0,28);rowDonut.className+=' sa-row-donut';
+    row.appendChild(rowDonut);
+    igrid.appendChild(row);
   });
   c7body.appendChild(igrid);
 
   // ─ gráfico
-  const c7chart=document.createElement('div');c7chart.style.cssText='flex:1;min-width:0';
+  const c7chart=document.createElement('div');c7chart.className='c7chart';c7chart.style.cssText='flex:1;min-width:0';
   c7body.appendChild(c7chart);
   c7.appendChild(c7body);
 

@@ -217,12 +217,6 @@ tr:hover .dh{color:var(--gray)}
 .toggle-knob{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s;pointer-events:none}
 .toggle input:checked~.toggle-knob{left:18px}
 .toggle-lbl{font-size:12px;color:var(--gray-l)}
-/* TOGGLE-BOX (usado no modal Selecionável) */
-.toggle-row{display:flex;align-items:center;gap:8px}
-.toggle-box{width:36px;height:20px;border-radius:10px;background:var(--dark4);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
-.toggle-box.on{background:var(--c1)}
-.toggle-box .toggle-knob{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .2s;pointer-events:none}
-.toggle-box.on .toggle-knob{left:19px}
 /* DONUT RATING */
 .donut-wrap{display:inline-flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
 .donut-wrap canvas{display:block}
@@ -234,14 +228,6 @@ tr:hover .dh{color:var(--gray)}
 .stag-compoe{background:#2e1f0e;color:#f97316;border:1px solid rgba(249,115,22,.45)}
 .stag-vender{background:#2e1111;color:#ef4444;border:1px solid rgba(239,68,68,.45)}
 .stag-dispensavel{background:#1e2022;color:#9ca3af;border:1px solid rgba(156,163,175,.45)}
-/* SÉRIE A — COMPARATIVO */
-.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px}
-.sa-row{display:flex;align-items:center;gap:7px}
-.sa-lbl{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gray-l);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sa-lbl.fla{color:#a78bfa;font-weight:700}
-.sa-inp{width:46px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:2px 5px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--white);outline:none;text-align:center}
-.sa-inp:focus{border-color:var(--red)}
-.sa-inp.fla-inp{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.06)}
 /* FOOTER */
 .site-footer{text-align:center;padding:7px 16px;border-top:1px solid var(--dark3);font-size:11px;color:var(--dark4);letter-spacing:.3px;flex-shrink:0;background:var(--dark)}
 .site-footer a{color:var(--dark4);text-decoration:none;cursor:pointer}.site-footer a:hover{color:var(--gray)}
@@ -286,12 +272,11 @@ canvas.pie-canvas{display:block;margin:0 auto;border-radius:50%}
 .fi{padding:7px 10px;background:var(--dark3);border:1px solid var(--dark4);border-radius:5px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
 .fi:focus{border-color:var(--red)}
 .fi::placeholder{color:var(--dark4)}
-.fs{padding:7px 10px;background:var(--dark3);border:1px solid var(--dark4);border-radius:5px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none;cursor:pointer;width:100%}
+.fs{padding:7px 10px;background:var(--dark3);border:1px solid var(--dark4);border-radius:5px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none;cursor:pointer}
 .fs:focus{border-color:var(--red)}
 .fs option{background:var(--dark2)}
 .frow{display:flex;gap:10px}
-.frow .fg{flex:1;min-width:0}
-.fnote{display:none}
+.frow .fg{flex:1}
 .macts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 /* SLOT ANIMATIONS */
 .slot:nth-child(1) .scard{animation-delay:.03s}
@@ -349,6 +334,16 @@ body.light-mode .p-tooltip-val{color:#1a1a1a;}
 body.light-mode .share-box{background:#f0f0ec;border-color:#c0c0bc;}
 body.light-mode .site-footer{background:var(--dark);color:#666;}
 body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
+
+/* ── SÉRIE A INPUT GRID ─────────────────────────────────────────────── */
+.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px}
+.sa-row{display:flex;align-items:center;gap:7px}
+.sa-lbl{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gray-l);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sa-lbl.fla{color:#a78bfa;font-weight:700}
+.sa-inp{width:46px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:2px 5px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--white);outline:none;text-align:center}
+.sa-inp:focus{border-color:var(--red)}
+.sa-inp.fla-inp{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.06)}
+.sa-row-donut{display:none}
 
 /* ── RESPONSIVIDADE MOBILE ─────────────────────────────────────────── */
 @media(max-width:767px){
@@ -432,10 +427,6 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   tbody td:nth-child(5),
   tbody td:nth-child(8){display:none}
 
-  /* Coluna Nível/Donut: reduzir canvas */
-  .donut-wrap canvas{width:28px!important;height:28px!important}
-  .donut-num{font-size:7px!important}
-
   /* ── MODAIS E OVERLAYS ─────────────────────────────────────────── */
   .modal{width:calc(100% - 24px);margin:12px}
   .legal-box{width:calc(100% - 32px)}
@@ -460,6 +451,13 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
   tr.touch-sel td{background:rgba(250,204,21,.1)!important}
   .touch-drag-clone{position:fixed;pointer-events:none;z-index:9999;opacity:.85;transform:scale(1.08);transition:none}
+
+  /* ── SÉRIE A: donut inline, ocultar gráfico lateral ───────────── */
+  .sa-row-donut{display:inline-flex}
+  .c7chart{display:none}
+
+  /* Coluna Nível/Donut: reduzir canvas (exceto donuts grandes de análise e inline série A) */
+  .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut) .donut-num{font-size:7px!important}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
   .sbar:empty{display:none}

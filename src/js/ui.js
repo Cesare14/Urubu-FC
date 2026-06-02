@@ -37,12 +37,14 @@ function nivelColor(v){
   return'#ef4444';
 }
 function drawDonut(canvas,value,color,size){
-  const ctx=canvas.getContext('2d');const s=size||32;
   const dpr=window.devicePixelRatio||1;
+  const s=size||32;
   canvas.width=s*dpr;canvas.height=s*dpr;
   canvas.style.width=s+'px';canvas.style.height=s+'px';
+  const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-  const cx=s/2,cy=s/2,r=s/2-2,lw=size>=44?4:3;
+  const lw=size>=70?8:size>=50?7:size>=27?4:3;
+  const cx=s/2,cy=s/2,r=s/2-lw/2-1;
   ctx.clearRect(0,0,s,s);
   // track
   ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
@@ -56,12 +58,12 @@ function nivelDonutEl(nivel,size){
   size=size||32;
   const n=Math.max(0,parseFloat(nivel)||0);
   const col=nivelColor(n);
-  const wrap=document.createElement('div');wrap.className='donut-wrap';
+  const wrap=document.createElement('div');wrap.className='donut-wrap'+(size>=50?' donut-wrap--lg':'');
   wrap.style.width=size+'px';wrap.style.height=size+'px';
   const canvas=document.createElement('canvas');
   drawDonut(canvas,n,col,size);
   const label=document.createElement('div');label.className='donut-num';
-  label.style.cssText='font-size:'+(size>=44?13:9)+'px;color:'+col;
+  label.style.cssText='font-size:'+(size>=70?15:size>=50?13:9)+'px;color:'+col;
   label.textContent=n||'—';
   wrap.appendChild(canvas);wrap.appendChild(label);
   return wrap;

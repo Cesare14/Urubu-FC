@@ -75,7 +75,7 @@ function renderTable(){
     const tdP=document.createElement('td');tdP.innerHTML='<span class="pbadge">'+p.pos+'</span>';tr.appendChild(tdP);
     const tdA=document.createElement('td');tdA.innerHTML='<span class="pval">'+p.age+'</span>';tr.appendChild(tdA);
     const tdNa=document.createElement('td');tdNa.innerHTML='<span class="pval">'+(p.nat||'')+'</span>';tr.appendChild(tdNa);
-    const tdNv=document.createElement('td');tdNv.appendChild(nivelDonutEl(p.nivel,32));tr.appendChild(tdNv);
+    const tdNv=document.createElement('td');tdNv.appendChild(nivelDonutEl(p.nivel,28));tr.appendChild(tdNv);
     // Status: tag visual + select oculto para edição ao clicar
     const tdS=document.createElement('td');
     tdS.style.cssText='position:relative;cursor:pointer';

@@ -229,7 +229,7 @@ function buildScard(i, tab) {
     sc.dataset.ek = isTgt ? 't:' + d.id : d.id;
 
     var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
-    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 24); if (sdw) { sdw.style.margin = '1px auto'; sc.appendChild(sdw); } }
+    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto'; sc.appendChild(sdw); } }
     var dot = document.createElement('div'); dot.className = 'sdot'; dot.style.cssText = 'background:' + col + ';margin:2px auto'; sc.appendChild(dot);
     var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
     var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
