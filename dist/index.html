@@ -480,6 +480,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .tbar::-webkit-scrollbar{display:none}
 }
 </style>
+</head>
 <body>
 <header class="hdr">
   <div class="hdr-logo">
@@ -700,6 +701,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 <script>(function(){var cb=document.getElementById('cookie-bar');if(!cb)return;if(!localStorage.getItem('ufc_cookie'))cb.style.display='flex';else cb.classList.add('hidden');})();</script>
 
 <script>
+/* === config.js === */
 const SK='fla_v7';
 const SLIST=['Titular','Importante','Compõe elenco','Vender','Dispensável'];
 const SCOL={'Titular':'#60a5fa','Importante':'#22c55e','Compõe elenco':'#f97316','Vender':'#ef4444','Dispensável':'#9ca3af'};
@@ -801,6 +803,8 @@ function syncSlotsToFmt(){
     ST.slotsByFmt[key]=ST.slots[t].slice();
   });
 }
+
+/* === state.js === */
 function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,serieA:ST.serieA}));}catch(e){}}
 function load(){
   try{
@@ -860,6 +864,8 @@ function autoFill(tab){
 }
 
 // PHOTO
+
+/* === ui.js === */
 function avatarEl(name,size){
   size=size||28;
   const p=name.trim().split(' ');
@@ -1013,6 +1019,8 @@ var logoB64='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAADGCAYAAAD7VJ3rA
 // Grade invisível para snap — granularidade alta
 var GRID_COLS=48,GRID_ROWS=64;
 // snap de um par x%,y% para a célula mais próxima da grade
+
+/* === field.js === */
 // ── TOUCH DETECTION ─────────────────────────────────────────────────────────
 var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
@@ -1431,6 +1439,8 @@ function renderBar() {
 
 // TABLE
 const POS_ORDER = { GOL: 0, LD: 1, LE: 2, ZAG: 3, VOL: 4, MEI: 5, PD: 6, PE: 7, CA: 8 };
+
+/* === roster.js === */
 function sortArr(arr,key,asc){
   if(!key)return arr;
   return arr.slice().sort(function(a,b){
@@ -1589,6 +1599,8 @@ function renderMercado(){
 
 // ANÁLISE v8
 // ─── helpers de cor ───────────────────────────────────────────────
+
+/* === market.js === */
 function idadeColor(v){
   if(v<=26)return'#60a5fa';   // jovem
   if(v<=29)return'#22c55e';   // equilibrado
@@ -1769,6 +1781,8 @@ function sep(cont){const hr=document.createElement('hr');hr.className='a-sep';co
 function blkLbl(cont,txt){const d=document.createElement('div');d.className='a-block-lbl';d.textContent=txt;cont.appendChild(d);}
 
 // ─── renderAnalise v8 ─────────────────────────────────────────────
+
+/* === analysis.js === */
 function renderAnalise(){
   const grid=document.getElementById('agrid');grid.innerHTML='';
   const pl=ST.players;const tg=ST.targets;if(!pl.length)return;
@@ -2128,6 +2142,8 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLegal()
 function acceptCookies(){localStorage.setItem('ufc_cookie','1');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
 function declineCookies(){localStorage.setItem('ufc_cookie','0');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
 
+
+/* === share.js === */
 // ── COMPARTILHAR — função base ──────────────────────────────────────────────
 var _shareBlob=null;
 var _shareFilename='urubufc.png';
@@ -2451,6 +2467,8 @@ function compartilharAnaliseCompleta(){
   },120);
 }
 // ────────────────────────────────────────────────────────────────────────────
+
+/* === app.js === */
 function closePl(){ST.epid=null;document.getElementById('modal-pl').style.display='none';}
 function savePl(){
   const name=document.getElementById('mpl-name').value.trim();if(!name){document.getElementById('mpl-name').focus();return;}
@@ -2531,8 +2549,8 @@ document.getElementById('btn-theme').addEventListener('click',function(){
 });
 
 load();render();
-</script>
-<script>
+
+/* === legal.js === */
 var LEGAL_CONTENT={
   privacy:{
     title:'Política de Privacidade',
@@ -2576,4 +2594,7 @@ function acceptCookies(){localStorage.setItem('ufc_cookie','1');var cb=document.
 function declineCookies(){localStorage.setItem('ufc_cookie','0');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
 
 </script>
+
 </script>
+</body>
+</html>
