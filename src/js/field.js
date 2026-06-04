@@ -62,11 +62,15 @@ function addTouchDrag(sc, tab) {
 
     if (!moved && Math.sqrt(dx * dx + dy * dy) > MOVE_THRESHOLD) {
       moved = true;
-      // Iniciar drag: criar clone
+      // Iniciar drag: criar clone fixo na viewport
       clone = sc.cloneNode(true);
       clone.classList.add('touch-drag-clone');
+      clone.style.position = 'fixed';
+      clone.style.zIndex = '9999';
+      clone.style.pointerEvents = 'none';
       clone.style.width = sc.offsetWidth + 'px';
       clone.style.height = sc.offsetHeight + 'px';
+      clone.style.opacity = '0.85';
       document.body.appendChild(clone);
 
       // Registrar origem
@@ -138,7 +142,7 @@ function addTouchDrag(sc, tab) {
     }
 
     dragId = null; dragSi = null;
-  }, { passive: true });
+  }, { passive: false });
 }
 
 // ── TAP-TO-SELECT (linha da tabela) ─────────────────────────────────────────
@@ -222,6 +226,7 @@ function buildScard(i, tab) {
   var pos = slotPos(tab, i);
   sc.style.left = 'calc(' + pos[0] + '% - ' + (SCARD_W / 2) + 'px)';
   sc.style.top = 'calc(' + pos[1] + '% - ' + (SCARD_H / 2) + 'px)';
+  if (IS_TOUCH) sc.style.touchAction = 'none';
 
   if (ent && ent.data) {
     var d = ent.data, col = isTgt ? 'var(--cv)' : (SCOL[d.status] || 'var(--c5)');

@@ -435,6 +435,18 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   /* Inputs: font-size ≥16px evita zoom automático iOS/Samsung */
   .fi,.fs{font-size:16px}
 
+  /* ── MODAL JOGADOR: layout campos Nac./Status e Nível/Valor ─────── */
+  /* Evita overflow em qualquer fg dentro de frow */
+  .frow .fg{min-width:0;overflow:hidden}
+  /* Select não extrapola o container */
+  .frow .fs{width:100%;min-width:0;box-sizing:border-box}
+  /* Input não extrapola o container */
+  .frow .fi{width:100%;min-width:0;box-sizing:border-box}
+  /* Nível: largura fixa para 3 dígitos (≈72px); Valor: ocupa o restante */
+  /* .modal: mtitle(1)+fg-nome(2)+frow-pos/idade(3)+frow-nac/status(4)+frow-nivel/valor(5) */
+  .modal .frow:nth-child(5) .fg:first-child{flex:0 0 72px}
+  .modal .frow:nth-child(5) .fg:last-child{flex:1}
+
   /* ── ANÁLISE: 1 coluna ─────────────────────────────────────────── */
   .agrid{grid-template-columns:1fr}
   .acard.full{grid-column:1}
