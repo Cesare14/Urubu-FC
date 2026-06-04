@@ -94,6 +94,77 @@ function renderTable(){
     tbody.appendChild(tr);
   });
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
+  // Criar botões Export/Import no tbar se ainda não existem
+  if(!document.getElementById('btn-export-roster')){
+    const tbar=document.getElementById('elenco-tbar');
+    if(tbar){
+      // input file oculto
+      const fi=document.createElement('input');
+      fi.type='file';fi.accept='.json';fi.id='import-roster-input';
+      fi.style.cssText='display:none';
+      fi.addEventListener('change',handleImportFile);
+      document.body.appendChild(fi);
+      // botão exportar
+      const bExp=document.createElement('button');
+      bExp.id='btn-export-roster';
+      bExp.className='btn-share';
+      bExp.title='Exportar elenco (JSON)';
+      bExp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar';
+      bExp.onclick=exportRoster;
+      tbar.appendChild(bExp);
+      // botão importar
+      const bImp=document.createElement('button');
+      bImp.id='btn-import-roster';
+      bImp.className='btn-share';
+      bImp.title='Importar elenco (JSON)';
+      bImp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar';
+      bImp.onclick=importRoster;
+      tbar.appendChild(bImp);
+    }
+  }
+}
+
+// EXPORT / IMPORT
+function exportRoster(){
+  const data=JSON.parse(localStorage.getItem(SK)||'{}');
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='urubufc_elenco.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importRoster(){
+  const input=document.getElementById('import-roster-input');
+  if(input)input.click();
+}
+
+function handleImportFile(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(typeof data!=='object'||data===null||Array.isArray(data)){
+        alert('Arquivo inválido: o JSON não é um objeto de dados do Urubu FC.');
+        return;
+      }
+      localStorage.setItem(SK,JSON.stringify(data));
+      load();
+      render();
+      alert('Elenco importado com sucesso!');
+    }catch(err){
+      alert('Erro ao importar: o arquivo não é um JSON válido.');
+    }
+    // limpar input para permitir re-importar o mesmo arquivo
+    e.target.value='';
+  };
+  reader.readAsText(file);
 }
 
 // MERCADO
