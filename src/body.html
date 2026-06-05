@@ -7,8 +7,8 @@
   <div class="hdr-right">
     <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost" id="btn-autofill">Auto-escalar</button>
-    <button class="btn btn-ghost" id="btn-clear">Limpar campo</button>
+    <button class="btn btn-ghost" onclick="compartilharLinkLimpo()">🔗 Site</button>
+    <button class="btn btn-ghost" onclick="compartilharLinkEscalacao()">🔗 Meu Time</button>
     <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
     <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
   </div>
@@ -29,7 +29,7 @@
     <div class="field-bottom-bar">
       <button class="btn-share" onclick="compartilharCampo()" title="Compartilhar escalação">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Compartilhar
+        Escalação
       </button>
       <span class="hint">Arraste para o campo</span>
     </div>
@@ -56,7 +56,7 @@
         <div style="display:flex;gap:3px;margin-left:auto;align-items:center" id="sort-btns"></div>
         <button class="btn-share" onclick="compartilharElenco()" title="Compartilhar elenco">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartilhar
+          Elenco
         </button>
       </div>
       <div class="ss">

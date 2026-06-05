@@ -320,4 +320,68 @@ function compartilharAnaliseCompleta(){
     });
   },120);
 }
+// ── COMPARTILHAR VIA LINK ────────────────────────────────────────────────────
+
+function _linkFeedback(btnId){
+  var btn=document.getElementById(btnId);
+  if(!btn)return;
+  var orig=btn.textContent;
+  btn.textContent='Link copiado!';
+  btn.disabled=true;
+  setTimeout(function(){btn.textContent=orig;btn.disabled=false;},2200);
+}
+
+function _copiarTexto(texto){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(texto);
+  }
+  // fallback para ambientes sem Clipboard API
+  var ta=document.createElement('textarea');
+  ta.value=texto;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
+function compartilharLinkLimpo(){
+  var url='https://urubufc.com.br';
+  _copiarTexto(url).then(function(){
+    _linkFeedback('btn-link-limpo');
+  }).catch(function(){
+    alert('Não foi possível copiar. URL: '+url);
+  });
+}
+
+function compartilharLinkEscalacao(){
+  // Montar cópia do estado sem targets, serieA e fotos base64
+  var players=(ST.players||[]).map(function(p){
+    var clone={};
+    Object.keys(p).forEach(function(k){
+      if(k==='foto'&&typeof p[k]==='string'&&p[k].indexOf('data:')===0)return;
+      clone[k]=p[k];
+    });
+    return clone;
+  });
+
+  var dados={
+    players: players,
+    slots:   ST.slots,
+    fmt:     ST.fmt,
+    slotsByFmt: ST.slotsByFmt,
+    customPos:  ST.customPos
+  };
+
+  var json=JSON.stringify(dados);
+  var hash='#d='+encodeURIComponent(json);
+  var url='https://urubufc.com.br/'+hash;
+
+  _copiarTexto(url).then(function(){
+    _linkFeedback('btn-link-escalacao');
+  }).catch(function(){
+    alert('Não foi possível copiar. URL gerada:\n'+url);
+  });
+}
 // ────────────────────────────────────────────────────────────────────────────

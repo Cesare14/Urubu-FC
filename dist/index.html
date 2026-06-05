@@ -508,8 +508,8 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   <div class="hdr-right">
     <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost" id="btn-autofill">Auto-escalar</button>
-    <button class="btn btn-ghost" id="btn-clear">Limpar campo</button>
+    <button class="btn btn-ghost" onclick="compartilharLinkLimpo()">🔗 Site</button>
+    <button class="btn btn-ghost" onclick="compartilharLinkEscalacao()">🔗 Meu Time</button>
     <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
     <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
   </div>
@@ -530,7 +530,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <div class="field-bottom-bar">
       <button class="btn-share" onclick="compartilharCampo()" title="Compartilhar escalação">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Compartilhar
+        Escalação
       </button>
       <span class="hint">Arraste para o campo</span>
     </div>
@@ -557,7 +557,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
         <div style="display:flex;gap:3px;margin-left:auto;align-items:center" id="sort-btns"></div>
         <button class="btn-share" onclick="compartilharElenco()" title="Compartilhar elenco">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          Compartilhar
+          Elenco
         </button>
       </div>
       <div class="ss">
@@ -1579,6 +1579,22 @@ function renderTable(){
       bExp.title='Exportar elenco (JSON)';
       bExp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar';
       bExp.onclick=exportRoster;
+      // botão compartilhar link limpo
+      const bLinkLimpo=document.createElement('button');
+      bLinkLimpo.id='btn-link-limpo';
+      bLinkLimpo.className='btn-share';
+      bLinkLimpo.title='Copiar link do site';
+      bLinkLimpo.innerHTML='🔗 Site';
+      bLinkLimpo.onclick=compartilharLinkLimpo;
+      tbar.appendChild(bLinkLimpo);
+      // botão compartilhar link com escalação
+      const bLinkEsc=document.createElement('button');
+      bLinkEsc.id='btn-link-escalacao';
+      bLinkEsc.className='btn-share';
+      bLinkEsc.title='Copiar link com minha escalação';
+      bLinkEsc.innerHTML='🔗 Escalação';
+      bLinkEsc.onclick=compartilharLinkEscalacao;
+      tbar.appendChild(bLinkEsc);
       tbar.appendChild(bExp);
       // botão importar
       const bImp=document.createElement('button');
@@ -2570,6 +2586,70 @@ function compartilharAnaliseCompleta(){
     });
   },120);
 }
+// ── COMPARTILHAR VIA LINK ────────────────────────────────────────────────────
+
+function _linkFeedback(btnId){
+  var btn=document.getElementById(btnId);
+  if(!btn)return;
+  var orig=btn.textContent;
+  btn.textContent='Link copiado!';
+  btn.disabled=true;
+  setTimeout(function(){btn.textContent=orig;btn.disabled=false;},2200);
+}
+
+function _copiarTexto(texto){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(texto);
+  }
+  // fallback para ambientes sem Clipboard API
+  var ta=document.createElement('textarea');
+  ta.value=texto;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
+function compartilharLinkLimpo(){
+  var url='https://urubufc.com.br';
+  _copiarTexto(url).then(function(){
+    _linkFeedback('btn-link-limpo');
+  }).catch(function(){
+    alert('Não foi possível copiar. URL: '+url);
+  });
+}
+
+function compartilharLinkEscalacao(){
+  // Montar cópia do estado sem targets, serieA e fotos base64
+  var players=(ST.players||[]).map(function(p){
+    var clone={};
+    Object.keys(p).forEach(function(k){
+      if(k==='foto'&&typeof p[k]==='string'&&p[k].indexOf('data:')===0)return;
+      clone[k]=p[k];
+    });
+    return clone;
+  });
+
+  var dados={
+    players: players,
+    slots:   ST.slots,
+    fmt:     ST.fmt,
+    slotsByFmt: ST.slotsByFmt,
+    customPos:  ST.customPos
+  };
+
+  var json=JSON.stringify(dados);
+  var hash='#d='+encodeURIComponent(json);
+  var url='https://urubufc.com.br/'+hash;
+
+  _copiarTexto(url).then(function(){
+    _linkFeedback('btn-link-escalacao');
+  }).catch(function(){
+    alert('Não foi possível copiar. URL gerada:\n'+url);
+  });
+}
 // ────────────────────────────────────────────────────────────────────────────
 
 /* === app.js === */
@@ -2619,8 +2699,7 @@ document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
-document.getElementById('btn-autofill').onclick=function(){autoFill(ST.ft);save();renderField();renderBar();renderTable();};
-document.getElementById('btn-clear').onclick=function(){ST.slots[ST.ft]=Array(11).fill(null);save();renderField();renderBar();renderTable();};
+
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
@@ -2652,7 +2731,78 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   setTimeout(function(){self.style.animation='';},420);
 });
 
-load();render();
+// ── CARREGAR ESCALAÇÃO VIA HASH ──────────────────────────────────────────────
+(function _carregarHashEscalacao(){
+  var hash=window.location.hash;
+  if(!hash||hash.indexOf('#d=')!==0)return;
+
+  var json='';
+  try{json=decodeURIComponent(hash.slice(3));}catch(e){return;}
+
+  var dados;
+  try{dados=JSON.parse(json);}catch(e){return;}
+
+  // Limpar hash da URL sem recarregar a página
+  history.replaceState(null,'',window.location.pathname+window.location.search);
+
+  // Carregar o estado real do usuário primeiro (sem renderizar)
+  load();
+
+  // Guardar backup do estado real do usuário em memória
+  var _localBackup={
+    players:  JSON.parse(JSON.stringify(ST.players||[])),
+    slots:    JSON.parse(JSON.stringify(ST.slots||{})),
+    fmt:      JSON.parse(JSON.stringify(ST.fmt||{})),
+    slotsByFmt: JSON.parse(JSON.stringify(ST.slotsByFmt||{})),
+    customPos:  JSON.parse(JSON.stringify(ST.customPos||{}))
+  };
+
+  // Sobrescrever estado em memória com o recebido (sem salvar no localStorage)
+  if(dados.players)   ST.players=dados.players;
+  if(dados.slots)     ST.slots=dados.slots;
+  if(dados.fmt)       ST.fmt=dados.fmt;
+  if(dados.slotsByFmt)ST.slotsByFmt=dados.slotsByFmt;
+  if(dados.customPos) ST.customPos=dados.customPos;
+
+  // Exibir banner de aviso
+  var banner=document.createElement('div');
+  banner.id='shared-banner';
+  banner.style.cssText=[
+    'position:fixed','bottom:0','left:0','right:0','z-index:9999',
+    'background:#b91c1c','color:#fff','text-align:center',
+    'padding:10px 16px','font-size:14px','display:flex',
+    'align-items:center','justify-content:center','gap:12px',
+    'box-shadow:0 -2px 8px rgba(0,0,0,.5)'
+  ].join(';');
+  var texto=document.createElement('span');
+  texto.textContent='👁 Você está vendo a escalação de outra pessoa.';
+  var btn=document.createElement('button');
+  btn.textContent='Carregar minha escalação';
+  btn.style.cssText=[
+    'background:#fff','color:#b91c1c','border:none','border-radius:6px',
+    'padding:5px 12px','font-size:13px','font-weight:700',
+    'cursor:pointer','white-space:nowrap'
+  ].join(';');
+  btn.onclick=function(){
+    ST.players=_localBackup.players;
+    ST.slots=_localBackup.slots;
+    ST.fmt=_localBackup.fmt;
+    ST.slotsByFmt=_localBackup.slotsByFmt;
+    ST.customPos=_localBackup.customPos;
+    banner.remove();
+    render();
+  };
+  banner.appendChild(texto);
+  banner.appendChild(btn);
+  document.body.appendChild(banner);
+
+  render();
+  return;
+})();
+
+// Inicialização padrão (executada apenas quando não há hash de escalação)
+if(!document.getElementById('shared-banner')){load();render();}
+// ────────────────────────────────────────────────────────────────────────────
 
 /* === legal.js === */
 var LEGAL_CONTENT={

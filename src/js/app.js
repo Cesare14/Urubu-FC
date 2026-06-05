@@ -44,8 +44,7 @@ document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
-document.getElementById('btn-autofill').onclick=function(){autoFill(ST.ft);save();renderField();renderBar();renderTable();};
-document.getElementById('btn-clear').onclick=function(){ST.slots[ST.ft]=Array(11).fill(null);save();renderField();renderBar();renderTable();};
+
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
@@ -77,4 +76,75 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   setTimeout(function(){self.style.animation='';},420);
 });
 
-load();render();
+// ── CARREGAR ESCALAÇÃO VIA HASH ──────────────────────────────────────────────
+(function _carregarHashEscalacao(){
+  var hash=window.location.hash;
+  if(!hash||hash.indexOf('#d=')!==0)return;
+
+  var json='';
+  try{json=decodeURIComponent(hash.slice(3));}catch(e){return;}
+
+  var dados;
+  try{dados=JSON.parse(json);}catch(e){return;}
+
+  // Limpar hash da URL sem recarregar a página
+  history.replaceState(null,'',window.location.pathname+window.location.search);
+
+  // Carregar o estado real do usuário primeiro (sem renderizar)
+  load();
+
+  // Guardar backup do estado real do usuário em memória
+  var _localBackup={
+    players:  JSON.parse(JSON.stringify(ST.players||[])),
+    slots:    JSON.parse(JSON.stringify(ST.slots||{})),
+    fmt:      JSON.parse(JSON.stringify(ST.fmt||{})),
+    slotsByFmt: JSON.parse(JSON.stringify(ST.slotsByFmt||{})),
+    customPos:  JSON.parse(JSON.stringify(ST.customPos||{}))
+  };
+
+  // Sobrescrever estado em memória com o recebido (sem salvar no localStorage)
+  if(dados.players)   ST.players=dados.players;
+  if(dados.slots)     ST.slots=dados.slots;
+  if(dados.fmt)       ST.fmt=dados.fmt;
+  if(dados.slotsByFmt)ST.slotsByFmt=dados.slotsByFmt;
+  if(dados.customPos) ST.customPos=dados.customPos;
+
+  // Exibir banner de aviso
+  var banner=document.createElement('div');
+  banner.id='shared-banner';
+  banner.style.cssText=[
+    'position:fixed','bottom:0','left:0','right:0','z-index:9999',
+    'background:#b91c1c','color:#fff','text-align:center',
+    'padding:10px 16px','font-size:14px','display:flex',
+    'align-items:center','justify-content:center','gap:12px',
+    'box-shadow:0 -2px 8px rgba(0,0,0,.5)'
+  ].join(';');
+  var texto=document.createElement('span');
+  texto.textContent='👁 Você está vendo a escalação de outra pessoa.';
+  var btn=document.createElement('button');
+  btn.textContent='Carregar minha escalação';
+  btn.style.cssText=[
+    'background:#fff','color:#b91c1c','border:none','border-radius:6px',
+    'padding:5px 12px','font-size:13px','font-weight:700',
+    'cursor:pointer','white-space:nowrap'
+  ].join(';');
+  btn.onclick=function(){
+    ST.players=_localBackup.players;
+    ST.slots=_localBackup.slots;
+    ST.fmt=_localBackup.fmt;
+    ST.slotsByFmt=_localBackup.slotsByFmt;
+    ST.customPos=_localBackup.customPos;
+    banner.remove();
+    render();
+  };
+  banner.appendChild(texto);
+  banner.appendChild(btn);
+  document.body.appendChild(banner);
+
+  render();
+  return;
+})();
+
+// Inicialização padrão (executada apenas quando não há hash de escalação)
+if(!document.getElementById('shared-banner')){load();render();}
+// ────────────────────────────────────────────────────────────────────────────
