@@ -34,7 +34,12 @@ JS_FILES=(
   # 2. <body>
   cat "$SRC/body.html"
 
-  # 3. JS unificado em uma única tag <script>
+  # 3. Vendor: html2canvas inline (tag separada)
+  echo "<script>"
+  cat "$SRC/vendor/html2canvas.min.js"
+  echo "</script>"
+
+  # 4. JS unificado em uma única tag <script>
   echo "<script>"
   for f in "${JS_FILES[@]}"; do
     echo "/* === $(basename "$f") === */"
@@ -43,7 +48,7 @@ JS_FILES=(
   done
   echo "</script>"
 
-  # 4. Fechamento
+  # 5. Fechamento
   echo "</body>"
   echo "</html>"
 
