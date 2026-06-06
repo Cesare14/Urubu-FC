@@ -1607,22 +1607,6 @@ function renderTable(){
       bExp.title='Exportar elenco (JSON)';
       bExp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar';
       bExp.onclick=exportRoster;
-      // botão compartilhar link limpo
-      const bLinkLimpo=document.createElement('button');
-      bLinkLimpo.id='btn-link-limpo';
-      bLinkLimpo.className='btn-share';
-      bLinkLimpo.title='Copiar link do site';
-      bLinkLimpo.innerHTML='🔗 Site';
-      bLinkLimpo.onclick=compartilharLinkLimpo;
-      tbar.appendChild(bLinkLimpo);
-      // botão compartilhar link com escalação
-      const bLinkEsc=document.createElement('button');
-      bLinkEsc.id='btn-link-escalacao';
-      bLinkEsc.className='btn-share';
-      bLinkEsc.title='Copiar link com minha escalação';
-      bLinkEsc.innerHTML='🔗 Escalação';
-      bLinkEsc.onclick=compartilharLinkEscalacao;
-      tbar.appendChild(bLinkEsc);
       tbar.appendChild(bExp);
       // botão importar
       const bImp=document.createElement('button');
