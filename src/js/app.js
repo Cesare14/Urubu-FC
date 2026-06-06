@@ -44,7 +44,6 @@ document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
-
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
@@ -147,4 +146,23 @@ document.getElementById('btn-theme').addEventListener('click',function(){
 
 // Inicialização padrão (executada apenas quando não há hash de escalação)
 if(!document.getElementById('shared-banner')){load();render();}
+// Bottom sheet compartilhar
+document.getElementById('btn-share-menu').addEventListener('click',function(){
+  document.getElementById('share-menu-sheet').style.display='block';
+  document.getElementById('share-menu-overlay').style.display='block';
+});
+function fecharShareMenu(){
+  document.getElementById('share-menu-sheet').style.display='none';
+  document.getElementById('share-menu-overlay').style.display='none';
+}
+document.getElementById('btn-share-menu-close').addEventListener('click',fecharShareMenu);
+document.getElementById('share-menu-overlay').addEventListener('click',fecharShareMenu);
+document.getElementById('btn-share-site-opt').addEventListener('click',function(){
+  fecharShareMenu();
+  compartilharLinkLimpo();
+});
+document.getElementById('btn-share-team-opt').addEventListener('click',function(){
+  fecharShareMenu();
+  compartilharLinkEscalacao();
+});
 // ────────────────────────────────────────────────────────────────────────────

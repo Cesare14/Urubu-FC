@@ -365,6 +365,21 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 .sa-inp.fla-inp{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.06)}
 .sa-row-donut{display:none}
 
+/* ── BOTTOM SHEET ───────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:149;display:none}
+.overlay.open{display:block}
+.bottom-sheet{background:var(--dark2);border:1px solid var(--dark4);border-radius:12px 12px 0 0;padding:20px 20px 28px;z-index:150;display:none;flex-direction:column;gap:12px}
+.bottom-sheet.open{display:flex}
+.sheet-handle{width:36px;height:4px;background:var(--dark4);border-radius:2px;margin:0 auto 4px}
+.sheet-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
+.sheet-desc{font-size:11px;color:var(--gray);line-height:1.5;margin-bottom:4px}
+.sheet-btn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:10px 14px;border-radius:7px;border:none;cursor:pointer;width:100%;background:var(--red);color:#fff;transition:background var(--trans-fast)}
+.sheet-btn:hover{background:var(--red-l)}
+.sheet-btn:active{transform:scale(.96)}
+.sheet-close{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:10px 14px;border-radius:7px;cursor:pointer;width:100%;background:rgba(255,255,255,.04);color:var(--gray-l);border:1.5px solid var(--dark4);transition:all var(--trans-fast)}
+.sheet-close:hover{border-color:var(--gray);color:var(--white);background:var(--dark3)}
+.sheet-close:active{transform:scale(.96)}
+
 /* ── RESPONSIVIDADE MOBILE ─────────────────────────────────────────── */
 @media(max-width:767px){
   /* body: permite scroll vertical */
@@ -391,11 +406,10 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   /* Linha 2: botões à direita */
   .hdr-right{
     justify-content:flex-end;
-    gap:5px;
+    gap:2px;
     flex-wrap:nowrap;
   }
-  /* Ocultar botões secundários */
-  #btn-autofill,#btn-clear{display:none}
+  #btn-addtgt{margin-left:10px;}
   /* Reduzir fonte dos botões principais */
   #btn-addtgt,#btn-addpl{font-size:11px;padding:5px 10px}
   /* hdr-count compacto */
@@ -496,8 +510,14 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .cookie-bar{padding:8px 12px}
   .tbar{overflow-x:auto;flex-wrap:nowrap}
   .tbar::-webkit-scrollbar{display:none}
+  /* ── BOTTOM SHEET: mobile ──────────────────────────────────────── */
+  .bottom-sheet{position:fixed;bottom:0;left:0;right:0;width:100%}
 }
-</style>
+
+/* ── BOTTOM SHEET: desktop ─────────────────────────────────────── */
+@media(min-width:768px){
+  .bottom-sheet{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:400px;width:90%;border-radius:12px}
+}</style>
 </head>
 <body>
 <header class="hdr">
@@ -508,8 +528,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   <div class="hdr-right">
     <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost" onclick="compartilharLinkLimpo()">🔗 Site</button>
-    <button class="btn btn-ghost" onclick="compartilharLinkEscalacao()">🔗 Meu Time</button>
+    <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
     <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
     <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
   </div>
@@ -717,7 +736,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   </div>
 </div>
 <script>(function(){var cb=document.getElementById('cookie-bar');if(!cb)return;if(!localStorage.getItem('ufc_cookie'))cb.style.display='flex';else cb.classList.add('hidden');})();</script>
-
+<div id="share-menu-overlay" class="overlay" style="display:none"></div>
+<div id="share-menu-sheet" class="bottom-sheet" style="display:none">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Compartilhar</div>
+  <button id="btn-share-site-opt" class="sheet-btn">🔗 Compartilhar site</button>
+  <p class="sheet-desc">Envia o link do Urubu FC sem nenhum dado salvo.</p>
+  <button id="btn-share-team-opt" class="sheet-btn">🏟️ Compartilhar minha versão</button>
+  <p class="sheet-desc">Envia o link com seu elenco, escalação e alvos salvos.</p>
+  <button id="btn-share-menu-close" class="sheet-close">Cancelar</button>
+</div>
 <script>
 /* === config.js === */
 const SK='fla_v7';
@@ -2699,7 +2727,6 @@ document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
-
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
@@ -2802,6 +2829,25 @@ document.getElementById('btn-theme').addEventListener('click',function(){
 
 // Inicialização padrão (executada apenas quando não há hash de escalação)
 if(!document.getElementById('shared-banner')){load();render();}
+// Bottom sheet compartilhar
+document.getElementById('btn-share-menu').addEventListener('click',function(){
+  document.getElementById('share-menu-sheet').style.display='block';
+  document.getElementById('share-menu-overlay').style.display='block';
+});
+function fecharShareMenu(){
+  document.getElementById('share-menu-sheet').style.display='none';
+  document.getElementById('share-menu-overlay').style.display='none';
+}
+document.getElementById('btn-share-menu-close').addEventListener('click',fecharShareMenu);
+document.getElementById('share-menu-overlay').addEventListener('click',fecharShareMenu);
+document.getElementById('btn-share-site-opt').addEventListener('click',function(){
+  fecharShareMenu();
+  compartilharLinkLimpo();
+});
+document.getElementById('btn-share-team-opt').addEventListener('click',function(){
+  fecharShareMenu();
+  compartilharLinkEscalacao();
+});
 // ────────────────────────────────────────────────────────────────────────────
 
 /* === legal.js === */

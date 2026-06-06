@@ -7,8 +7,7 @@
   <div class="hdr-right">
     <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost" onclick="compartilharLinkLimpo()">🔗 Site</button>
-    <button class="btn btn-ghost" onclick="compartilharLinkEscalacao()">🔗 Meu Time</button>
+    <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
     <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
     <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
   </div>
@@ -216,4 +215,13 @@
   </div>
 </div>
 <script>(function(){var cb=document.getElementById('cookie-bar');if(!cb)return;if(!localStorage.getItem('ufc_cookie'))cb.style.display='flex';else cb.classList.add('hidden');})();</script>
-
+<div id="share-menu-overlay" class="overlay" style="display:none"></div>
+<div id="share-menu-sheet" class="bottom-sheet" style="display:none">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Compartilhar</div>
+  <button id="btn-share-site-opt" class="sheet-btn">🔗 Compartilhar site</button>
+  <p class="sheet-desc">Envia o link do Urubu FC sem nenhum dado salvo.</p>
+  <button id="btn-share-team-opt" class="sheet-btn">🏟️ Compartilhar minha versão</button>
+  <p class="sheet-desc">Envia o link com seu elenco, escalação e alvos salvos.</p>
+  <button id="btn-share-menu-close" class="sheet-close">Cancelar</button>
+</div>
