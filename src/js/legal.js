@@ -37,7 +37,31 @@ function openLegal(type){
 function closeLegal(){document.getElementById('legal-over').classList.remove('open');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLegal();});
 // COOKIE
-function acceptCookies(){localStorage.setItem('ufc_cookie','1');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
-function declineCookies(){localStorage.setItem('ufc_cookie','0');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
-
-</script>
+function loadGA4(){
+  if(window._ga4Loaded)return;
+  window._ga4Loaded=true;
+  window.dataLayer=window.dataLayer||[];
+  window.gtag=function(){window.dataLayer.push(arguments);};
+  gtag('js',new Date());
+  gtag('config','G-X02RE64K4B');
+  var s=document.createElement('script');
+  s.async=true;
+  s.src='https://www.googletagmanager.com/gtag/js?id=G-X02RE64K4B';
+  document.head.appendChild(s);
+}
+function acceptCookies(){
+  localStorage.setItem('ufc_cookie','1');
+  var cb=document.getElementById('cookie-bar');if(cb)cb.style.display='none';
+  loadGA4();
+}
+function declineCookies(){
+  localStorage.setItem('ufc_cookie','0');
+  var cb=document.getElementById('cookie-bar');if(cb)cb.style.display='none';
+  if(window._ga4Loaded&&typeof gtag==='function'){
+    gtag('consent','update',{analytics_storage:'denied'});
+  }
+}
+document.addEventListener('DOMContentLoaded',function initCookieBanner(){
+  var consent=localStorage.getItem('ufc_cookie');
+  if(consent==='1')loadGA4();
+});
