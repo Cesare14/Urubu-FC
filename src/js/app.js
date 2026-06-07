@@ -80,11 +80,39 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   var hash=window.location.hash;
   if(!hash||hash.indexOf('#d=')!==0)return;
 
+  // 1. Limite de tamanho — ignorar silenciosamente se muito grande
+  if(hash.length>50000)return;
+
   var json='';
   try{json=decodeURIComponent(hash.slice(3));}catch(e){return;}
 
   var dados;
   try{dados=JSON.parse(json);}catch(e){return;}
+
+  // 2. Validação de schema — ignorar silenciosamente se inválido
+  if(!dados||typeof dados!=='object'||Array.isArray(dados))return;
+  if(!Array.isArray(dados.players))return;
+  if(typeof dados.fmt!=='string')return;
+
+  var TEXT_FIELDS=['name','obs','club','nat'];
+  var MAX_TEXT=100;
+  var schemaOk=dados.players.every(function(p){
+    if(!p||typeof p!=='object')return false;
+    return TEXT_FIELDS.every(function(f){
+      if(!(f in p))return true; // campo ausente é permitido
+      return typeof p[f]==='string'&&p[f].length<=MAX_TEXT;
+    });
+  });
+  if(!schemaOk)return;
+
+  // 3. Sanitização de campos de texto via sanitizeText() (definida em roster.js)
+  dados.players=dados.players.map(function(p){
+    var clone={};
+    Object.keys(p).forEach(function(k){
+      clone[k]=TEXT_FIELDS.indexOf(k)!==-1?sanitizeText(String(p[k])):p[k];
+    });
+    return clone;
+  });
 
   // Limpar hash da URL sem recarregar a página
   history.replaceState(null,'',window.location.pathname+window.location.search);
