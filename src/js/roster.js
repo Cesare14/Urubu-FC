@@ -1,3 +1,13 @@
+// ─── sanitização XSS ─────────────────────────────────────────────
+function sanitizeText(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#x27;');
+}
+
 function sortArr(arr,key,asc){
   if(!key)return arr;
   return arr.slice().sort(function(a,b){
@@ -50,14 +60,14 @@ function renderTable(){
       {lbl:'Posição',val:p.pos||'—'},
       {lbl:'Nível',val:(p.nivel||'—')+'/100'},
       {lbl:'Valor',val:p.valor?'€'+p.valor+'M':'—'},
-      {lbl:'Nac.',val:p.nat||'—'},
+      {lbl:'Nac.',val:sanitizeText(p.nat||'—')},
     ];
     tipRows.forEach(function(r){
       const row=document.createElement('div');row.className='p-tooltip-row';
       row.innerHTML='<span class="p-tooltip-lbl">'+r.lbl+'</span><span class="p-tooltip-val">'+r.val+'</span>';
       tip.appendChild(row);
     });
-    if(p.obs){const obsRow=document.createElement('div');obsRow.className='p-tooltip-row';obsRow.style.cssText='flex-direction:column;gap:1px;border-top:1px solid var(--dark3);margin-top:4px;padding-top:4px';obsRow.innerHTML='<span class="p-tooltip-lbl">Obs.</span><span style="font-size:10px;color:var(--gray-l)">'+p.obs+'</span>';tip.appendChild(obsRow);}
+    if(p.obs){const obsRow=document.createElement('div');obsRow.className='p-tooltip-row';obsRow.style.cssText='flex-direction:column;gap:1px;border-top:1px solid var(--dark3);margin-top:4px;padding-top:4px';obsRow.innerHTML='<span class="p-tooltip-lbl">Obs.</span><span style="font-size:10px;color:var(--gray-l)">'+sanitizeText(p.obs)+'</span>';tip.appendChild(obsRow);}
     document.body.appendChild(tip);
     nwrap.addEventListener('mouseenter',function(){
       const r=nwrap.getBoundingClientRect();
@@ -74,7 +84,7 @@ function renderTable(){
     tdN.appendChild(nd);tr.appendChild(tdN);
     const tdP=document.createElement('td');tdP.innerHTML='<span class="pbadge">'+p.pos+'</span>';tr.appendChild(tdP);
     const tdA=document.createElement('td');tdA.innerHTML='<span class="pval">'+p.age+'</span>';tr.appendChild(tdA);
-    const tdNa=document.createElement('td');tdNa.innerHTML='<span class="pval">'+(p.nat||'')+'</span>';tr.appendChild(tdNa);
+    const tdNa=document.createElement('td');tdNa.innerHTML='<span class="pval">'+sanitizeText(p.nat||'')+'</span>';tr.appendChild(tdNa);
     const tdNv=document.createElement('td');tdNv.appendChild(nivelDonutEl(p.nivel,28));tr.appendChild(tdNv);
     // Status: tag visual + select oculto para edição ao clicar
     const tdS=document.createElement('td');
@@ -213,8 +223,8 @@ function renderMercado(){
       trv.appendChild(ratingNum);
       nivelRow.appendChild(trl);nivelRow.appendChild(trv);infoDiv.appendChild(nivelRow);
     }
-    if(t.contract)infoDiv.innerHTML+='<div class="trow"><span class="trl">Contrato</span><span class="trv">'+t.contract+'</span></div>';
-    if(t.obs)infoDiv.innerHTML+='<div class="trow" style="flex-direction:column;align-items:flex-start;gap:1px"><span class="trl">Perfil</span><span class="trv" style="font-size:10px;white-space:normal;color:var(--gray-l)">'+t.obs+'</span></div>';
+    if(t.contract)infoDiv.innerHTML+='<div class="trow"><span class="trl">Contrato</span><span class="trv">'+sanitizeText(t.contract)+'</span></div>';
+    if(t.obs)infoDiv.innerHTML+='<div class="trow" style="flex-direction:column;align-items:flex-start;gap:1px"><span class="trl">Perfil</span><span class="trv" style="font-size:10px;white-space:normal;color:var(--gray-l)">'+sanitizeText(t.obs)+'</span></div>';
     c.appendChild(infoDiv);
     const acts=document.createElement('div');acts.className='tacts';
     const eb=document.createElement('button');eb.className='tab';eb.textContent='✎';eb.onclick=function(){openTgt(t.id);};

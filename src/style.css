@@ -217,6 +217,10 @@ tr:hover .dh{color:var(--gray)}
 .toggle-knob{position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s;pointer-events:none}
 .toggle input:checked~.toggle-knob{left:18px}
 .toggle-lbl{font-size:12px;color:var(--gray-l)}
+.toggle-row{display:flex;align-items:center;gap:8px}
+.toggle-box{position:relative;width:32px;height:18px;flex-shrink:0;background:var(--dark3);border-radius:9px;border:1px solid var(--dark4);transition:background .2s,border-color .2s;cursor:pointer}
+.toggle-box.on{background:var(--red);border-color:var(--red)}
+.toggle-box.on .toggle-knob{left:18px}
 /* DONUT RATING */
 .donut-wrap{display:inline-flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
 .donut-wrap canvas{display:block}
@@ -277,6 +281,7 @@ canvas.pie-canvas{display:block;margin:0 auto;border-radius:50%}
 .fs option{background:var(--dark2)}
 .frow{display:flex;gap:10px}
 .frow .fg{flex:1}
+#modal-pl .fi,#modal-pl .fs{height:34px;box-sizing:border-box}
 .macts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 /* SLOT ANIMATIONS */
 .slot:nth-child(1) .scard{animation-delay:.03s}
