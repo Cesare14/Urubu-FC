@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; frame-src 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com; frame-src 'none'; object-src 'none'">
 <meta charset="UTF-8">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9415280244063157" crossorigin="anonymous"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Urubu FC — Plataforma de gestão, análise e escalação de elenco de futebol. Gerencie jogadores, alvos de mercado e estatísticas do seu clube.">
 <meta name="robots" content="index, follow">
@@ -2787,7 +2788,7 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   // 2. Validação de schema — ignorar silenciosamente se inválido
   if(!dados||typeof dados!=='object'||Array.isArray(dados))return;
   if(!Array.isArray(dados.players))return;
-  if(typeof dados.fmt!=='string')return;
+  if(!dados.fmt||typeof dados.fmt!=='object'||Array.isArray(dados.fmt))return;
 
   var TEXT_FIELDS=['name','obs','club','nat'];
   var MAX_TEXT=100;

@@ -92,7 +92,7 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   // 2. Validação de schema — ignorar silenciosamente se inválido
   if(!dados||typeof dados!=='object'||Array.isArray(dados))return;
   if(!Array.isArray(dados.players))return;
-  if(typeof dados.fmt!=='string')return;
+  if(!dados.fmt||typeof dados.fmt!=='object'||Array.isArray(dados.fmt))return;
 
   var TEXT_FIELDS=['name','obs','club','nat'];
   var MAX_TEXT=100;
