@@ -54,5 +54,7 @@ JS_FILES=(
 
 } > "$OUT"
 
+cp ads.txt dist/ads.txt
+
 LINES=$(wc -l < "$OUT")
 echo "Build OK → $OUT ($LINES linhas)"
