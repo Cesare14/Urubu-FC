@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://static.cloudflareinsights.com https://*.googlesyndication.com https://*.doubleclick.net https://adtrafficquality.google https://*.adtrafficquality.google https://fundingchoicesmessages.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://adtrafficquality.google https://*.adtrafficquality.google; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://adtrafficquality.google https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://*.google.com; frame-src https://googleads.g.doubleclick.net https://*.doubleclick.net https://tpc.googlesyndication.com https://*.google.com https://adtrafficquality.google https://*.adtrafficquality.google https://fundingchoicesmessages.google.com; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; frame-src 'none'; object-src 'none'">
 <meta charset="UTF-8">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9415280244063157" crossorigin="anonymous"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Urubu FC — Plataforma de gestão, análise e escalação de elenco de futebol. Gerencie jogadores, alvos de mercado e estatísticas do seu clube.">
 <meta name="robots" content="index, follow">
 <title>Urubu FC — Gestão de Elenco 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- vendor, css e js injetados pelo build.sh -->
 <style>
 :root{
@@ -58,13 +57,13 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .main{display:flex;flex:1;overflow:hidden}
 .lpanel{width:380px;flex-shrink:0;background:var(--dark);border-right:1px solid var(--dark3);display:flex;flex-direction:column;overflow:hidden}
 .ftabs{display:flex;border-bottom:1px solid var(--dark3)}
-.ftab{flex:1;padding:8px 4px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;text-align:center}
+.ftab{flex:1;padding:8px 4px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;text-align:center}
 .ftab:hover{color:var(--white)}
 .ftab.active{color:var(--white);border-bottom-color:var(--red)}
 .ftab.t-res.active{border-bottom-color:var(--c3);color:var(--c3)}
 .ftab.t-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
 .ptop{padding:9px 13px 7px;border-bottom:1px solid var(--dark3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
-.plbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--gray)}
+.plbl{font-family:'Barlow',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--gray)}
 .fmtabs{display:flex;gap:3px;flex-wrap:wrap}
 .fmtab{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;padding:3px 7px;border-radius:3px;border:1px solid var(--dark4);background:transparent;color:var(--gray);cursor:pointer;transition:all .12s}
 .fmtab:hover{border-color:var(--gray);color:var(--white)}
@@ -75,14 +74,14 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .field.res{background:#122e52 repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,.07) 40px,rgba(0,0,0,.07) 80px);border-color:#0a2240}
 .field.mkt{background:#7a1208 repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,.1) 40px,rgba(0,0,0,.1) 80px);border-color:#4a0a06}
 .fsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.fbadge{position:absolute;top:5px;left:50%;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);pointer-events:none;z-index:1}
+.fbadge{position:absolute;top:5px;left:50%;transform:translateX(-50%);font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);pointer-events:none;z-index:1}
 .scard{width:72px;border-radius:6px;padding:5px 4px;text-align:center;border:1.5px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.3);cursor:pointer;transition:border-color var(--trans-mid),box-shadow var(--trans-fast),background var(--trans-mid);position:absolute;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:5;}
 .scard:hover{border-color:rgba(255,255,255,.55);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.6);}
 .scard.filled{border:1.5px solid rgba(255,255,255,.45);background:rgba(0,0,0,.6);animation:fieldEntrance var(--trans-slow) cubic-bezier(.22,.61,.36,1) both;cursor:grab}
 .scard.ftgt{border:1.5px solid rgba(167,139,250,.6);background:rgba(0,0,0,.6);animation:fieldEntrance var(--trans-slow) cubic-bezier(.22,.61,.36,1) both;cursor:grab}
 .scard.filled:active,.scard.ftgt:active{cursor:grabbing}
 .scard.dov{border-color:#facc15;background:rgba(250,204,21,.1)}
-.sempty{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.28);text-transform:uppercase}
+.sempty{font-family:'Barlow',sans-serif;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.28);text-transform:uppercase}
 .sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .sname{font-family:'Barlow',sans-serif;font-size:9.5px;font-weight:500;color:#fff;line-height:1.15;max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);}
 .ssub{font-size:7px;color:rgba(255,255,255,.5);letter-spacing:.3px;text-transform:uppercase}
@@ -97,7 +96,7 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .hint{font-size:9px;color:var(--dark4);font-style:italic}
 .rpanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .rtabs{display:flex;border-bottom:1px solid var(--dark3);background:var(--dark)}
-.rtab{padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.rtab{padding:8px 16px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
 .rtab:hover{color:var(--white)}
 .rtab.active{color:var(--white);border-bottom-color:var(--red)}
 .rtab.r-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
@@ -123,13 +122,13 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .mf-opt.sel .mf-check{background:var(--red);border-color:var(--red);color:#fff}
 .mf-all{border-bottom:1px solid var(--dark3);margin-bottom:4px;padding-bottom:4px}
 /* SORT */
-.sort-btn{font-family:'Barlow Condensed',sans-serif;font-size:10px;padding:3px 7px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--gray);cursor:pointer;transition:all .12s;white-space:nowrap}
+.sort-btn{font-family:'Barlow',sans-serif;font-size:10px;padding:3px 7px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--gray);cursor:pointer;transition:all .12s;white-space:nowrap}
 .sort-btn:hover{border-color:var(--gray);color:var(--white)}
 .sort-btn.active{background:var(--red);border-color:var(--red);color:#fff}
 /* TABLE */
 .ss{flex:1;overflow-y:auto}.ss::-webkit-scrollbar{width:3px}.ss::-webkit-scrollbar-thumb{background:var(--dark4);border-radius:2px}
 table{width:100%;border-collapse:collapse}
-thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);white-space:nowrap;border-bottom:1px solid var(--dark3)}
+thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);white-space:nowrap;border-bottom:1px solid var(--dark3)}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
 tbody tr:nth-child(even){background:var(--dark)}
@@ -140,7 +139,7 @@ tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
 tr:hover .dh{color:var(--gray)}
 .pname{font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px}
 .ofdot{width:5px;height:5px;border-radius:50%;background:var(--c1);flex-shrink:0;animation:pulse 2s infinite}
-.pbadge{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--gray-l);background:var(--dark3);padding:2px 5px;border-radius:3px;min-width:28px;text-align:center;display:inline-block}
+.pbadge{font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;color:var(--gray-l);background:var(--dark3);padding:2px 5px;border-radius:3px;min-width:28px;text-align:center;display:inline-block}
 .pval{font-size:11px;color:var(--gray)}
 .ssel{font-family:'Barlow',sans-serif;font-size:11px;padding:2px 5px;border-radius:4px;border:1px solid var(--dark4);background:var(--dark3);color:var(--white);cursor:pointer;outline:none;max-width:125px}
 .ssel:focus{border-color:var(--red)}
@@ -162,8 +161,8 @@ tr:hover .dh{color:var(--gray)}
 .p-tooltip{position:fixed;background:#1a1a1a;border:1px solid #444;border-radius:6px;padding:8px 10px;white-space:nowrap;z-index:9999;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;min-width:160px;box-shadow:0 4px 20px rgba(0,0,0,.85)}
 .p-tooltip-row{display:flex;justify-content:space-between;gap:14px;font-size:11px;margin-bottom:3px}
 .p-tooltip-row:last-child{margin-bottom:0}
-.p-tooltip-lbl{color:var(--gray);font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase}
-.p-tooltip-val{color:var(--white);font-weight:600;font-family:'Barlow Condensed',sans-serif;font-size:12px}
+.p-tooltip-lbl{color:var(--gray);font-family:'Barlow',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.p-tooltip-val{color:var(--white);font-weight:600;font-family:'Barlow',sans-serif;font-size:12px}
 .lvl-bar-wrap{width:44px;height:5px;background:var(--dark3);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
 .lvl-bar{height:100%;border-radius:3px}
 /* STARS */
@@ -174,22 +173,22 @@ tr:hover .dh{color:var(--gray)}
 .mwrap{flex:1;overflow-y:auto;padding:12px}.mwrap::-webkit-scrollbar{width:3px}.mwrap::-webkit-scrollbar-thumb{background:var(--dark4);border-radius:2px}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px}
 .tcard-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:6px}
-.tname{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1}
+.tname{font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;line-height:1.1}
 .tclub{font-size:10px;color:var(--gray);margin-top:1px}
-.tpbdg{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:3px 7px;border-radius:3px;background:var(--cvb);color:var(--cv);white-space:nowrap;flex-shrink:0}
+.tpbdg{font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;padding:3px 7px;border-radius:3px;background:var(--cvb);color:var(--cv);white-space:nowrap;flex-shrink:0}
 .tinfo{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
 .trow{display:flex;align-items:center;justify-content:space-between;font-size:11px}
-.trl{color:var(--gray);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;text-transform:uppercase;font-size:9px}
+.trl{color:var(--gray);font-family:'Barlow',sans-serif;letter-spacing:.5px;text-transform:uppercase;font-size:9px}
 .trv{color:var(--white);font-weight:500}
 .tacts{display:flex;gap:5px}
-.tprom{flex:1;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:5px 8px;border-radius:4px;background:var(--cvb);color:var(--cv);border:1px solid rgba(167,139,250,.3);cursor:pointer;transition:all .15s}
+.tprom{flex:1;font-family:'Barlow',sans-serif;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:5px 8px;border-radius:4px;background:var(--cvb);color:var(--cv);border:1px solid rgba(167,139,250,.3);cursor:pointer;transition:all .15s}
 .tprom:hover{background:rgba(167,139,250,.25);border-color:var(--cv)}
 .tab{background:none;border:none;cursor:pointer;font-size:11px;color:var(--gray);padding:3px 6px;border-radius:3px;transition:all .12s}
 .tab:hover{background:var(--dark3);color:var(--white)}
 .tab.dl:hover{background:rgba(204,0,0,.15);color:var(--red)}
 .empty{text-align:center;padding:36px 20px;color:var(--gray);grid-column:1/-1}
-.empty p{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;color:var(--dark4)}
-.tgt-link-btn{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:6px 11px;border-radius:4px;background:var(--cvb);color:var(--cv);border:1px solid rgba(167,139,250,.3);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;flex-shrink:0}
+.empty p{font-family:'Barlow',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;color:var(--dark4)}
+.tgt-link-btn{font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:6px 11px;border-radius:4px;background:var(--cvb);color:var(--cv);border:1px solid rgba(167,139,250,.3);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;flex-shrink:0}
 .tgt-link-btn:hover{background:rgba(167,139,250,.25)}
 .tgt-search-row{display:flex;gap:6px;align-items:flex-end}
 /* ANÁLISE */
@@ -202,10 +201,10 @@ tr:hover .dh{color:var(--gray)}
 .a-hero-num{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;line-height:1;color:var(--white)}
 .a-hero-right{display:flex;flex-direction:column;gap:2px;padding-bottom:6px}
 .a-hero-unit{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
-.a-hero-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:12px}
+.a-hero-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:12px}
 .a-ctx{font-size:10px;color:var(--gray);margin-bottom:12px;letter-spacing:.3px}
 .a-sep{border:none;border-top:1px solid var(--dark3);margin:12px 0}
-.a-block-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:7px;padding-left:2px;border-left:2px solid var(--dark4)}
+.a-block-lbl{font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:7px;padding-left:2px;border-left:2px solid var(--dark4)}
 /* BARS */
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;position:relative}
 .bar-row:hover .bar-tooltip{opacity:1;pointer-events:auto}
@@ -213,14 +212,14 @@ tr:hover .dh{color:var(--gray)}
 .bar-pos-icon{font-size:10px;opacity:.7}
 .bar-track{flex:1;background:var(--dark3);border-radius:6px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.04)}
 .bar-fill{height:8px;border-radius:6px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.bar-val{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--gray-l);width:24px;text-align:right;flex-shrink:0}
+.bar-val{font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;color:var(--gray-l);width:24px;text-align:right;flex-shrink:0}
 .bar-tooltip{position:absolute;left:108px;top:-28px;background:#1a1a1a;border:1px solid #444;border-radius:5px;padding:4px 8px;font-size:10px;color:var(--white);white-space:nowrap;z-index:100;opacity:0;pointer-events:none;transition:opacity .15s}
 /* PIE */
 .pie-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .pie-legend{display:flex;flex-direction:column;gap:5px;flex:1;min-width:100px}
 .pie-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--gray-l)}
 .pie-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.pie-pct{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-left:auto}
+.pie-pct{font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;color:var(--white);margin-left:auto}
 /* TOGGLE */
 .toggle-wrap{display:flex;align-items:center;gap:8px}
 .toggle{position:relative;width:32px;height:18px;flex-shrink:0}
@@ -239,7 +238,7 @@ tr:hover .dh{color:var(--gray)}
 .donut-wrap canvas{display:block}
 .donut-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Barlow Condensed',sans-serif;font-weight:800;line-height:1;text-align:center;pointer-events:none}
 /* STATUS TAGS */
-.stag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.stag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
 .stag-titular{background:#1a2f4a;color:#60a5fa;border:1px solid rgba(96,165,250,.45)}
 .stag-importante{background:#14301f;color:#22c55e;border:1px solid rgba(34,197,94,.45)}
 .stag-compoe{background:#2e1f0e;color:#f97316;border:1px solid rgba(249,115,22,.45)}
@@ -256,7 +255,7 @@ tr:hover .dh{color:var(--gray)}
 .legal-box::-webkit-scrollbar{width:3px}.legal-box::-webkit-scrollbar-thumb{background:var(--dark4)}
 .legal-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;color:var(--white)}
 .legal-body{font-size:12px;line-height:1.7;color:var(--gray-l)}
-.legal-body h3{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin:14px 0 6px}
+.legal-body h3{font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin:14px 0 6px}
 .legal-close{margin-top:20px;display:flex;justify-content:flex-end}
 /* COOKIE BANNER */
 .cookie-bar{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;border-top:1px solid var(--dark4);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:300;flex-wrap:wrap}
@@ -279,13 +278,13 @@ canvas.pie-canvas{display:block;margin:0 auto;border-radius:50%}
 .share-preview{width:100%;border-radius:8px;border:1px solid var(--dark3);background:var(--dark3);max-height:300px;object-fit:contain;display:block}
 .share-hint{font-size:11px;color:var(--gray);line-height:1.6}
 .share-actions{display:flex;gap:8px;flex-wrap:wrap}
-.share-loading{text-align:center;padding:40px 0;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:var(--gray);text-transform:uppercase}
+.share-loading{text-align:center;padding:40px 0;font-family:'Barlow',sans-serif;font-size:12px;letter-spacing:1px;color:var(--gray);text-transform:uppercase}
 /* MODAL JOGADOR / ALVO */
 .mover{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:var(--dark2);border:1px solid var(--dark4);border-radius:10px;padding:22px;max-width:460px;width:100%;display:flex;flex-direction:column;gap:12px}
 .mtitle{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
 .fg{display:flex;flex-direction:column;gap:4px}
-.fl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)}
+.fl{font-family:'Barlow',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)}
 .fi{padding:7px 10px;background:var(--dark3);border:1px solid var(--dark4);border-radius:5px;color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
 .fi:focus{border-color:var(--red)}
 .fi::placeholder{color:var(--dark4)}
@@ -356,9 +355,9 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 /* ── SÉRIE A INPUT GRID ─────────────────────────────────────────────── */
 .sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px}
 .sa-row{display:flex;align-items:center;gap:7px}
-.sa-lbl{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gray-l);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sa-lbl{font-family:'Barlow',sans-serif;font-size:12px;color:var(--gray-l);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sa-lbl.fla{color:#a78bfa;font-weight:700}
-.sa-inp{width:46px;flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:2px 5px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--white);outline:none;text-align:center}
+.sa-inp{width:46px;flex-shrink:0;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;padding:2px 5px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--white);outline:none;text-align:center}
 .sa-inp:focus{border-color:var(--red)}
 .sa-inp.fla-inp{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.06)}
 .sa-row-donut{display:none}
@@ -2314,6 +2313,24 @@ function declineCookies(){localStorage.setItem('ufc_cookie','0');var cb=document
 var _shareBlob=null;
 var _shareFilename='urubufc.png';
 
+// ── trava de repetição (evita múltiplas capturas simultâneas) ──────────────
+var _shareBusy=false;
+var _shareBusyTimer=null;
+var _shareBusyBtn=null;
+function _shareLock(){
+  if(_shareBusy)return false;
+  _shareBusy=true;
+  _shareBusyBtn=(document.activeElement&&document.activeElement.tagName==='BUTTON')?document.activeElement:null;
+  if(_shareBusyBtn){_shareBusyBtn.disabled=true;_shareBusyBtn.style.opacity='0.5';}
+  _shareBusyTimer=setTimeout(_shareUnlock,8000);
+  return true;
+}
+function _shareUnlock(){
+  _shareBusy=false;
+  if(_shareBusyTimer){clearTimeout(_shareBusyTimer);_shareBusyTimer=null;}
+  if(_shareBusyBtn){_shareBusyBtn.disabled=false;_shareBusyBtn.style.opacity='';_shareBusyBtn=null;}
+}
+
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
 function closeShare(){var o=document.getElementById('share-over');if(o)o.classList.remove('open');_shareBlob=null;}
 
@@ -2334,8 +2351,9 @@ function capturarImagem(elementoId, nomeArquivo){
   if(!el){alert('Elemento não encontrado: '+elementoId);return;}
   if(typeof html2canvas==='undefined'){alert('Biblioteca de captura não carregou. Verifique sua conexão.');return;}
   _shareFilename=nomeArquivo||'urubufc.png';
+  if(!_shareLock())return;
   // Resetar modal
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   // Pequeno delay para garantir que o modal abre antes da captura
   setTimeout(function(){
@@ -2354,10 +2372,12 @@ function capturarImagem(elementoId, nomeArquivo){
         img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('html2canvas erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -2400,7 +2420,8 @@ function compartilharCampo(){
   var nomes={A:'titulares',B:'reservas',C:'projecao'};
   var tab=ST&&ST.ft?ST.ft:'A';
   _shareFilename='urubufc-escala-'+nomes[tab]+'.png';
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -2431,10 +2452,12 @@ function compartilharCampo(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharCampo erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -2442,8 +2465,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeShare()
 
 function compartilharElenco(){
   _shareFilename='urubufc-elenco.png';
+  if(!_shareLock())return;
 
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -2455,6 +2479,7 @@ function compartilharElenco(){
     if(!ssEl){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro: tabela não encontrada.';
+      _shareUnlock();
       return;
     }
     var ssOvOrig=ssEl.style.overflow;
@@ -2487,6 +2512,7 @@ function compartilharElenco(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       ssEl.style.overflow=ssOvOrig;
@@ -2496,14 +2522,16 @@ function compartilharElenco(){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharElenco erro:',err);
+      _shareUnlock();
     });
   },120);
 }
 
 function compartilharMercado(){
   _shareFilename='urubufc-alvos-mercado.png';
+  if(!_shareLock())return;
 
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -2514,6 +2542,7 @@ function compartilharMercado(){
     if(!mwrap){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro: lista de alvos não encontrada.';
+      _shareUnlock();
       return;
     }
     var mwOvOrig=mwrap.style.overflow;
@@ -2546,6 +2575,7 @@ function compartilharMercado(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       mwrap.style.overflow=mwOvOrig;
@@ -2555,13 +2585,15 @@ function compartilharMercado(){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharMercado erro:',err);
+      _shareUnlock();
     });
   },120);
 }
 
 function _capturarElementoSimples(el, filename){
   _shareFilename=filename;
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   setTimeout(function(){
     html2canvas(el,{
@@ -2578,10 +2610,12 @@ function _capturarElementoSimples(el, filename){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('captura erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -2593,7 +2627,8 @@ function compartilharCardAnalise(cardEl, titulo){
 
 function compartilharAnaliseCompleta(){
   _shareFilename='urubufc-analise-completa.png';
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   setTimeout(function(){
     var awrap=document.querySelector('#pane-analise .awrap');
@@ -2622,6 +2657,7 @@ function compartilharAnaliseCompleta(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       awrap.style.overflow=ovOrig;
@@ -2629,6 +2665,7 @@ function compartilharAnaliseCompleta(){
       awrap.style.maxHeight=maxOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharAnaliseCompleta erro:',err);
+      _shareUnlock();
     });
   },120);
 }
