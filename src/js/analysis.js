@@ -1,3 +1,7 @@
+// ─── blindagem numérica (Nível/Valor) contra dados corrompidos no localStorage ──
+function safeNivel(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(100,n));}
+function safeValor(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(999,n));}
+
 function renderAnalise(){
   const grid=document.getElementById('agrid');grid.innerHTML='';
   const pl=ST.players;const tg=ST.targets;if(!pl.length)return;
@@ -27,7 +31,7 @@ function renderAnalise(){
 
   // ── 2. NÍVEL MÉDIO ──────────────────────────────────────────────
   const c2=makeCard(false,'Nível Médio',['bar'],function(cont){
-    const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+    const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     const avg=nivs.length?(nivs.reduce(function(a,b){return a+b;},0)/nivs.length).toFixed(1):0;
     const bd=nivelBadge(parseFloat(avg));
     // hero com donut grande
@@ -44,7 +48,7 @@ function renderAnalise(){
     blkLbl(cont,'Por status');
     const sdData=[];
     SLIST.forEach(function(s){
-      const arr=pl.filter(function(p){return p.status===s&&p.nivel;}).map(function(p){return p.nivel;});
+      const arr=pl.filter(function(p){return p.status===s&&p.nivel;}).map(function(p){return safeNivel(p.nivel);});
       if(arr.length){const v=parseFloat((arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1));sdData.push({lbl:s,val:v});}
     });
     // donut grid for status
@@ -76,12 +80,12 @@ function renderAnalise(){
     }
     tabData.forEach(function(td){
       if(!td.players.length)return;
-      const arr=td.players.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+      const arr=td.players.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
       if(!arr.length)return;
       const v=parseFloat((arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1));
       escGrid.appendChild(makeEscDonut(v,td.col,td.lbl));
     });
-    const tgNivs=tg.filter(function(t){return t.nivel;}).map(function(t){return t.nivel;});
+    const tgNivs=tg.filter(function(t){return t.nivel;}).map(function(t){return safeNivel(t.nivel);});
     if(tgNivs.length){
       const tav=parseFloat((tgNivs.reduce(function(a,b){return a+b;},0)/tgNivs.length).toFixed(1));
       escGrid.appendChild(makeEscDonut(tav,'var(--cv)','Alvos'));
@@ -92,8 +96,8 @@ function renderAnalise(){
 
   // ── 3. VALOR DO ELENCO ──────────────────────────────────────────
   const c3=makeCard(true,'Valor do Elenco',['bar'],function(cont,type){
-    const total=pl.reduce(function(a,p){return a+(p.valor||0);},0);
-    const tgTotal=tg.reduce(function(a,t){return a+(t.val||0);},0);
+    const total=pl.reduce(function(a,p){return a+safeValor(p.valor);},0);
+    const tgTotal=tg.reduce(function(a,t){return a+safeValor(t.val);},0);
 
     // hero inline — mesmo padrão que idade/nível
     const hero=document.createElement('div');hero.className='a-hero';
@@ -118,20 +122,20 @@ function renderAnalise(){
     sep(cont);
     blkLbl(cont,'Valor por status');
     const stData=[];
-    SLIST.forEach(function(s){const v=pl.filter(function(p){return p.status===s;}).reduce(function(a,p){return a+(p.valor||0);},0);if(v>0)stData.push({lbl:s,val:v,customColor:SHEX[s]});});
+    SLIST.forEach(function(s){const v=pl.filter(function(p){return p.status===s;}).reduce(function(a,p){return a+safeValor(p.valor);},0);if(v>0)stData.push({lbl:s,val:v,customColor:SHEX[s]});});
     {
       const maxV=stData.length?Math.max.apply(null,stData.map(function(d){return d.val;})):1;
-      barChart(cont,stData,maxV,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:true,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(1)+'M';}});
+      barChart(cont,stData,maxV,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:true,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(1)+'M';},sqrtScale:true});
     }
 
     sep(cont);
     blkLbl(cont,'Top jogadores por valor');
-    const sorted=pl.slice().sort(function(a,b){return (b.valor||0)-(a.valor||0);}).slice(0,7);
-    const tgSorted=tg.slice().sort(function(a,b){return (b.val||0)-(a.val||0);}).slice(0,3);
-    const allSorted=sorted.map(function(p){return{lbl:p.name,val:p.valor||0,customColor:'#a78bfa'};})
-      .concat(tgSorted.map(function(t){return{lbl:t.name+' ★',val:t.val||0,customColor:'var(--cv)'};}) );
+    const sorted=pl.slice().sort(function(a,b){return safeValor(b.valor)-safeValor(a.valor);}).slice(0,7);
+    const tgSorted=tg.slice().sort(function(a,b){return safeValor(b.val)-safeValor(a.val);}).slice(0,3);
+    const allSorted=sorted.map(function(p){return{lbl:p.name,val:safeValor(p.valor),customColor:'#a78bfa'};})
+      .concat(tgSorted.map(function(t){return{lbl:t.name+' ★',val:safeValor(t.val),customColor:'var(--cv)'};}) );
     const maxV2=allSorted[0]?allSorted[0].val||1:1;
-    barChart(cont,allSorted,maxV2,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:false,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(0)+'M';}});
+    barChart(cont,allSorted,maxV2,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:false,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(0)+'M';},sqrtScale:true});
   });
   // (c3 appendado no final)
 
@@ -214,7 +218,7 @@ function renderAnalise(){
 
   // ── 7. NÍVEL MÉDIO — SÉRIE A ────────────────────────────────────
   const flaAvg=(function(){
-    const ns=pl.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+    const ns=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     return ns.length?parseFloat((ns.reduce(function(a,b){return a+b;},0)/ns.length).toFixed(1)):0;
   }());
   // sincroniza Flamengo automaticamente

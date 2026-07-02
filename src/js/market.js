@@ -74,7 +74,9 @@ function drawPie(canvas,data,colors){
 function barChart(parent,data,maxVal,colors,numFmt,opts){
   opts=opts||{};
   data.forEach(function(d,i){
-    const pct=maxVal?Math.round(d.val/maxVal*100):0;
+    const baseVal=opts.sqrtScale?Math.sqrt(Math.max(0,d.val)):d.val;
+    const baseMax=opts.sqrtScale?Math.sqrt(Math.max(0,maxVal)):maxVal;
+    const pct=baseMax?Math.round(baseVal/baseMax*100):0;
     const row=document.createElement('div');row.className='bar-row';
 
     // label

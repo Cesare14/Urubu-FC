@@ -1829,7 +1829,9 @@ function drawPie(canvas,data,colors){
 function barChart(parent,data,maxVal,colors,numFmt,opts){
   opts=opts||{};
   data.forEach(function(d,i){
-    const pct=maxVal?Math.round(d.val/maxVal*100):0;
+    const baseVal=opts.sqrtScale?Math.sqrt(Math.max(0,d.val)):d.val;
+    const baseMax=opts.sqrtScale?Math.sqrt(Math.max(0,maxVal)):maxVal;
+    const pct=baseMax?Math.round(baseVal/baseMax*100):0;
     const row=document.createElement('div');row.className='bar-row';
 
     // label
@@ -1935,6 +1937,10 @@ function blkLbl(cont,txt){const d=document.createElement('div');d.className='a-b
 // ─── renderAnalise v8 ─────────────────────────────────────────────
 
 /* === analysis.js === */
+// ─── blindagem numérica (Nível/Valor) contra dados corrompidos no localStorage ──
+function safeNivel(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(100,n));}
+function safeValor(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(999,n));}
+
 function renderAnalise(){
   const grid=document.getElementById('agrid');grid.innerHTML='';
   const pl=ST.players;const tg=ST.targets;if(!pl.length)return;
@@ -1964,7 +1970,7 @@ function renderAnalise(){
 
   // ── 2. NÍVEL MÉDIO ──────────────────────────────────────────────
   const c2=makeCard(false,'Nível Médio',['bar'],function(cont){
-    const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+    const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     const avg=nivs.length?(nivs.reduce(function(a,b){return a+b;},0)/nivs.length).toFixed(1):0;
     const bd=nivelBadge(parseFloat(avg));
     // hero com donut grande
@@ -1981,7 +1987,7 @@ function renderAnalise(){
     blkLbl(cont,'Por status');
     const sdData=[];
     SLIST.forEach(function(s){
-      const arr=pl.filter(function(p){return p.status===s&&p.nivel;}).map(function(p){return p.nivel;});
+      const arr=pl.filter(function(p){return p.status===s&&p.nivel;}).map(function(p){return safeNivel(p.nivel);});
       if(arr.length){const v=parseFloat((arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1));sdData.push({lbl:s,val:v});}
     });
     // donut grid for status
@@ -2013,12 +2019,12 @@ function renderAnalise(){
     }
     tabData.forEach(function(td){
       if(!td.players.length)return;
-      const arr=td.players.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+      const arr=td.players.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
       if(!arr.length)return;
       const v=parseFloat((arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1));
       escGrid.appendChild(makeEscDonut(v,td.col,td.lbl));
     });
-    const tgNivs=tg.filter(function(t){return t.nivel;}).map(function(t){return t.nivel;});
+    const tgNivs=tg.filter(function(t){return t.nivel;}).map(function(t){return safeNivel(t.nivel);});
     if(tgNivs.length){
       const tav=parseFloat((tgNivs.reduce(function(a,b){return a+b;},0)/tgNivs.length).toFixed(1));
       escGrid.appendChild(makeEscDonut(tav,'var(--cv)','Alvos'));
@@ -2029,8 +2035,8 @@ function renderAnalise(){
 
   // ── 3. VALOR DO ELENCO ──────────────────────────────────────────
   const c3=makeCard(true,'Valor do Elenco',['bar'],function(cont,type){
-    const total=pl.reduce(function(a,p){return a+(p.valor||0);},0);
-    const tgTotal=tg.reduce(function(a,t){return a+(t.val||0);},0);
+    const total=pl.reduce(function(a,p){return a+safeValor(p.valor);},0);
+    const tgTotal=tg.reduce(function(a,t){return a+safeValor(t.val);},0);
 
     // hero inline — mesmo padrão que idade/nível
     const hero=document.createElement('div');hero.className='a-hero';
@@ -2055,20 +2061,20 @@ function renderAnalise(){
     sep(cont);
     blkLbl(cont,'Valor por status');
     const stData=[];
-    SLIST.forEach(function(s){const v=pl.filter(function(p){return p.status===s;}).reduce(function(a,p){return a+(p.valor||0);},0);if(v>0)stData.push({lbl:s,val:v,customColor:SHEX[s]});});
+    SLIST.forEach(function(s){const v=pl.filter(function(p){return p.status===s;}).reduce(function(a,p){return a+safeValor(p.valor);},0);if(v>0)stData.push({lbl:s,val:v,customColor:SHEX[s]});});
     {
       const maxV=stData.length?Math.max.apply(null,stData.map(function(d){return d.val;})):1;
-      barChart(cont,stData,maxV,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:true,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(1)+'M';}});
+      barChart(cont,stData,maxV,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:true,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(1)+'M';},sqrtScale:true});
     }
 
     sep(cont);
     blkLbl(cont,'Top jogadores por valor');
-    const sorted=pl.slice().sort(function(a,b){return (b.valor||0)-(a.valor||0);}).slice(0,7);
-    const tgSorted=tg.slice().sort(function(a,b){return (b.val||0)-(a.val||0);}).slice(0,3);
-    const allSorted=sorted.map(function(p){return{lbl:p.name,val:p.valor||0,customColor:'#a78bfa'};})
-      .concat(tgSorted.map(function(t){return{lbl:t.name+' ★',val:t.val||0,customColor:'var(--cv)'};}) );
+    const sorted=pl.slice().sort(function(a,b){return safeValor(b.valor)-safeValor(a.valor);}).slice(0,7);
+    const tgSorted=tg.slice().sort(function(a,b){return safeValor(b.val)-safeValor(a.val);}).slice(0,3);
+    const allSorted=sorted.map(function(p){return{lbl:p.name,val:safeValor(p.valor),customColor:'#a78bfa'};})
+      .concat(tgSorted.map(function(t){return{lbl:t.name+' ★',val:safeValor(t.val),customColor:'var(--cv)'};}) );
     const maxV2=allSorted[0]?allSorted[0].val||1:1;
-    barChart(cont,allSorted,maxV2,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:false,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(0)+'M';}});
+    barChart(cont,allSorted,maxV2,null,function(v){return '€'+v.toFixed(0)+'M';},{primary:false,tooltipFn:function(d){return d.lbl+': €'+d.val.toFixed(0)+'M';},sqrtScale:true});
   });
   // (c3 appendado no final)
 
@@ -2151,7 +2157,7 @@ function renderAnalise(){
 
   // ── 7. NÍVEL MÉDIO — SÉRIE A ────────────────────────────────────
   const flaAvg=(function(){
-    const ns=pl.filter(function(p){return p.nivel;}).map(function(p){return p.nivel;});
+    const ns=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     return ns.length?parseFloat((ns.reduce(function(a,b){return a+b;},0)/ns.length).toFixed(1)):0;
   }());
   // sincroniza Flamengo automaticamente
@@ -2693,10 +2699,24 @@ function compartilharLinkEscalacao(){
 // ────────────────────────────────────────────────────────────────────────────
 
 /* === app.js === */
+// ─── validação de input (Nível/Valor) ──────────────────────────────
+function clampNivel(v){var n=parseInt(v,10);if(v===''||isNaN(n)||n<0||n>100)return null;return n;}
+function clampValor(v){var n=parseFloat(v);if(v===''||isNaN(n)||n<0||n>999)return null;return n;}
+function bindNumericGuard(id,clampFn){
+  var el=document.getElementById(id);if(!el)return;
+  el.addEventListener('focus',function(){el.dataset.lastValid=el.value;});
+  el.addEventListener('blur',function(){
+    if(el.value==='')return;
+    var v=clampFn(el.value);
+    if(v===null)el.value=el.dataset.lastValid||'';
+    else{el.value=v;el.dataset.lastValid=v;}
+  });
+}
+
 function closePl(){ST.epid=null;document.getElementById('modal-pl').style.display='none';}
 function savePl(){
   const name=document.getElementById('mpl-name').value.trim();if(!name){document.getElementById('mpl-name').focus();return;}
-  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,nivel=+document.getElementById('mpl-nivel').value||nivelDef(status),valor=parseFloat(document.getElementById('mpl-valor').value)||0,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
+  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
   if(ST.epid!==null){const p=gp(ST.epid);if(p)Object.assign(p,{name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});}
   else ST.players.push({id:npi(),name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});
   closePl();save();render();
@@ -2725,7 +2745,7 @@ function buildStarSelect(){
 function closeTgt(){ST.etid=null;document.getElementById('modal-tgt').style.display='none';}
 function saveTgt(){
   const name=document.getElementById('mtgt-name').value.trim();if(!name){document.getElementById('mtgt-name').focus();return;}
-  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=parseFloat(document.getElementById('mtgt-val').value)||null,nivel=+document.getElementById('mtgt-nivel').value||null,contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
+  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
   if(ST.etid!==null){const t=gt(ST.etid);if(t)Object.assign(t,{name,pos,age,club,val,nivel,contract,obs,prio});}
   else ST.targets.push({id:nti(),name,pos,age,club,val,nivel,contract,obs,prio});
   closeTgt();save();renderMercado();renderBar();if(ST.rt==='analise')renderAnalise();
@@ -2747,6 +2767,10 @@ document.getElementById('mtgt-cancel').onclick=closeTgt;
 document.getElementById('mtgt-ok').onclick=saveTgt;
 document.getElementById('modal-tgt').onclick=function(e){if(e.target===e.currentTarget)closeTgt();};
 document.getElementById('mtgt-name').addEventListener('input',updateTmkt);
+bindNumericGuard('mpl-nivel',clampNivel);
+bindNumericGuard('mpl-valor',clampValor);
+bindNumericGuard('mtgt-nivel',clampNivel);
+bindNumericGuard('mtgt-val',clampValor);
 document.getElementById('si-search').oninput=function(e){ST.sf=e.target.value;renderTable();};
 document.getElementById('tgt-search').oninput=function(e){ST.tsf=e.target.value;renderMercado();};
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});

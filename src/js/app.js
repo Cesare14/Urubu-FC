@@ -1,7 +1,21 @@
+// ─── validação de input (Nível/Valor) ──────────────────────────────
+function clampNivel(v){var n=parseInt(v,10);if(v===''||isNaN(n)||n<0||n>100)return null;return n;}
+function clampValor(v){var n=parseFloat(v);if(v===''||isNaN(n)||n<0||n>999)return null;return n;}
+function bindNumericGuard(id,clampFn){
+  var el=document.getElementById(id);if(!el)return;
+  el.addEventListener('focus',function(){el.dataset.lastValid=el.value;});
+  el.addEventListener('blur',function(){
+    if(el.value==='')return;
+    var v=clampFn(el.value);
+    if(v===null)el.value=el.dataset.lastValid||'';
+    else{el.value=v;el.dataset.lastValid=v;}
+  });
+}
+
 function closePl(){ST.epid=null;document.getElementById('modal-pl').style.display='none';}
 function savePl(){
   const name=document.getElementById('mpl-name').value.trim();if(!name){document.getElementById('mpl-name').focus();return;}
-  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,nivel=+document.getElementById('mpl-nivel').value||nivelDef(status),valor=parseFloat(document.getElementById('mpl-valor').value)||0,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
+  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
   if(ST.epid!==null){const p=gp(ST.epid);if(p)Object.assign(p,{name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});}
   else ST.players.push({id:npi(),name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});
   closePl();save();render();
@@ -30,7 +44,7 @@ function buildStarSelect(){
 function closeTgt(){ST.etid=null;document.getElementById('modal-tgt').style.display='none';}
 function saveTgt(){
   const name=document.getElementById('mtgt-name').value.trim();if(!name){document.getElementById('mtgt-name').focus();return;}
-  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=parseFloat(document.getElementById('mtgt-val').value)||null,nivel=+document.getElementById('mtgt-nivel').value||null,contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
+  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
   if(ST.etid!==null){const t=gt(ST.etid);if(t)Object.assign(t,{name,pos,age,club,val,nivel,contract,obs,prio});}
   else ST.targets.push({id:nti(),name,pos,age,club,val,nivel,contract,obs,prio});
   closeTgt();save();renderMercado();renderBar();if(ST.rt==='analise')renderAnalise();
@@ -52,6 +66,10 @@ document.getElementById('mtgt-cancel').onclick=closeTgt;
 document.getElementById('mtgt-ok').onclick=saveTgt;
 document.getElementById('modal-tgt').onclick=function(e){if(e.target===e.currentTarget)closeTgt();};
 document.getElementById('mtgt-name').addEventListener('input',updateTmkt);
+bindNumericGuard('mpl-nivel',clampNivel);
+bindNumericGuard('mpl-valor',clampValor);
+bindNumericGuard('mtgt-nivel',clampNivel);
+bindNumericGuard('mtgt-val',clampValor);
 document.getElementById('si-search').oninput=function(e){ST.sf=e.target.value;renderTable();};
 document.getElementById('tgt-search').oninput=function(e){ST.tsf=e.target.value;renderMercado();};
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});
