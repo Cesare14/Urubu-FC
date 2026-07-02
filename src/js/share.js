@@ -2,6 +2,24 @@
 var _shareBlob=null;
 var _shareFilename='urubufc.png';
 
+// ── trava de repetição (evita múltiplas capturas simultâneas) ──────────────
+var _shareBusy=false;
+var _shareBusyTimer=null;
+var _shareBusyBtn=null;
+function _shareLock(){
+  if(_shareBusy)return false;
+  _shareBusy=true;
+  _shareBusyBtn=(document.activeElement&&document.activeElement.tagName==='BUTTON')?document.activeElement:null;
+  if(_shareBusyBtn){_shareBusyBtn.disabled=true;_shareBusyBtn.style.opacity='0.5';}
+  _shareBusyTimer=setTimeout(_shareUnlock,8000);
+  return true;
+}
+function _shareUnlock(){
+  _shareBusy=false;
+  if(_shareBusyTimer){clearTimeout(_shareBusyTimer);_shareBusyTimer=null;}
+  if(_shareBusyBtn){_shareBusyBtn.disabled=false;_shareBusyBtn.style.opacity='';_shareBusyBtn=null;}
+}
+
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
 function closeShare(){var o=document.getElementById('share-over');if(o)o.classList.remove('open');_shareBlob=null;}
 
@@ -22,8 +40,9 @@ function capturarImagem(elementoId, nomeArquivo){
   if(!el){alert('Elemento não encontrado: '+elementoId);return;}
   if(typeof html2canvas==='undefined'){alert('Biblioteca de captura não carregou. Verifique sua conexão.');return;}
   _shareFilename=nomeArquivo||'urubufc.png';
+  if(!_shareLock())return;
   // Resetar modal
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   // Pequeno delay para garantir que o modal abre antes da captura
   setTimeout(function(){
@@ -42,10 +61,12 @@ function capturarImagem(elementoId, nomeArquivo){
         img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('html2canvas erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -88,7 +109,8 @@ function compartilharCampo(){
   var nomes={A:'titulares',B:'reservas',C:'projecao'};
   var tab=ST&&ST.ft?ST.ft:'A';
   _shareFilename='urubufc-escala-'+nomes[tab]+'.png';
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -119,10 +141,12 @@ function compartilharCampo(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharCampo erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -130,8 +154,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeShare()
 
 function compartilharElenco(){
   _shareFilename='urubufc-elenco.png';
+  if(!_shareLock())return;
 
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -143,6 +168,7 @@ function compartilharElenco(){
     if(!ssEl){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro: tabela não encontrada.';
+      _shareUnlock();
       return;
     }
     var ssOvOrig=ssEl.style.overflow;
@@ -175,6 +201,7 @@ function compartilharElenco(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       ssEl.style.overflow=ssOvOrig;
@@ -184,14 +211,16 @@ function compartilharElenco(){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharElenco erro:',err);
+      _shareUnlock();
     });
   },120);
 }
 
 function compartilharMercado(){
   _shareFilename='urubufc-alvos-mercado.png';
+  if(!_shareLock())return;
 
-  if(!_resetModal())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
 
   setTimeout(function(){
@@ -202,6 +231,7 @@ function compartilharMercado(){
     if(!mwrap){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro: lista de alvos não encontrada.';
+      _shareUnlock();
       return;
     }
     var mwOvOrig=mwrap.style.overflow;
@@ -234,6 +264,7 @@ function compartilharMercado(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       mwrap.style.overflow=mwOvOrig;
@@ -243,13 +274,15 @@ function compartilharMercado(){
       pane.style.display=paneDispOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharMercado erro:',err);
+      _shareUnlock();
     });
   },120);
 }
 
 function _capturarElementoSimples(el, filename){
   _shareFilename=filename;
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   setTimeout(function(){
     html2canvas(el,{
@@ -266,10 +299,12 @@ function _capturarElementoSimples(el, filename){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('captura erro:',err);
+      _shareUnlock();
     });
   },120);
 }
@@ -281,7 +316,8 @@ function compartilharCardAnalise(cardEl, titulo){
 
 function compartilharAnaliseCompleta(){
   _shareFilename='urubufc-analise-completa.png';
-  if(!_resetModal())return;
+  if(!_shareLock())return;
+  if(!_resetModal()){_shareUnlock();return;}
   openShare();
   setTimeout(function(){
     var awrap=document.querySelector('#pane-analise .awrap');
@@ -310,6 +346,7 @@ function compartilharAnaliseCompleta(){
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _shareUnlock();
       },'image/png');
     }).catch(function(err){
       awrap.style.overflow=ovOrig;
@@ -317,6 +354,7 @@ function compartilharAnaliseCompleta(){
       awrap.style.maxHeight=maxOrig;
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharAnaliseCompleta erro:',err);
+      _shareUnlock();
     });
   },120);
 }
