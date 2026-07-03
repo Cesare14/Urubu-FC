@@ -85,7 +85,7 @@ function renderTable(){
     const tdP=document.createElement('td');tdP.innerHTML='<span class="pbadge">'+p.pos+'</span>';tr.appendChild(tdP);
     const tdA=document.createElement('td');tdA.innerHTML='<span class="pval">'+p.age+'</span>';tr.appendChild(tdA);
     const tdNa=document.createElement('td');tdNa.innerHTML='<span class="pval">'+sanitizeText(p.nat||'')+'</span>';tr.appendChild(tdNa);
-    const tdNv=document.createElement('td');tdNv.appendChild(nivelDonutEl(p.nivel,28));tr.appendChild(tdNv);
+    const tdNv=document.createElement('td');const nvEl=nivelDonutEl(p.nivel,28);nvEl.className+=' nivel-compact';tdNv.appendChild(nvEl);tr.appendChild(tdNv);
     // Status: tag visual + select oculto para edição ao clicar
     const tdS=document.createElement('td');
     tdS.style.cssText='position:relative;cursor:pointer';
@@ -213,7 +213,7 @@ function renderMercado(){
       const nivelRow=document.createElement('div');nivelRow.className='trow';nivelRow.style.alignItems='center';
       const trl=document.createElement('span');trl.className='trl';trl.textContent='Nível';
       const trv=document.createElement('div');trv.style.cssText='display:flex;align-items:center;gap:6px';
-      const donutEl=nivelDonutEl(t.nivel,28);
+      const donutEl=nivelDonutEl(t.nivel,28);donutEl.className+=' nivel-compact';
       // remover o label interno do donut (fica só o número grande externo)
       const innerLbl=donutEl.querySelector('.donut-num');if(innerLbl)innerLbl.remove();
       trv.appendChild(donutEl);

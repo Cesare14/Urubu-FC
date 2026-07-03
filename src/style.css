@@ -488,7 +488,15 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .c7chart{display:none}
 
   /* Coluna Nível/Donut: reduzir canvas (exceto donuts grandes de análise e inline série A) */
-  .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut) .donut-num{font-size:7px!important}
+  .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:7px!important}
+
+  /* ── NÍVEL MOBILE: número colorido em vez de donut (tabela elenco + card alvo) ── */
+  .nivel-compact canvas{display:none}
+  .nivel-compact{width:auto!important;height:auto!important}
+  .nivel-compact .donut-num{position:static;transform:none;font-size:16px!important}
+
+  /* ── BADGE DE STATUS MOBILE: compacta, com quebra de linha ─────── */
+  .stag{padding:2px 6px;white-space:normal;max-width:70px;text-align:center}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
   .sbar:empty{display:none}
