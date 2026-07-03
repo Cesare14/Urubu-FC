@@ -123,6 +123,8 @@ tbody tr:nth-child(even){background:var(--dark)}
 tbody tr:hover{background:var(--dark3)}
 tbody tr.onf{opacity:1}
 tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
+/* Coluna Status: largura fixa (substitui o width:125px inline removido do body.html) */
+#thead-row th:nth-child(7),#tbody td:nth-child(7){width:125px}
 .dh{color:var(--dark4);font-size:14px;cursor:grab;user-select:none}
 tr:hover .dh{color:var(--gray)}
 .pname{font-weight:600;font-size:12px;display:flex;align-items:center;gap:6px}
@@ -496,8 +498,9 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .nivel-compact .donut-num{position:static;transform:none;font-size:16px!important}
 
   /* ── BADGE DE STATUS MOBILE: compacta, com quebra de linha ─────── */
-  .stag{padding:1px 4px;font-size:7px;white-space:normal;max-width:60px;text-align:center}
+  .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
+  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:70px}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
   .sbar:empty{display:none}
