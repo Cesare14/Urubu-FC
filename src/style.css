@@ -506,14 +506,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── BADGE DE STATUS MOBILE: compacta, com quebra de linha ─────── */
   .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
+  .stag-compoe{max-width:38px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
-  #thead-row th:nth-child(1),#tbody td:nth-child(1){width:5%}
-  #thead-row th:nth-child(2),#tbody td:nth-child(2){width:30%}
+  #thead-row th:nth-child(1),#tbody td:nth-child(1){width:4%}
+  #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
   #thead-row th:nth-child(3),#tbody td:nth-child(3){width:10%}
   #thead-row th:nth-child(4),#tbody td:nth-child(4){width:8%}
-  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:12%}
-  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:25%}
+  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:9%}
+  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:21%}
   #thead-row th:nth-child(9),#tbody td:nth-child(9){width:10%}
+  #tbody td:nth-child(6){padding:3px 2px}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
   .sbar:empty{display:none}
