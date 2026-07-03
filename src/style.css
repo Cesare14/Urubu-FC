@@ -506,7 +506,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── BADGE DE STATUS MOBILE: compacta, com quebra de linha ─────── */
   .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
-  .stag-compoe{max-width:100%;padding:2px 4px}
+  .stag-compoe{max-width:100%;padding:2px 3px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
   #thead-row th:nth-child(1),#tbody td:nth-child(1){width:4%}
   #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
