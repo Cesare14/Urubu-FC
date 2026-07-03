@@ -444,7 +444,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     flex-direction:column;
   }
   .ss{overflow-x:auto;overflow-y:visible;height:auto}
-  .ss table{min-width:480px;table-layout:fixed}
+  .ss table{table-layout:fixed}
   .mwrap{overflow:visible;height:auto}
   .awrap{overflow:visible;height:auto}
 
