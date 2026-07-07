@@ -45,7 +45,7 @@ function renderTable(){
     const onf=Object.values(ST.slots).some(function(a){return a.includes(p.id);});
     const tr=document.createElement('tr');if(onf)tr.classList.add('onf');
     tr.setAttribute('data-pid',p.id);
-    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
+    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
     const tdD=document.createElement('td');tdD.innerHTML='<span class="dh">⠿</span>';tr.appendChild(tdD);
     const tdN=document.createElement('td');
     const nd=document.createElement('div');nd.className='pname';
@@ -195,7 +195,8 @@ function renderMercado(){
   filtered.forEach(function(t,idx){
     const c=document.createElement('div');c.className='tcard';c.setAttribute('draggable','true');
     c.style.animationDelay=(idx*0.04)+'s';
-    c.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';});
+    c.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(t.pos,ST.ft);});
+    c.addEventListener('dragend',function(e){clearCompatibleHighlight();});
     const hdr=document.createElement('div');hdr.className='tcard-hdr';
     const info=document.createElement('div');
     const tn=document.createElement('div');tn.className='tname';tn.textContent=t.name;

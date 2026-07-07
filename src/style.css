@@ -42,6 +42,7 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .btn-red{background:var(--red);color:#fff;border:1.5px solid var(--red)}.btn-red:hover{background:var(--red-l);border-color:var(--red-l)}
 .btn-ghost{background:rgba(255,255,255,.04);color:var(--gray-l);border:1.5px solid var(--dark4)}.btn-ghost:hover{border-color:var(--gray);color:var(--white);background:var(--dark3)}
 .btn-purple{background:transparent;color:var(--red);border:1.5px solid var(--red)}.btn-purple:hover{background:rgba(197,38,19,.08)}
+.scrollwrap{display:contents}
 .main{display:flex;flex:1;overflow:hidden}
 .lpanel{width:380px;min-width:380px;flex-shrink:0;background:var(--dark);border-right:1px solid var(--dark3);display:flex;flex-direction:column;overflow:hidden}
 .ftabs{display:flex;border-bottom:1px solid var(--dark3)}
@@ -376,8 +377,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
 /* ── RESPONSIVIDADE MOBILE ─────────────────────────────────────────── */
 @media(max-width:767px){
-  /* body: permite scroll vertical */
-  body{height:auto;min-height:100dvh;overflow:auto}
+  /* body: rolagem delegada ao #scrollwrap (evita trava de scroll do documento
+     no Chrome Android durante touch-action:none + preventDefault no drag) */
+  body{height:100dvh;overflow:hidden}
+  /* #scrollwrap: container de rolagem próprio (com overflow interno confiável no touch) */
+  #scrollwrap{
+    display:block;
+    height:calc(100dvh - 110px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
 
   /* ── HEADER: 2 linhas ──────────────────────────────────────────── */
   /* Linha 1: logo + título centralizados */

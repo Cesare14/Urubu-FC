@@ -14,8 +14,8 @@ function bindNumericGuard(id,clampFn){
 
 function closePl(){ST.epid=null;document.getElementById('modal-pl').style.display='none';}
 function savePl(){
-  const name=document.getElementById('mpl-name').value.trim();if(!name){document.getElementById('mpl-name').focus();return;}
-  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
+  const name=sanitizeText(document.getElementById('mpl-name').value.trim());if(!name){document.getElementById('mpl-name').focus();return;}
+  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=sanitizeText(document.getElementById('mpl-nat').value.trim()||'BRA'),status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=sanitizeText(document.getElementById('mpl-obs').value.trim()),selecionavel=mplSelVal;
   if(ST.epid!==null){const p=gp(ST.epid);if(p)Object.assign(p,{name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});}
   else ST.players.push({id:npi(),name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});
   closePl();save();render();
@@ -43,8 +43,8 @@ function buildStarSelect(){
 }
 function closeTgt(){ST.etid=null;document.getElementById('modal-tgt').style.display='none';}
 function saveTgt(){
-  const name=document.getElementById('mtgt-name').value.trim();if(!name){document.getElementById('mtgt-name').focus();return;}
-  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
+  const name=sanitizeText(document.getElementById('mtgt-name').value.trim());if(!name){document.getElementById('mtgt-name').focus();return;}
+  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=sanitizeText(document.getElementById('mtgt-club').value.trim()),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=sanitizeText(document.getElementById('mtgt-contract').value.trim()),obs=sanitizeText(document.getElementById('mtgt-obs').value.trim()),prio=mtgtPrio;
   if(ST.etid!==null){const t=gt(ST.etid);if(t)Object.assign(t,{name,pos,age,club,val,nivel,contract,obs,prio});}
   else ST.targets.push({id:nti(),name,pos,age,club,val,nivel,contract,obs,prio});
   closeTgt();save();renderMercado();renderBar();if(ST.rt==='analise')renderAnalise();

@@ -6,6 +6,7 @@ var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 var touchSel = null;
 
 function clearTouchSel() {
+  clearCompatibleHighlight();
   if (!touchSel) return;
   if (touchSel.rowEl) touchSel.rowEl.classList.remove('touch-sel');
   if (touchSel.si !== null) {
@@ -13,6 +14,48 @@ function clearTouchSel() {
     if (sc) sc.classList.remove('touch-sel');
   }
   touchSel = null;
+}
+
+// ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
+// Acende (outline dourado) todos os slots do campo compatíveis com `pos`,
+// ocupados ou vazios. Não altera slots incompatíveis.
+function highlightCompatibleSlots(pos, tab) {
+  if (!pos) return;
+  var fmt = FMTS[ST.fmt[tab]];
+  if (!fmt) return;
+  fmt.forEach(function (s, i) {
+    if (pmatch(pos, s[2])) {
+      var sc = document.querySelector('.scard[data-si="' + i + '"]');
+      if (sc) {
+        sc.dataset.compat = '1';
+        sc.style.outline = '3px solid #FFD700';
+        sc.style.boxShadow = '0 0 8px 2px rgba(255,215,0,.65)';
+      }
+    }
+  });
+}
+function clearCompatibleHighlight() {
+  document.querySelectorAll('.scard[data-compat="1"]').forEach(function (sc) {
+    delete sc.dataset.compat;
+    sc.style.outline = '';
+    sc.style.boxShadow = '';
+  });
+}
+
+// ── CANCELAR SELEÇÃO AO TOCAR FORA DO CAMPO/LISTA (toque) ───────────────────
+// Ignora toques dentro do campo (já tratado por field.click) e da lista do
+// elenco (já tratado por onRowTap), e ignora toques em modais, menus e
+// elementos de UI sobrepostos (cookie banner, share sheet, dropdowns etc.),
+// para não cancelar a seleção sem querer ao abrir outra coisa.
+if (IS_TOUCH) {
+  document.addEventListener('click', function (e) {
+    if (!touchSel) return;
+    var t = e.target;
+    if (t.closest('#field')) return;
+    if (t.closest('.ss')) return;
+    if (t.closest('.mover, .share-over, #share-menu-overlay, #share-menu-sheet, .legal-over, #cookie-bar, .mf-dropdown')) return;
+    clearTouchSel();
+  });
 }
 
 // ── SNAP / POS HELPERS ──────────────────────────────────────────────────────
@@ -80,6 +123,10 @@ function addTouchDrag(sc, tab) {
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
+
+      // Destaque de posições compatíveis
+      var draggedEnt = slotEnt(tab, dragSi);
+      if (draggedEnt && draggedEnt.data) highlightCompatibleSlots(draggedEnt.data.pos, tab);
     }
 
     if (moved && clone) {
@@ -95,6 +142,8 @@ function addTouchDrag(sc, tab) {
       if (clone) { document.body.removeChild(clone); clone = null; }
       return;
     }
+
+    clearCompatibleHighlight();
 
     // Remover clone
     document.body.removeChild(clone); clone = null;
@@ -161,6 +210,8 @@ function onRowTap(pid, rowEl) {
   clearTouchSel();
   rowEl.classList.add('touch-sel');
   touchSel = { type: 'row', id: pid, si: null, tab: ST.ft, rowEl: rowEl };
+  var pl = gp(pid);
+  if (pl) highlightCompatibleSlots(pl.pos, ST.ft);
 }
 
 // ── TAP NO SCARD ────────────────────────────────────────────────────────────
@@ -208,6 +259,8 @@ function onScardTap(sc, tab) {
   if (slotVal !== null) {
     sc.classList.add('touch-sel');
     touchSel = { type: 'scard', id: slotVal, si: si, tab: tab, rowEl: null };
+    var selEnt = slotEnt(tab, si);
+    if (selEnt && selEnt.data) highlightCompatibleSlots(selEnt.data.pos, tab);
     return;
   }
 
@@ -253,8 +306,13 @@ function buildScard(i, tab) {
       dragOffX = ((e.clientX - scRect.left) / fRect.width) * 100;
       dragOffY = ((e.clientY - scRect.top) / fRect.height) * 100;
 
+      // Destaque de posições compatíveis
+      clearCompatibleHighlight();
+      highlightCompatibleSlots(ent.data.pos, tab);
+
       function onDragEnd() {
         document.removeEventListener('dragend', onDragEnd, true);
+        clearCompatibleHighlight();
         if (dragSi === null || dragId === null || lastFieldX === null) { dragId = null; dragSi = null; lastFieldX = null; lastFieldY = null; return; }
         var fEl = document.getElementById('field');
         var fR = fEl ? fEl.getBoundingClientRect() : { width: 1, height: 1 };
@@ -276,6 +334,7 @@ function buildScard(i, tab) {
   sc.addEventListener('drop', function (e) {
     e.preventDefault(); e.stopPropagation(); sc.classList.remove('dov');
     if (dragId === null && dragId !== 0) return;
+    clearCompatibleHighlight();
     var ti = +sc.dataset.si;
     if (dragSi !== null && dragSi === ti) {
       var rect = document.getElementById('field').getBoundingClientRect();
@@ -365,6 +424,7 @@ function renderField() {
     var isForeignFilled = overCard && overSi !== dragSi && ST.slots[tab][overSi] != null;
     if (isForeignFilled) return;
     e.preventDefault(); e.stopPropagation();
+    clearCompatibleHighlight();
     var rect = field.getBoundingClientRect();
     var xPct = ((e.clientX - rect.left) / rect.width) * 100 - dragOffX + (SCARD_W / 2 / rect.width * 100);
     var yPct = ((e.clientY - rect.top) / rect.height) * 100 - dragOffY + (SCARD_H / 2 / rect.height * 100);

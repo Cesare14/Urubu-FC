@@ -54,6 +54,7 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .btn-red{background:var(--red);color:#fff;border:1.5px solid var(--red)}.btn-red:hover{background:var(--red-l);border-color:var(--red-l)}
 .btn-ghost{background:rgba(255,255,255,.04);color:var(--gray-l);border:1.5px solid var(--dark4)}.btn-ghost:hover{border-color:var(--gray);color:var(--white);background:var(--dark3)}
 .btn-purple{background:transparent;color:var(--red);border:1.5px solid var(--red)}.btn-purple:hover{background:rgba(197,38,19,.08)}
+.scrollwrap{display:contents}
 .main{display:flex;flex:1;overflow:hidden}
 .lpanel{width:380px;min-width:380px;flex-shrink:0;background:var(--dark);border-right:1px solid var(--dark3);display:flex;flex-direction:column;overflow:hidden}
 .ftabs{display:flex;border-bottom:1px solid var(--dark3)}
@@ -388,8 +389,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
 /* ── RESPONSIVIDADE MOBILE ─────────────────────────────────────────── */
 @media(max-width:767px){
-  /* body: permite scroll vertical */
-  body{height:auto;min-height:100dvh;overflow:auto}
+  /* body: rolagem delegada ao #scrollwrap (evita trava de scroll do documento
+     no Chrome Android durante touch-action:none + preventDefault no drag) */
+  body{height:100dvh;overflow:hidden}
+  /* #scrollwrap: container de rolagem próprio (com overflow interno confiável no touch) */
+  #scrollwrap{
+    display:block;
+    height:calc(100dvh - 110px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
 
   /* ── HEADER: 2 linhas ──────────────────────────────────────────── */
   /* Linha 1: logo + título centralizados */
@@ -567,6 +576,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
   </div>
 </header>
+<div class="scrollwrap" id="scrollwrap">
 <div class="main">
   <div class="lpanel" id="lpanel">
     <div class="ftabs">
@@ -747,6 +757,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   <a onclick="openLegal('privacy')">Política de Privacidade</a> <span>•</span>
   <a onclick="openLegal('terms')">Termos de Uso</a>
 </footer>
+</div><!-- /scrollwrap -->
 
 <!-- LEGAL MODAL -->
 <div class="legal-over" id="legal-over" onclick="if(event.target===this)closeLegal()">
@@ -1131,6 +1142,7 @@ var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 var touchSel = null;
 
 function clearTouchSel() {
+  clearCompatibleHighlight();
   if (!touchSel) return;
   if (touchSel.rowEl) touchSel.rowEl.classList.remove('touch-sel');
   if (touchSel.si !== null) {
@@ -1138,6 +1150,48 @@ function clearTouchSel() {
     if (sc) sc.classList.remove('touch-sel');
   }
   touchSel = null;
+}
+
+// ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
+// Acende (outline dourado) todos os slots do campo compatíveis com `pos`,
+// ocupados ou vazios. Não altera slots incompatíveis.
+function highlightCompatibleSlots(pos, tab) {
+  if (!pos) return;
+  var fmt = FMTS[ST.fmt[tab]];
+  if (!fmt) return;
+  fmt.forEach(function (s, i) {
+    if (pmatch(pos, s[2])) {
+      var sc = document.querySelector('.scard[data-si="' + i + '"]');
+      if (sc) {
+        sc.dataset.compat = '1';
+        sc.style.outline = '3px solid #FFD700';
+        sc.style.boxShadow = '0 0 8px 2px rgba(255,215,0,.65)';
+      }
+    }
+  });
+}
+function clearCompatibleHighlight() {
+  document.querySelectorAll('.scard[data-compat="1"]').forEach(function (sc) {
+    delete sc.dataset.compat;
+    sc.style.outline = '';
+    sc.style.boxShadow = '';
+  });
+}
+
+// ── CANCELAR SELEÇÃO AO TOCAR FORA DO CAMPO/LISTA (toque) ───────────────────
+// Ignora toques dentro do campo (já tratado por field.click) e da lista do
+// elenco (já tratado por onRowTap), e ignora toques em modais, menus e
+// elementos de UI sobrepostos (cookie banner, share sheet, dropdowns etc.),
+// para não cancelar a seleção sem querer ao abrir outra coisa.
+if (IS_TOUCH) {
+  document.addEventListener('click', function (e) {
+    if (!touchSel) return;
+    var t = e.target;
+    if (t.closest('#field')) return;
+    if (t.closest('.ss')) return;
+    if (t.closest('.mover, .share-over, #share-menu-overlay, #share-menu-sheet, .legal-over, #cookie-bar, .mf-dropdown')) return;
+    clearTouchSel();
+  });
 }
 
 // ── SNAP / POS HELPERS ──────────────────────────────────────────────────────
@@ -1205,6 +1259,10 @@ function addTouchDrag(sc, tab) {
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
+
+      // Destaque de posições compatíveis
+      var draggedEnt = slotEnt(tab, dragSi);
+      if (draggedEnt && draggedEnt.data) highlightCompatibleSlots(draggedEnt.data.pos, tab);
     }
 
     if (moved && clone) {
@@ -1220,6 +1278,8 @@ function addTouchDrag(sc, tab) {
       if (clone) { document.body.removeChild(clone); clone = null; }
       return;
     }
+
+    clearCompatibleHighlight();
 
     // Remover clone
     document.body.removeChild(clone); clone = null;
@@ -1286,6 +1346,8 @@ function onRowTap(pid, rowEl) {
   clearTouchSel();
   rowEl.classList.add('touch-sel');
   touchSel = { type: 'row', id: pid, si: null, tab: ST.ft, rowEl: rowEl };
+  var pl = gp(pid);
+  if (pl) highlightCompatibleSlots(pl.pos, ST.ft);
 }
 
 // ── TAP NO SCARD ────────────────────────────────────────────────────────────
@@ -1333,6 +1395,8 @@ function onScardTap(sc, tab) {
   if (slotVal !== null) {
     sc.classList.add('touch-sel');
     touchSel = { type: 'scard', id: slotVal, si: si, tab: tab, rowEl: null };
+    var selEnt = slotEnt(tab, si);
+    if (selEnt && selEnt.data) highlightCompatibleSlots(selEnt.data.pos, tab);
     return;
   }
 
@@ -1378,8 +1442,13 @@ function buildScard(i, tab) {
       dragOffX = ((e.clientX - scRect.left) / fRect.width) * 100;
       dragOffY = ((e.clientY - scRect.top) / fRect.height) * 100;
 
+      // Destaque de posições compatíveis
+      clearCompatibleHighlight();
+      highlightCompatibleSlots(ent.data.pos, tab);
+
       function onDragEnd() {
         document.removeEventListener('dragend', onDragEnd, true);
+        clearCompatibleHighlight();
         if (dragSi === null || dragId === null || lastFieldX === null) { dragId = null; dragSi = null; lastFieldX = null; lastFieldY = null; return; }
         var fEl = document.getElementById('field');
         var fR = fEl ? fEl.getBoundingClientRect() : { width: 1, height: 1 };
@@ -1401,6 +1470,7 @@ function buildScard(i, tab) {
   sc.addEventListener('drop', function (e) {
     e.preventDefault(); e.stopPropagation(); sc.classList.remove('dov');
     if (dragId === null && dragId !== 0) return;
+    clearCompatibleHighlight();
     var ti = +sc.dataset.si;
     if (dragSi !== null && dragSi === ti) {
       var rect = document.getElementById('field').getBoundingClientRect();
@@ -1490,6 +1560,7 @@ function renderField() {
     var isForeignFilled = overCard && overSi !== dragSi && ST.slots[tab][overSi] != null;
     if (isForeignFilled) return;
     e.preventDefault(); e.stopPropagation();
+    clearCompatibleHighlight();
     var rect = field.getBoundingClientRect();
     var xPct = ((e.clientX - rect.left) / rect.width) * 100 - dragOffX + (SCARD_W / 2 / rect.width * 100);
     var yPct = ((e.clientY - rect.top) / rect.height) * 100 - dragOffY + (SCARD_H / 2 / rect.height * 100);
@@ -1595,7 +1666,7 @@ function renderTable(){
     const onf=Object.values(ST.slots).some(function(a){return a.includes(p.id);});
     const tr=document.createElement('tr');if(onf)tr.classList.add('onf');
     tr.setAttribute('data-pid',p.id);
-    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
+    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
     const tdD=document.createElement('td');tdD.innerHTML='<span class="dh">⠿</span>';tr.appendChild(tdD);
     const tdN=document.createElement('td');
     const nd=document.createElement('div');nd.className='pname';
@@ -1745,7 +1816,8 @@ function renderMercado(){
   filtered.forEach(function(t,idx){
     const c=document.createElement('div');c.className='tcard';c.setAttribute('draggable','true');
     c.style.animationDelay=(idx*0.04)+'s';
-    c.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';});
+    c.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(t.pos,ST.ft);});
+    c.addEventListener('dragend',function(e){clearCompatibleHighlight();});
     const hdr=document.createElement('div');hdr.className='tcard-hdr';
     const info=document.createElement('div');
     const tn=document.createElement('div');tn.className='tname';tn.textContent=t.name;
@@ -2789,8 +2861,8 @@ function bindNumericGuard(id,clampFn){
 
 function closePl(){ST.epid=null;document.getElementById('modal-pl').style.display='none';}
 function savePl(){
-  const name=document.getElementById('mpl-name').value.trim();if(!name){document.getElementById('mpl-name').focus();return;}
-  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=document.getElementById('mpl-nat').value.trim()||'BRA',status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=document.getElementById('mpl-obs').value.trim(),selecionavel=mplSelVal;
+  const name=sanitizeText(document.getElementById('mpl-name').value.trim());if(!name){document.getElementById('mpl-name').focus();return;}
+  const pos=document.getElementById('mpl-pos').value,age=+document.getElementById('mpl-age').value||22,nat=sanitizeText(document.getElementById('mpl-nat').value.trim()||'BRA'),status=document.getElementById('mpl-status').value,_nivelC=clampNivel(document.getElementById('mpl-nivel').value),nivel=_nivelC===null?nivelDef(status):_nivelC,_valorC=clampValor(document.getElementById('mpl-valor').value),valor=_valorC===null?0:_valorC,foto=document.getElementById('mpl-foto').value.trim(),obs=sanitizeText(document.getElementById('mpl-obs').value.trim()),selecionavel=mplSelVal;
   if(ST.epid!==null){const p=gp(ST.epid);if(p)Object.assign(p,{name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});}
   else ST.players.push({id:npi(),name,pos,age,nat,status,nivel,valor,foto,obs,selecionavel});
   closePl();save();render();
@@ -2818,8 +2890,8 @@ function buildStarSelect(){
 }
 function closeTgt(){ST.etid=null;document.getElementById('modal-tgt').style.display='none';}
 function saveTgt(){
-  const name=document.getElementById('mtgt-name').value.trim();if(!name){document.getElementById('mtgt-name').focus();return;}
-  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=document.getElementById('mtgt-club').value.trim(),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=document.getElementById('mtgt-contract').value.trim(),obs=document.getElementById('mtgt-obs').value.trim(),prio=mtgtPrio;
+  const name=sanitizeText(document.getElementById('mtgt-name').value.trim());if(!name){document.getElementById('mtgt-name').focus();return;}
+  const pos=document.getElementById('mtgt-pos').value,age=+document.getElementById('mtgt-age').value||null,club=sanitizeText(document.getElementById('mtgt-club').value.trim()),val=clampValor(document.getElementById('mtgt-val').value),nivel=clampNivel(document.getElementById('mtgt-nivel').value),contract=sanitizeText(document.getElementById('mtgt-contract').value.trim()),obs=sanitizeText(document.getElementById('mtgt-obs').value.trim()),prio=mtgtPrio;
   if(ST.etid!==null){const t=gt(ST.etid);if(t)Object.assign(t,{name,pos,age,club,val,nivel,contract,obs,prio});}
   else ST.targets.push({id:nti(),name,pos,age,club,val,nivel,contract,obs,prio});
   closeTgt();save();renderMercado();renderBar();if(ST.rt==='analise')renderAnalise();
