@@ -115,6 +115,10 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .mf-btn:focus,.mf-btn.open{border-color:var(--red)}
 .mf-btn span{font-size:10px;color:var(--gray)}
 .mf-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--dark2);border:1px solid var(--dark4);border-radius:6px;padding:6px;z-index:20;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+/* Container-portal: âncora de posicionamento fixo, sem overflow, fora de
+   qualquer contêiner que corte o dropdown de filtro (ex.: .tbar com
+   overflow-x:auto no mobile). O dropdown é movido para cá via JS ao abrir. */
+#mf-portal{position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:9000}
 .mf-dropdown.open{display:block}
 .mf-opt{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--gray-l);transition:background .1s;white-space:nowrap}
 .mf-opt:hover{background:var(--dark3);color:var(--white)}
@@ -1072,6 +1076,28 @@ function starsEl(prio,small){
 }
 
 // MULTI-SELECT FILTER
+// ── PORTAL: tira o dropdown de dentro de .tbar (que tem overflow-x:auto no
+// mobile — e overflow-x:auto força o eixo Y também a se comportar como
+// 'auto', cortando o dropdown verticalmente). Ao abrir, o dropdown vira
+// filho de um container fixo dedicado, fora de qualquer overflow, e é
+// posicionado via coordenadas do botão que o abriu.
+var mfPortalEl = null;
+function getMFPortal() {
+  if (!mfPortalEl) {
+    mfPortalEl = document.createElement('div');
+    mfPortalEl.id = 'mf-portal';
+    document.body.appendChild(mfPortalEl);
+  }
+  return mfPortalEl;
+}
+function positionMFDropdown(dd, btn) {
+  var portal = getMFPortal();
+  if (dd.parentNode !== portal) portal.appendChild(dd);
+  var r = btn.getBoundingClientRect();
+  dd.style.position = 'fixed';
+  dd.style.top = (r.bottom + 4) + 'px';
+  dd.style.left = r.left + 'px';
+}
 function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
   const dd=document.getElementById(ddId);
   const btn=document.getElementById(btnId);
@@ -1088,7 +1114,7 @@ function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
     opt.onclick=function(e){e.stopPropagation();const idx=sel.indexOf(o);if(idx>=0)sel.splice(idx,1);else sel.push(o);onChange();buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel);updateMFBtn(btnId,sel,allLabel||'Todos');};
     dd.appendChild(opt);
   });
-  btn.onclick=function(e){e.stopPropagation();const open=dd.classList.contains('open');closeAllDD();if(!open){dd.classList.add('open');btn.classList.add('open');}};
+  btn.onclick=function(e){e.stopPropagation();const open=dd.classList.contains('open');closeAllDD();if(!open){positionMFDropdown(dd,btn);dd.classList.add('open');btn.classList.add('open');}};
 }
 function updateMFBtn(btnId,sel,def){
   const btn=document.getElementById(btnId);
@@ -1098,6 +1124,12 @@ function updateMFBtn(btnId,sel,def){
 }
 function closeAllDD(){document.querySelectorAll('.mf-dropdown').forEach(function(d){d.classList.remove('open');});document.querySelectorAll('.mf-btn').forEach(function(b){b.classList.remove('open');});}
 document.addEventListener('click',closeAllDD);
+// Fecha os dropdowns se a página (ou qualquer contêiner interno) rolar
+// enquanto um estiver aberto — evita que fiquem "flutuando" desalinhados
+// do botão, já que a posição é calculada só no momento de abrir.
+// 'scroll' não borbulha, mas é capturado na fase de captura a partir de
+// qualquer ancestral, inclusive window — por isso {capture:true}.
+window.addEventListener('scroll', closeAllDD, true);
 
 function initFilters(){
   buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();},'Todas posições');
@@ -1194,6 +1226,35 @@ if (IS_TOUCH) {
   });
 }
 
+// ── AUTO-SCROLL (compartilhado: usado tanto ao arrastar um scard dentro do
+// campo quanto ao arrastar uma linha da tabela de elenco até o campo) ───────
+// Ativa quando o dedo se aproxima do topo/fundo da viewport durante um arrasto.
+var SCROLL_ZONE = 70; // px da borda da viewport que ativa o auto-scroll
+var SCROLL_SPEED = 12; // px por frame
+var scrollDir = 0; // -1 sobe, 0 parado, 1 desce
+var scrollRAF = null;
+function getScrollEl() {
+  // Container de rolagem próprio (mobile). Fallback para o scroll do documento.
+  return document.getElementById('scrollwrap') || document.scrollingElement || document.documentElement || document.body;
+}
+function autoScrollStep() {
+  if (scrollDir === 0) { scrollRAF = null; return; }
+  getScrollEl().scrollTop += scrollDir * SCROLL_SPEED;
+  scrollRAF = requestAnimationFrame(autoScrollStep);
+}
+function updateAutoScroll(clientY) {
+  var vh = window.innerHeight;
+  var dir = 0;
+  if (clientY < SCROLL_ZONE) dir = -1;
+  else if (clientY > vh - SCROLL_ZONE) dir = 1;
+  scrollDir = dir;
+  if (scrollDir !== 0 && !scrollRAF) scrollRAF = requestAnimationFrame(autoScrollStep);
+}
+function stopAutoScroll() {
+  scrollDir = 0;
+  if (scrollRAF !== null) { cancelAnimationFrame(scrollRAF); scrollRAF = null; }
+}
+
 // ── SNAP / POS HELPERS ──────────────────────────────────────────────────────
 function snapToGrid(xPct, yPct) {
   var cw = 100 / GRID_COLS, ch = 100 / GRID_ROWS;
@@ -1226,6 +1287,7 @@ function addTouchDrag(sc, tab) {
   var moved = false;
   var MOVE_THRESHOLD = 8; // px para distinguir tap de drag
 
+
   sc.addEventListener('touchstart', function (e) {
     moved = false;
     var t = e.touches[0];
@@ -1255,7 +1317,9 @@ function addTouchDrag(sc, tab) {
       // Registrar origem
       dragId = sc.dataset.ek !== undefined ? (isNaN(sc.dataset.ek) ? sc.dataset.ek : +sc.dataset.ek) : null;
       dragSi = +sc.dataset.si;
-      var fRect = document.getElementById('field').getBoundingClientRect();
+      var fEl = document.getElementById('field');
+      if (fEl) fEl.style.touchAction = 'none'; // trava scroll nativo do container só durante o arrasto ativo
+      var fRect = fEl.getBoundingClientRect();
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
@@ -1269,10 +1333,15 @@ function addTouchDrag(sc, tab) {
       e.preventDefault();
       clone.style.left = (t.clientX - sc.offsetWidth / 2) + 'px';
       clone.style.top = (t.clientY - sc.offsetHeight / 2) + 'px';
+
+      updateAutoScroll(t.clientY);
     }
   }, { passive: false });
 
   sc.addEventListener('touchend', function (e) {
+    stopAutoScroll();
+    var fElEnd = document.getElementById('field');
+    if (fElEnd) fElEnd.style.touchAction = 'auto'; // libera scroll normal do campo ao soltar
     if (!moved || !clone) {
       // É um tap — delegar ao handler de tap
       if (clone) { document.body.removeChild(clone); clone = null; }
@@ -1328,6 +1397,16 @@ function addTouchDrag(sc, tab) {
 
     dragId = null; dragSi = null;
   }, { passive: false });
+
+  sc.addEventListener('touchcancel', function () {
+    stopAutoScroll();
+    clearCompatibleHighlight();
+    var fElCancel = document.getElementById('field');
+    if (fElCancel) fElCancel.style.touchAction = 'auto';
+    if (clone) { document.body.removeChild(clone); clone = null; }
+    moved = false;
+    dragId = null; dragSi = null;
+  }, { passive: true });
 }
 
 // ── TAP-TO-SELECT (linha da tabela) ─────────────────────────────────────────
@@ -1519,6 +1598,7 @@ function renderField() {
   var tab = ST.ft, field = document.getElementById('field');
   field.className = 'field' + (tab === 'B' ? ' res' : tab === 'C' ? ' mkt' : '');
   field.innerHTML = '';
+  if (IS_TOUCH) field.style.touchAction = 'auto';
 
   var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'fsvg');
@@ -1638,6 +1718,122 @@ function sortArr(arr,key,asc){
     if(va<vb)return asc?-1:1;if(va>vb)return asc?1:-1;return 0;
   });
 }
+
+// ── DRAG POR TOQUE (segurar e arrastar a linha até o campo tático) ──────────
+// Convive com o toque-toque (onRowTap) e com a rolagem manual da tabela:
+// só vira arrasto após um long-press parado; qualquer deslocamento do dedo
+// antes disso é tratado como rolagem normal (cancela o long-press).
+function addRowTouchDrag(tr, p) {
+  var LONGPRESS_DELAY = 350; // ms parado até armar o arrasto
+  var JITTER_TOLERANCE = 8;  // px de tolerância antes de cancelar o long-press
+  var pressTimer = null;
+  var armed = false;   // true assim que o long-press disparou
+  var dragged = false; // true se o dedo de fato moveu após armar (houve arrasto)
+  var startX = 0, startY = 0;
+  var clone = null;
+
+  // Desabilita o gesto nativo de seleção de texto por toque longo (e o menu
+  // de contexto que ele dispara), que competia com o nosso long-press: sem
+  // isso, o Android podia "vencer a corrida" e cancelar nosso arrasto antes
+  // mesmo dele começar. Não afeta digitação/edição em .oi/.ssel.
+  tr.style.webkitUserSelect = 'none';
+  tr.style.userSelect = 'none';
+  tr.style.webkitTouchCallout = 'none';
+  tr.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // Desabilita o HTML5 Drag and Drop nativo (usado só no desktop, via
+  // dragstart/dragend) especificamente em touch: no Chrome Android, um
+  // elemento draggable="true" aciona a própria largada nativa de drag-and-drop
+  // por toque longo (com vibração), competindo com nosso long-press e
+  // "vencendo a corrida" antes do nosso timer de 350ms dar início ao arrasto.
+  tr.draggable = false;
+
+  function cancelPress() {
+    if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+  }
+  function armDrag() {
+    pressTimer = null;
+    armed = true;
+    tr.style.touchAction = 'none'; // trava scroll nativo só durante o arrasto ativo
+    highlightCompatibleSlots(p.pos, ST.ft);
+  }
+  function cleanupDrag() {
+    stopAutoScroll();
+    clearCompatibleHighlight();
+    tr.style.touchAction = 'auto';
+    if (clone) { document.body.removeChild(clone); clone = null; }
+    armed = false;
+  }
+
+  tr.addEventListener('touchstart', function (e) {
+    if (e.target.closest('.ab') || e.target.closest('.ssel') || e.target.closest('.oi')) return;
+    var t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    armed = false; dragged = false; clone = null;
+    cancelPress();
+    pressTimer = setTimeout(armDrag, LONGPRESS_DELAY);
+  }, { passive: true });
+
+  tr.addEventListener('touchmove', function (e) {
+    var t = e.touches[0];
+    var dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (!armed) {
+      // ainda não armado: deslocamento além da trepidação cancela o
+      // long-press e deixa o gesto seguir como rolagem normal da tabela
+      if (Math.sqrt(dx * dx + dy * dy) > JITTER_TOLERANCE) cancelPress();
+      return;
+    }
+
+    if (!clone) {
+      // primeiro movimento após armar: cria o clone flutuante simplificado
+      dragged = true;
+      clone = document.createElement('div');
+      clone.className = 'row-drag-clone';
+      clone.textContent = p.name;
+      clone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;'
+        + 'padding:6px 12px;border-radius:8px;background:var(--red,#c00);color:#fff;'
+        + 'font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;'
+        + 'white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);opacity:.92';
+      document.body.appendChild(clone);
+    }
+
+    e.preventDefault();
+    clone.style.left = (t.clientX + 14) + 'px';
+    clone.style.top = (t.clientY - 14) + 'px';
+    updateAutoScroll(t.clientY);
+  }, { passive: false });
+
+  tr.addEventListener('touchend', function (e) {
+    cancelPress();
+    if (!armed) return; // tap normal: deixa o listener de click cuidar (onRowTap)
+
+    var wasDragged = dragged;
+    cleanupDrag();
+    dragged = false;
+
+    if (!wasDragged) return; // long-press sem mover: trata como tap (click cuida)
+
+    e.preventDefault(); // suprime o click fantasma pós-arrasto
+
+    var t = e.changedTouches[0];
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var targetSc = el ? el.closest('.scard') : null;
+    if (targetSc) {
+      // Reaproveita o fluxo de toque-toque: simula "jogador selecionado na
+      // tabela" e delega a alocação/troca ao onScardTap já existente (CASO 1)
+      touchSel = { type: 'row', id: p.id, si: null, tab: ST.ft, rowEl: null };
+      onScardTap(targetSc, ST.ft);
+    }
+  }, { passive: false });
+
+  tr.addEventListener('touchcancel', function () {
+    cancelPress();
+    if (armed) cleanupDrag();
+    dragged = false;
+  }, { passive: true });
+}
+
 // Atualiza só o indicador ofdot de uma linha da tabela (evita recriar tudo no drop)
 function patchTableRow(pid){
   const tr=document.querySelector('tr[data-pid="'+pid+'"]');
@@ -1666,7 +1862,7 @@ function renderTable(){
     const onf=Object.values(ST.slots).some(function(a){return a.includes(p.id);});
     const tr=document.createElement('tr');if(onf)tr.classList.add('onf');
     tr.setAttribute('data-pid',p.id);
-    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
+    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});addRowTouchDrag(tr,p);}
     const tdD=document.createElement('td');tdD.innerHTML='<span class="dh">⠿</span>';tr.appendChild(tdD);
     const tdN=document.createElement('td');
     const nd=document.createElement('div');nd.className='pname';

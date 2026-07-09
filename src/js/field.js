@@ -58,6 +58,35 @@ if (IS_TOUCH) {
   });
 }
 
+// ── AUTO-SCROLL (compartilhado: usado tanto ao arrastar um scard dentro do
+// campo quanto ao arrastar uma linha da tabela de elenco até o campo) ───────
+// Ativa quando o dedo se aproxima do topo/fundo da viewport durante um arrasto.
+var SCROLL_ZONE = 70; // px da borda da viewport que ativa o auto-scroll
+var SCROLL_SPEED = 12; // px por frame
+var scrollDir = 0; // -1 sobe, 0 parado, 1 desce
+var scrollRAF = null;
+function getScrollEl() {
+  // Container de rolagem próprio (mobile). Fallback para o scroll do documento.
+  return document.getElementById('scrollwrap') || document.scrollingElement || document.documentElement || document.body;
+}
+function autoScrollStep() {
+  if (scrollDir === 0) { scrollRAF = null; return; }
+  getScrollEl().scrollTop += scrollDir * SCROLL_SPEED;
+  scrollRAF = requestAnimationFrame(autoScrollStep);
+}
+function updateAutoScroll(clientY) {
+  var vh = window.innerHeight;
+  var dir = 0;
+  if (clientY < SCROLL_ZONE) dir = -1;
+  else if (clientY > vh - SCROLL_ZONE) dir = 1;
+  scrollDir = dir;
+  if (scrollDir !== 0 && !scrollRAF) scrollRAF = requestAnimationFrame(autoScrollStep);
+}
+function stopAutoScroll() {
+  scrollDir = 0;
+  if (scrollRAF !== null) { cancelAnimationFrame(scrollRAF); scrollRAF = null; }
+}
+
 // ── SNAP / POS HELPERS ──────────────────────────────────────────────────────
 function snapToGrid(xPct, yPct) {
   var cw = 100 / GRID_COLS, ch = 100 / GRID_ROWS;
@@ -90,6 +119,7 @@ function addTouchDrag(sc, tab) {
   var moved = false;
   var MOVE_THRESHOLD = 8; // px para distinguir tap de drag
 
+
   sc.addEventListener('touchstart', function (e) {
     moved = false;
     var t = e.touches[0];
@@ -119,7 +149,9 @@ function addTouchDrag(sc, tab) {
       // Registrar origem
       dragId = sc.dataset.ek !== undefined ? (isNaN(sc.dataset.ek) ? sc.dataset.ek : +sc.dataset.ek) : null;
       dragSi = +sc.dataset.si;
-      var fRect = document.getElementById('field').getBoundingClientRect();
+      var fEl = document.getElementById('field');
+      if (fEl) fEl.style.touchAction = 'none'; // trava scroll nativo do container só durante o arrasto ativo
+      var fRect = fEl.getBoundingClientRect();
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
@@ -133,10 +165,15 @@ function addTouchDrag(sc, tab) {
       e.preventDefault();
       clone.style.left = (t.clientX - sc.offsetWidth / 2) + 'px';
       clone.style.top = (t.clientY - sc.offsetHeight / 2) + 'px';
+
+      updateAutoScroll(t.clientY);
     }
   }, { passive: false });
 
   sc.addEventListener('touchend', function (e) {
+    stopAutoScroll();
+    var fElEnd = document.getElementById('field');
+    if (fElEnd) fElEnd.style.touchAction = 'auto'; // libera scroll normal do campo ao soltar
     if (!moved || !clone) {
       // É um tap — delegar ao handler de tap
       if (clone) { document.body.removeChild(clone); clone = null; }
@@ -192,6 +229,16 @@ function addTouchDrag(sc, tab) {
 
     dragId = null; dragSi = null;
   }, { passive: false });
+
+  sc.addEventListener('touchcancel', function () {
+    stopAutoScroll();
+    clearCompatibleHighlight();
+    var fElCancel = document.getElementById('field');
+    if (fElCancel) fElCancel.style.touchAction = 'auto';
+    if (clone) { document.body.removeChild(clone); clone = null; }
+    moved = false;
+    dragId = null; dragSi = null;
+  }, { passive: true });
 }
 
 // ── TAP-TO-SELECT (linha da tabela) ─────────────────────────────────────────
@@ -383,6 +430,7 @@ function renderField() {
   var tab = ST.ft, field = document.getElementById('field');
   field.className = 'field' + (tab === 'B' ? ' res' : tab === 'C' ? ' mkt' : '');
   field.innerHTML = '';
+  if (IS_TOUCH) field.style.touchAction = 'auto';
 
   var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'fsvg');

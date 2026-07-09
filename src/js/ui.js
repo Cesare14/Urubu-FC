@@ -93,6 +93,28 @@ function starsEl(prio,small){
 }
 
 // MULTI-SELECT FILTER
+// ── PORTAL: tira o dropdown de dentro de .tbar (que tem overflow-x:auto no
+// mobile — e overflow-x:auto força o eixo Y também a se comportar como
+// 'auto', cortando o dropdown verticalmente). Ao abrir, o dropdown vira
+// filho de um container fixo dedicado, fora de qualquer overflow, e é
+// posicionado via coordenadas do botão que o abriu.
+var mfPortalEl = null;
+function getMFPortal() {
+  if (!mfPortalEl) {
+    mfPortalEl = document.createElement('div');
+    mfPortalEl.id = 'mf-portal';
+    document.body.appendChild(mfPortalEl);
+  }
+  return mfPortalEl;
+}
+function positionMFDropdown(dd, btn) {
+  var portal = getMFPortal();
+  if (dd.parentNode !== portal) portal.appendChild(dd);
+  var r = btn.getBoundingClientRect();
+  dd.style.position = 'fixed';
+  dd.style.top = (r.bottom + 4) + 'px';
+  dd.style.left = r.left + 'px';
+}
 function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
   const dd=document.getElementById(ddId);
   const btn=document.getElementById(btnId);
@@ -109,7 +131,7 @@ function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
     opt.onclick=function(e){e.stopPropagation();const idx=sel.indexOf(o);if(idx>=0)sel.splice(idx,1);else sel.push(o);onChange();buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel);updateMFBtn(btnId,sel,allLabel||'Todos');};
     dd.appendChild(opt);
   });
-  btn.onclick=function(e){e.stopPropagation();const open=dd.classList.contains('open');closeAllDD();if(!open){dd.classList.add('open');btn.classList.add('open');}};
+  btn.onclick=function(e){e.stopPropagation();const open=dd.classList.contains('open');closeAllDD();if(!open){positionMFDropdown(dd,btn);dd.classList.add('open');btn.classList.add('open');}};
 }
 function updateMFBtn(btnId,sel,def){
   const btn=document.getElementById(btnId);
@@ -119,6 +141,12 @@ function updateMFBtn(btnId,sel,def){
 }
 function closeAllDD(){document.querySelectorAll('.mf-dropdown').forEach(function(d){d.classList.remove('open');});document.querySelectorAll('.mf-btn').forEach(function(b){b.classList.remove('open');});}
 document.addEventListener('click',closeAllDD);
+// Fecha os dropdowns se a página (ou qualquer contêiner interno) rolar
+// enquanto um estiver aberto — evita que fiquem "flutuando" desalinhados
+// do botão, já que a posição é calculada só no momento de abrir.
+// 'scroll' não borbulha, mas é capturado na fase de captura a partir de
+// qualquer ancestral, inclusive window — por isso {capture:true}.
+window.addEventListener('scroll', closeAllDD, true);
 
 function initFilters(){
   buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();},'Todas posições');

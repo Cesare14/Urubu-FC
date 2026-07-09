@@ -103,6 +103,10 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .mf-btn:focus,.mf-btn.open{border-color:var(--red)}
 .mf-btn span{font-size:10px;color:var(--gray)}
 .mf-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--dark2);border:1px solid var(--dark4);border-radius:6px;padding:6px;z-index:20;min-width:130px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+/* Container-portal: âncora de posicionamento fixo, sem overflow, fora de
+   qualquer contêiner que corte o dropdown de filtro (ex.: .tbar com
+   overflow-x:auto no mobile). O dropdown é movido para cá via JS ao abrir. */
+#mf-portal{position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:9000}
 .mf-dropdown.open{display:block}
 .mf-opt{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--gray-l);transition:background .1s;white-space:nowrap}
 .mf-opt:hover{background:var(--dark3);color:var(--white)}

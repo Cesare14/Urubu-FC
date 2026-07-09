@@ -17,6 +17,122 @@ function sortArr(arr,key,asc){
     if(va<vb)return asc?-1:1;if(va>vb)return asc?1:-1;return 0;
   });
 }
+
+// ── DRAG POR TOQUE (segurar e arrastar a linha até o campo tático) ──────────
+// Convive com o toque-toque (onRowTap) e com a rolagem manual da tabela:
+// só vira arrasto após um long-press parado; qualquer deslocamento do dedo
+// antes disso é tratado como rolagem normal (cancela o long-press).
+function addRowTouchDrag(tr, p) {
+  var LONGPRESS_DELAY = 350; // ms parado até armar o arrasto
+  var JITTER_TOLERANCE = 8;  // px de tolerância antes de cancelar o long-press
+  var pressTimer = null;
+  var armed = false;   // true assim que o long-press disparou
+  var dragged = false; // true se o dedo de fato moveu após armar (houve arrasto)
+  var startX = 0, startY = 0;
+  var clone = null;
+
+  // Desabilita o gesto nativo de seleção de texto por toque longo (e o menu
+  // de contexto que ele dispara), que competia com o nosso long-press: sem
+  // isso, o Android podia "vencer a corrida" e cancelar nosso arrasto antes
+  // mesmo dele começar. Não afeta digitação/edição em .oi/.ssel.
+  tr.style.webkitUserSelect = 'none';
+  tr.style.userSelect = 'none';
+  tr.style.webkitTouchCallout = 'none';
+  tr.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // Desabilita o HTML5 Drag and Drop nativo (usado só no desktop, via
+  // dragstart/dragend) especificamente em touch: no Chrome Android, um
+  // elemento draggable="true" aciona a própria largada nativa de drag-and-drop
+  // por toque longo (com vibração), competindo com nosso long-press e
+  // "vencendo a corrida" antes do nosso timer de 350ms dar início ao arrasto.
+  tr.draggable = false;
+
+  function cancelPress() {
+    if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+  }
+  function armDrag() {
+    pressTimer = null;
+    armed = true;
+    tr.style.touchAction = 'none'; // trava scroll nativo só durante o arrasto ativo
+    highlightCompatibleSlots(p.pos, ST.ft);
+  }
+  function cleanupDrag() {
+    stopAutoScroll();
+    clearCompatibleHighlight();
+    tr.style.touchAction = 'auto';
+    if (clone) { document.body.removeChild(clone); clone = null; }
+    armed = false;
+  }
+
+  tr.addEventListener('touchstart', function (e) {
+    if (e.target.closest('.ab') || e.target.closest('.ssel') || e.target.closest('.oi')) return;
+    var t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    armed = false; dragged = false; clone = null;
+    cancelPress();
+    pressTimer = setTimeout(armDrag, LONGPRESS_DELAY);
+  }, { passive: true });
+
+  tr.addEventListener('touchmove', function (e) {
+    var t = e.touches[0];
+    var dx = t.clientX - startX, dy = t.clientY - startY;
+
+    if (!armed) {
+      // ainda não armado: deslocamento além da trepidação cancela o
+      // long-press e deixa o gesto seguir como rolagem normal da tabela
+      if (Math.sqrt(dx * dx + dy * dy) > JITTER_TOLERANCE) cancelPress();
+      return;
+    }
+
+    if (!clone) {
+      // primeiro movimento após armar: cria o clone flutuante simplificado
+      dragged = true;
+      clone = document.createElement('div');
+      clone.className = 'row-drag-clone';
+      clone.textContent = p.name;
+      clone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;'
+        + 'padding:6px 12px;border-radius:8px;background:var(--red,#c00);color:#fff;'
+        + 'font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;'
+        + 'white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);opacity:.92';
+      document.body.appendChild(clone);
+    }
+
+    e.preventDefault();
+    clone.style.left = (t.clientX + 14) + 'px';
+    clone.style.top = (t.clientY - 14) + 'px';
+    updateAutoScroll(t.clientY);
+  }, { passive: false });
+
+  tr.addEventListener('touchend', function (e) {
+    cancelPress();
+    if (!armed) return; // tap normal: deixa o listener de click cuidar (onRowTap)
+
+    var wasDragged = dragged;
+    cleanupDrag();
+    dragged = false;
+
+    if (!wasDragged) return; // long-press sem mover: trata como tap (click cuida)
+
+    e.preventDefault(); // suprime o click fantasma pós-arrasto
+
+    var t = e.changedTouches[0];
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var targetSc = el ? el.closest('.scard') : null;
+    if (targetSc) {
+      // Reaproveita o fluxo de toque-toque: simula "jogador selecionado na
+      // tabela" e delega a alocação/troca ao onScardTap já existente (CASO 1)
+      touchSel = { type: 'row', id: p.id, si: null, tab: ST.ft, rowEl: null };
+      onScardTap(targetSc, ST.ft);
+    }
+  }, { passive: false });
+
+  tr.addEventListener('touchcancel', function () {
+    cancelPress();
+    if (armed) cleanupDrag();
+    dragged = false;
+  }, { passive: true });
+}
+
 // Atualiza só o indicador ofdot de uma linha da tabela (evita recriar tudo no drop)
 function patchTableRow(pid){
   const tr=document.querySelector('tr[data-pid="'+pid+'"]');
@@ -45,7 +161,7 @@ function renderTable(){
     const onf=Object.values(ST.slots).some(function(a){return a.includes(p.id);});
     const tr=document.createElement('tr');if(onf)tr.classList.add('onf');
     tr.setAttribute('data-pid',p.id);
-    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});}
+    tr.setAttribute('draggable','true');tr.addEventListener('dragstart',function(e){dragId=p.id;dragSi=null;e.dataTransfer.effectAllowed='move';clearCompatibleHighlight();highlightCompatibleSlots(p.pos,ST.ft);});tr.addEventListener('dragend',function(e){clearCompatibleHighlight();});if(IS_TOUCH){tr.addEventListener('click',function(e){if(!e.target.closest('.ab')&&!e.target.closest('.ssel')&&!e.target.closest('.oi'))onRowTap(p.id,tr);});addRowTouchDrag(tr,p);}
     const tdD=document.createElement('td');tdD.innerHTML='<span class="dh">⠿</span>';tr.appendChild(tdD);
     const tdN=document.createElement('td');
     const nd=document.createElement('div');nd.className='pname';
