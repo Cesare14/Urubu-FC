@@ -149,7 +149,21 @@ function compartilharCampo(){
       logging:false,
       onclone:function(doc){
         var f=doc.getElementById('field');
-        if(f) f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
+        if(!f)return;
+        f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
+        // ocultar o "×" de remover jogador — só na imagem exportada
+        f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
+        // centralização do número dentro do donut na captura (sem tocar no canvas)
+        f.querySelectorAll('.donut-num').forEach(function(lbl){
+          lbl.style.top='0';
+          lbl.style.left='0';
+          lbl.style.right='0';
+          lbl.style.bottom='0';
+          lbl.style.transform='none';
+          lbl.style.display='flex';
+          lbl.style.alignItems='center';
+          lbl.style.justifyContent='center';
+        });
       }
     }).then(function(canvas){
       canvas.toBlob(function(blob){
