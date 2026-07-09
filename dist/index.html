@@ -1912,7 +1912,7 @@ function renderTable(){
     SLIST.forEach(function(s){const o=document.createElement('option');o.value=s;o.textContent=s;if(s===p.status)o.selected=true;sel.appendChild(o);});
     sel.onchange=function(e){const pl=gp(p.id);if(pl)pl.status=e.target.value;save();renderTable();renderBar();if(ST.rt==='analise')renderAnalise();};
     tdS.appendChild(sel);tr.appendChild(tdS);
-    const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=e.target.value;save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
+    const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=sanitizeText(e.target.value);save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
     const eb=document.createElement('button');eb.className='ab';eb.textContent='✎';eb.onclick=function(){openPl(p.id);};
