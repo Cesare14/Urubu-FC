@@ -38,45 +38,6 @@ var _FIELD_STRIPE_PATTERNS={
   C:_buildStripePatternSVG('rgba(0,0,0,0.10)')
 };
 
-// ── Donut do scard na captura (compartilharCampo) — nitidez + centralização ──
-// Isolado aqui, não altera drawDonut()/nivelDonutEl() em ui.js nem afeta os
-// donuts da seção Análise. Redesenha o mesmo visual do donut do scard, mas com
-// uma resolução de backing-store fixa e alta (independente do devicePixelRatio
-// real do aparelho), só dentro do clone usado pelo html2canvas.
-var _DONUT_CAPTURE_SCALE=4;
-function _sharpenDonutForCapture(canvas){
-  var s=parseFloat(canvas.style.width)||canvas.width||28;
-  var wrap=canvas.parentElement;
-  var label=wrap?wrap.querySelector('.donut-num'):null;
-  var col=(label&&label.style.color)?label.style.color:'#ef4444';
-  var val=label?parseFloat(label.textContent):0;
-  if(isNaN(val))val=0;
-  canvas.width=s*_DONUT_CAPTURE_SCALE;
-  canvas.height=s*_DONUT_CAPTURE_SCALE;
-  var ctx=canvas.getContext('2d');
-  ctx.scale(_DONUT_CAPTURE_SCALE,_DONUT_CAPTURE_SCALE);
-  var lw=s>=70?8:s>=50?7:s>=27?4:3;
-  var cx=s/2,cy=s/2,r=s/2-lw/2-1;
-  ctx.clearRect(0,0,s,s);
-  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
-  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=lw;ctx.stroke();
-  var pct=(val||0)/100;
-  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pct*2*Math.PI);
-  ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
-}
-// Substitui o translate(-50%,-50%) (mal suportado pelo html2canvas) por
-// centralização via inset+flex, mantendo font-size/color já definidos inline.
-function _fixDonutNumCentering(label){
-  label.style.top='0';
-  label.style.left='0';
-  label.style.right='0';
-  label.style.bottom='0';
-  label.style.transform='none';
-  label.style.display='flex';
-  label.style.alignItems='center';
-  label.style.justifyContent='center';
-}
-
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
 function closeShare(){var o=document.getElementById('share-over');if(o)o.classList.remove('open');_shareBlob=null;}
 
@@ -188,14 +149,7 @@ function compartilharCampo(){
       logging:false,
       onclone:function(doc){
         var f=doc.getElementById('field');
-        if(!f)return;
-        f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
-        // ocultar o "×" de remover jogador — só na imagem exportada
-        f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
-        // nitidez do donut na captura (backing-store maior, isolado do live)
-        f.querySelectorAll('.donut-wrap canvas').forEach(function(cv){_sharpenDonutForCapture(cv);});
-        // centralização do número dentro do donut na captura
-        f.querySelectorAll('.donut-num').forEach(function(lbl){_fixDonutNumCentering(lbl);});
+        if(f) f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
       }
     }).then(function(canvas){
       canvas.toBlob(function(blob){
