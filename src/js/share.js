@@ -20,6 +20,24 @@ function _shareUnlock(){
   if(_shareBusyBtn){_shareBusyBtn.disabled=false;_shareBusyBtn.style.opacity='';_shareBusyBtn=null;}
 }
 
+// ── Padrão de faixas do campo (compartilharCampo) — pré-gerado como Data URI SVG
+// Gerado uma única vez aqui no carregamento do script, não a cada captura.
+// Substitui o antigo repeating-linear-gradient: html2canvas apenas desenha o
+// bitmap já decodificado, em vez de recalcular o padrão pixel a pixel — e por
+// ser Data URI (não arquivo externo), não há requisição de rede nem risco de
+// timing/CORS que pudesse deixar a imagem "não pronta" no momento da captura.
+function _buildStripePatternSVG(corFaixa){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="4" height="80">'
+    +'<rect x="0" y="40" width="4" height="40" fill="'+corFaixa+'"/>'
+    +'</svg>';
+  return 'data:image/svg+xml;base64,'+btoa(svg);
+}
+var _FIELD_STRIPE_PATTERNS={
+  A:_buildStripePatternSVG('rgba(0,0,0,0.08)'),
+  B:_buildStripePatternSVG('rgba(0,0,0,0.07)'),
+  C:_buildStripePatternSVG('rgba(0,0,0,0.10)')
+};
+
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
 function closeShare(){var o=document.getElementById('share-over');if(o)o.classList.remove('open');_shareBlob=null;}
 
@@ -131,7 +149,7 @@ function compartilharCampo(){
       logging:false,
       onclone:function(doc){
         var f=doc.getElementById('field');
-        if(f) f.style.background=c.base+' repeating-linear-gradient(0deg,transparent,transparent 40px,'+c.faixa+' 40px,'+c.faixa+' 80px)';
+        if(f) f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
       }
     }).then(function(canvas){
       canvas.toBlob(function(blob){
