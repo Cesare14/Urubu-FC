@@ -153,16 +153,14 @@ function compartilharCampo(){
         f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
         // ocultar o "×" de remover jogador — só na imagem exportada
         f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
-        // centralização do número dentro do donut na captura (sem tocar no canvas)
+        // centralização do número dentro do donut na captura — troca translate(%) por
+        // translate(px), calculado a partir do próprio tamanho do elemento. Mantém
+        // position:absolute;top:50%;left:50% (herdado do CSS) intacto — não usa
+        // flex/grid, que se mostrou custoso para o html2canvas no diagnóstico anterior.
         f.querySelectorAll('.donut-num').forEach(function(lbl){
-          lbl.style.top='0';
-          lbl.style.left='0';
-          lbl.style.right='0';
-          lbl.style.bottom='0';
-          lbl.style.transform='none';
-          lbl.style.display='flex';
-          lbl.style.alignItems='center';
-          lbl.style.justifyContent='center';
+          var w=lbl.offsetWidth,h=lbl.offsetHeight;
+          var nudge=1.2; // correção empírica pra compensar métrica da fonte (glifo vs caixa)
+          lbl.style.transform='translate(-'+(w/2)+'px,-'+(h/2+nudge)+'px)';
         });
       }
     }).then(function(canvas){
