@@ -2756,6 +2756,11 @@ function compartilharCampo(){
     };
     var c=cores[tab]||cores.A;
     var sc=2;
+    // Medir a dimensão real já resolvida pelo navegador (pixels concretos), em vez
+    // de deixar o html2canvas recalcular a altura do campo (que depende de flex
+    // sobre 100vh no body — unidade que o html2canvas resolve de forma
+    // inconsistente dentro do próprio clone, causando o esticamento vertical).
+    var fw=fieldEl.offsetWidth,fh=fieldEl.offsetHeight;
 
     html2canvas(fieldEl,{
       backgroundColor:null,
@@ -2763,9 +2768,21 @@ function compartilharCampo(){
       useCORS:true,
       allowTaint:false,
       logging:false,
+      width:fw,
+      height:fh,
+      windowWidth:window.innerWidth,
+      windowHeight:window.innerHeight,
       onclone:function(doc){
         var f=doc.getElementById('field');
         if(!f)return;
+        // Fixar o tamanho do campo dentro do clone com os valores reais medidos
+        // na tela (fw/fh), em vez de deixar o #field recalcular sua altura via
+        // height:100% → .fwrap{flex:3} → body{height:100vh} dentro do clone —
+        // essa cadeia dependente de vh/flex é resolvida de forma inconsistente
+        // pelo html2canvas e era a causa do esticamento vertical.
+        f.style.width=fw+'px';
+        f.style.height=fh+'px';
+        f.style.flex='none';
         f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
         // ocultar o "×" de remover jogador — só na imagem exportada
         f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
