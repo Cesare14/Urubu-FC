@@ -147,7 +147,7 @@ tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
 #thead-row th:nth-child(3),#tbody td:nth-child(3){width:36px}
 #thead-row th:nth-child(4),#tbody td:nth-child(4){width:32px}
 #thead-row th:nth-child(5),#tbody td:nth-child(5){width:34px}
-#thead-row th:nth-child(6),#tbody td:nth-child(6){width:60px}
+#thead-row th:nth-child(6),#tbody td:nth-child(6){width:72px}
 #thead-row th:nth-child(9),#tbody td:nth-child(9){width:50px}
 .dh{color:var(--dark4);font-size:14px;cursor:grab;user-select:none}
 tr:hover .dh{color:var(--gray)}
@@ -475,10 +475,14 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── TABELA: ocultar Nac. (5ª coluna) e Observação (8ª) ──────── */
   /* Estrutura: 1=drag 2=avatar 3=nome 4=pos 5=nac 6=nivel 7=status 8=obs 9=acoes */
+  thead th:nth-child(1),/* Avatar */
   thead th:nth-child(5),/* Nac. */
   thead th:nth-child(8),/* Observação */
+  tbody td:nth-child(1),
   tbody td:nth-child(5),
   tbody td:nth-child(8){display:none}
+  #tbody .pimg,
+  #tbody .pavatar-fallback{display:none!important}
 
   /* ── MODAIS E OVERLAYS ─────────────────────────────────────────── */
   .modal{width:calc(100% - 24px);margin:12px}
@@ -533,11 +537,10 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
   .stag-compoe{max-width:44px;padding:1px 6px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
-  #thead-row th:nth-child(1),#tbody td:nth-child(1){width:4%}
   #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
-  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:10%}
+  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:11%}
   #thead-row th:nth-child(4),#tbody td:nth-child(4){width:8%}
-  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:9%}
+  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:12%}
   #thead-row th:nth-child(7),#tbody td:nth-child(7){width:21%}
   #thead-row th:nth-child(9),#tbody td:nth-child(9){width:10%}
   #tbody td:nth-child(6){padding:3px 2px}
