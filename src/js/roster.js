@@ -8,11 +8,13 @@ function sanitizeText(str){
     .replace(/'/g,'&#x27;');
 }
 
+const STATUS_ORDER = { 'Titular': 0, 'Importante': 1, 'Compõe elenco': 2, 'Vender': 3, 'Dispensável': 4 };
 function sortArr(arr,key,asc){
   if(!key)return arr;
   return arr.slice().sort(function(a,b){
     let va,vb;
     if(key==='pos'){va=POS_ORDER[a.pos]!==undefined?POS_ORDER[a.pos]:99;vb=POS_ORDER[b.pos]!==undefined?POS_ORDER[b.pos]:99;}
+    else if(key==='status'){va=STATUS_ORDER[a.status]!==undefined?STATUS_ORDER[a.status]:99;vb=STATUS_ORDER[b.status]!==undefined?STATUS_ORDER[b.status]:99;}
     else{va=typeof a[key]==='string'?a[key]:(a[key]||0);vb=typeof b[key]==='string'?b[key]:(b[key]||0);}
     if(va<vb)return asc?-1:1;if(va>vb)return asc?1:-1;return 0;
   });

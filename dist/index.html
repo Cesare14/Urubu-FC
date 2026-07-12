@@ -557,13 +557,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
   .stag-compoe{max-width:44px;padding:1px 6px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
-  #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
+  #thead-row th:nth-child(2),#tbody td:nth-child(2){width:37%}
   #thead-row th:nth-child(3),#tbody td:nth-child(3){width:15%}
   #thead-row th:nth-child(4),#tbody td:nth-child(4){width:10%}
-  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:11%}
+  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:12%}
   #thead-row th:nth-child(7),#tbody td:nth-child(7){width:20%}
   #thead-row th:nth-child(9),#tbody td:nth-child(9){width:6%}
   #tbody td:nth-child(6){padding:3px 2px}
+  /* Reduz letter-spacing dos headers no mobile: evita overflow do texto
+     "NÍVEL" (uppercase) sobre a seta de ordenação (.sort-arrow) */
+  thead th{letter-spacing:0.6px}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
   .sbar:empty{display:none}
@@ -651,7 +654,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
             <th class="sortable" data-sort="age">Id.<span class="sort-arrow"></span></th>
             <th>Nac.</th>
             <th class="sortable" data-sort="nivel">Nível<span class="sort-arrow"></span></th>
-            <th id="th-status"><div class="th-filterable">Status<div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></div></th>
+            <th id="th-status" class="sortable" data-sort="status"><div class="th-filterable"><span class="th-sort-lbl">Status<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></div></th>
             <th>Observação</th>
             <th></th>
           </tr></thead>
@@ -1750,11 +1753,13 @@ function sanitizeText(str){
     .replace(/'/g,'&#x27;');
 }
 
+const STATUS_ORDER = { 'Titular': 0, 'Importante': 1, 'Compõe elenco': 2, 'Vender': 3, 'Dispensável': 4 };
 function sortArr(arr,key,asc){
   if(!key)return arr;
   return arr.slice().sort(function(a,b){
     let va,vb;
     if(key==='pos'){va=POS_ORDER[a.pos]!==undefined?POS_ORDER[a.pos]:99;vb=POS_ORDER[b.pos]!==undefined?POS_ORDER[b.pos]:99;}
+    else if(key==='status'){va=STATUS_ORDER[a.status]!==undefined?STATUS_ORDER[a.status]:99;vb=STATUS_ORDER[b.status]!==undefined?STATUS_ORDER[b.status]:99;}
     else{va=typeof a[key]==='string'?a[key]:(a[key]||0);vb=typeof b[key]==='string'?b[key]:(b[key]||0);}
     if(va<vb)return asc?-1:1;if(va>vb)return asc?1:-1;return 0;
   });
