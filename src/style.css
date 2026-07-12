@@ -125,6 +125,13 @@ thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-fami
 thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
 thead th.sortable:hover{color:var(--white)}
 .sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
+/* Filtro embutido no header da tabela (Pos/Status do Elenco) — item #3 */
+thead th.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.th-sort-lbl{display:inline-flex;align-items:center}
+.mf-wrap.mf-th{position:relative;display:inline-flex}
+.mf-btn.mf-btn-th{min-width:auto;padding:1px 3px;background:transparent;border:none;color:var(--gray);gap:0}
+.mf-btn.mf-btn-th:hover{color:var(--white)}
+.mf-wrap.mf-th.mf-active::after{content:'';position:absolute;top:-1px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--red);pointer-events:none}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
 tbody tr:nth-child(even){background:var(--dark)}
@@ -135,7 +142,7 @@ tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
 #thead-row th:nth-child(7),#tbody td:nth-child(7){width:125px}
 /* Demais colunas: largura fixa desktop (substitui widths inline removidos do body.html) */
 #thead-row th:nth-child(1),#tbody td:nth-child(1){width:16px}
-#thead-row th:nth-child(3),#tbody td:nth-child(3){width:36px}
+#thead-row th:nth-child(3),#tbody td:nth-child(3){width:62px}
 #thead-row th:nth-child(4),#tbody td:nth-child(4){width:32px}
 #thead-row th:nth-child(5),#tbody td:nth-child(5){width:34px}
 #thead-row th:nth-child(6),#tbody td:nth-child(6){width:72px}

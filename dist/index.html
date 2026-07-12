@@ -137,6 +137,13 @@ thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-fami
 thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
 thead th.sortable:hover{color:var(--white)}
 .sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
+/* Filtro embutido no header da tabela (Pos/Status do Elenco) — item #3 */
+thead th.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.th-sort-lbl{display:inline-flex;align-items:center}
+.mf-wrap.mf-th{position:relative;display:inline-flex}
+.mf-btn.mf-btn-th{min-width:auto;padding:1px 3px;background:transparent;border:none;color:var(--gray);gap:0}
+.mf-btn.mf-btn-th:hover{color:var(--white)}
+.mf-wrap.mf-th.mf-active::after{content:'';position:absolute;top:-1px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--red);pointer-events:none}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
 tbody tr:nth-child(even){background:var(--dark)}
@@ -147,7 +154,7 @@ tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
 #thead-row th:nth-child(7),#tbody td:nth-child(7){width:125px}
 /* Demais colunas: largura fixa desktop (substitui widths inline removidos do body.html) */
 #thead-row th:nth-child(1),#tbody td:nth-child(1){width:16px}
-#thead-row th:nth-child(3),#tbody td:nth-child(3){width:36px}
+#thead-row th:nth-child(3),#tbody td:nth-child(3){width:62px}
 #thead-row th:nth-child(4),#tbody td:nth-child(4){width:32px}
 #thead-row th:nth-child(5),#tbody td:nth-child(5){width:34px}
 #thead-row th:nth-child(6),#tbody td:nth-child(6){width:72px}
@@ -623,14 +630,6 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <div id="pane-elenco" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="tbar" id="elenco-tbar">
         <div class="swrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="si" id="si-search" placeholder="Buscar jogador..." autocomplete="off"></div>
-        <div class="mf-wrap" id="mf-pos-wrap">
-          <button class="mf-btn" id="mf-pos-btn">Posição <span>▾</span></button>
-          <div class="mf-dropdown" id="mf-pos-dd"></div>
-        </div>
-        <div class="mf-wrap" id="mf-status-wrap">
-          <button class="mf-btn" id="mf-status-btn">Status <span>▾</span></button>
-          <div class="mf-dropdown" id="mf-status-dd"></div>
-        </div>
         <div style="display:flex;gap:3px;margin-left:auto;align-items:center" id="sort-btns"></div>
         <button class="btn-share" onclick="compartilharElenco()" title="Compartilhar elenco">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -642,11 +641,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
           <thead><tr id="thead-row">
             <th></th>
             <th>Nome</th>
-            <th class="sortable" data-sort="pos">Pos<span class="sort-arrow"></span></th>
+            <th class="sortable th-filterable" data-sort="pos"><span class="th-sort-lbl">Pos<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-pos-wrap"><button class="mf-btn mf-btn-th" id="mf-pos-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-pos-dd"></div></div></th>
             <th class="sortable" data-sort="age">Id.<span class="sort-arrow"></span></th>
             <th>Nac.</th>
             <th class="sortable" data-sort="nivel">Nível<span class="sort-arrow"></span></th>
-            <th>Status</th>
+            <th class="th-filterable" id="th-status">Status<div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></th>
             <th>Observação</th>
             <th></th>
           </tr></thead>
@@ -1141,11 +1140,19 @@ document.addEventListener('click',closeAllDD);
 // qualquer ancestral, inclusive window — por isso {capture:true}.
 window.addEventListener('scroll', closeAllDD, true);
 
+// Indicador visual (ponto vermelho) no th quando o filtro correspondente
+// (Pos/Status do Elenco) tem seleção ativa. Não mexe no Mercado.
+function updateThFilterIndicators(){
+  const pw=document.getElementById('mf-pos-wrap');if(pw)pw.classList.toggle('mf-active',ST.filterPos.length>0);
+  const sw=document.getElementById('mf-status-wrap');if(sw)sw.classList.toggle('mf-active',ST.filterStatus.length>0);
+}
+
 function initFilters(){
-  buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();},'Todas posições');
-  buildMF('mf-status-wrap','mf-status-btn','mf-status-dd',SLIST,ST.filterStatus,function(){renderTable();},'Todos status');
+  buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();updateThFilterIndicators();},'Todas posições');
+  buildMF('mf-status-wrap','mf-status-btn','mf-status-dd',SLIST,ST.filterStatus,function(){renderTable();updateThFilterIndicators();},'Todos status');
   buildMF('mf-tpos-wrap','mf-tpos-btn','mf-tpos-dd',POSITIONS,ST.filterTPos,function(){renderMercado();},'Todas posições');
   buildMF('mf-tprio-wrap','mf-tprio-btn','mf-tprio-dd',['Baixa','Média','Alta','Oportunidade'],ST.filterTPrio,function(){renderMercado();},'Todas prioridades');
+  updateThFilterIndicators();
 }
 
 // SORT

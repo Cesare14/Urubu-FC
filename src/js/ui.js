@@ -148,11 +148,19 @@ document.addEventListener('click',closeAllDD);
 // qualquer ancestral, inclusive window — por isso {capture:true}.
 window.addEventListener('scroll', closeAllDD, true);
 
+// Indicador visual (ponto vermelho) no th quando o filtro correspondente
+// (Pos/Status do Elenco) tem seleção ativa. Não mexe no Mercado.
+function updateThFilterIndicators(){
+  const pw=document.getElementById('mf-pos-wrap');if(pw)pw.classList.toggle('mf-active',ST.filterPos.length>0);
+  const sw=document.getElementById('mf-status-wrap');if(sw)sw.classList.toggle('mf-active',ST.filterStatus.length>0);
+}
+
 function initFilters(){
-  buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();},'Todas posições');
-  buildMF('mf-status-wrap','mf-status-btn','mf-status-dd',SLIST,ST.filterStatus,function(){renderTable();},'Todos status');
+  buildMF('mf-pos-wrap','mf-pos-btn','mf-pos-dd',POSITIONS,ST.filterPos,function(){renderTable();updateThFilterIndicators();},'Todas posições');
+  buildMF('mf-status-wrap','mf-status-btn','mf-status-dd',SLIST,ST.filterStatus,function(){renderTable();updateThFilterIndicators();},'Todos status');
   buildMF('mf-tpos-wrap','mf-tpos-btn','mf-tpos-dd',POSITIONS,ST.filterTPos,function(){renderMercado();},'Todas posições');
   buildMF('mf-tprio-wrap','mf-tprio-btn','mf-tprio-dd',['Baixa','Média','Alta','Oportunidade'],ST.filterTPrio,function(){renderMercado();},'Todas prioridades');
+  updateThFilterIndicators();
 }
 
 // SORT
