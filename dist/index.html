@@ -134,6 +134,9 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .ss{flex:1;overflow-y:auto}.ss::-webkit-scrollbar{width:3px}.ss::-webkit-scrollbar-thumb{background:var(--dark4);border-radius:2px}
 table{width:100%;border-collapse:collapse}
 thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);white-space:nowrap;border-bottom:1px solid var(--dark3)}
+thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
+thead th.sortable:hover{color:var(--white)}
+.sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
 tbody tr:nth-child(even){background:var(--dark)}
@@ -309,6 +312,10 @@ canvas.pie-canvas{display:block;margin:0 auto;border-radius:50%}
 .frow .fg{flex:1}
 #modal-pl .fi,#modal-pl .fs{height:34px;box-sizing:border-box}
 .macts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.macts-split{justify-content:space-between}
+.macts-right{display:flex;gap:8px}
+.btn-outline-red{background:transparent;color:var(--red);border:1.5px solid var(--red)}
+.btn-outline-red:hover{background:rgba(200,0,0,.08)}
 /* SLOT ANIMATIONS */
 .slot:nth-child(1) .scard{animation-delay:.03s}
 .slot:nth-child(2) .scard{animation-delay:.06s}
@@ -499,9 +506,9 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .frow .fs{width:100%;min-width:0;box-sizing:border-box}
   /* Input não extrapola o container */
   .frow .fi{width:100%;min-width:0;box-sizing:border-box}
-  /* Nível: largura fixa para 3 dígitos (≈72px); Valor: ocupa o restante */
+  /* Nível: largura suficiente para o rótulo "NÍVEL (0–100)" não quebrar (ref.: campo Nac., 80px); Valor: ocupa o restante */
   /* .modal: mtitle(1)+fg-nome(2)+frow-pos/idade(3)+frow-nac/status(4)+frow-nivel/valor(5) */
-  .modal .frow:nth-child(5) .fg:first-child{flex:0 0 72px}
+  .modal .frow:nth-child(5) .fg:first-child{flex:0 0 96px}
   .modal .frow:nth-child(5) .fg:last-child{flex:1}
 
   /* ── ANÁLISE: 1 coluna ─────────────────────────────────────────── */
@@ -707,7 +714,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     </div>
     <div class="fg"><label class="fl">URL da Foto</label><input class="fi" id="mpl-foto" placeholder="https://..."></div>
     <div class="fg"><label class="fl">Observação</label><input class="fi" id="mpl-obs" placeholder="Ex: contrato até dez/2026..."></div>
-    <div class="macts"><button class="btn btn-ghost" id="mpl-cancel">Cancelar</button><button class="btn btn-red" id="mpl-ok">Salvar</button></div>
+    <div class="macts macts-split"><button class="btn btn-outline-red" id="mpl-delete">Excluir</button><div class="macts-right"><button class="btn btn-ghost" id="mpl-cancel">Cancelar</button><button class="btn btn-red" id="mpl-ok">Salvar</button></div></div>
   </div>
 </div>
 <!-- MODAL ALVO -->
@@ -738,7 +745,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     </div>
     <div class="fg"><label class="fl">Contrato até</label><input class="fi" id="mtgt-contract" placeholder="Jun/2027"></div>
     <div class="fg"><label class="fl">Perfil / observações</label><input class="fi" id="mtgt-obs" placeholder="Ex: ponta veloz, canhoto..."></div>
-    <div class="macts"><button class="btn btn-ghost" id="mtgt-cancel">Cancelar</button><button class="btn btn-purple" id="mtgt-ok">Salvar</button></div>
+    <div class="macts"><button class="btn btn-ghost" id="mtgt-cancel">Cancelar</button><button class="btn btn-red" id="mtgt-ok">Salvar</button></div>
   </div>
 </div>
 <!-- MODAL COMPARTILHAR -->
@@ -1142,22 +1149,26 @@ function initFilters(){
 }
 
 // SORT
+// Elenco: ordenação via clique no header (ver initSortHeaders). Botões avulsos
+// removidos tanto do Elenco (#sort-btns) quanto do Mercado (#tsort-btns) —
+// o Mercado não tem mais nenhuma forma de ordenação (intencional).
 function initSortBtns(){
-  const sorts=[{k:'age',l:'Idade'},{k:'nivel',l:'Nível'},{k:'valor',l:'Valor'},{k:'pos',l:'Posição'}];
-  const el=document.getElementById('sort-btns');if(el){el.innerHTML='';
-  sorts.forEach(function(s){
-    const b=document.createElement('button');b.className='sort-btn'+(ST.sortKey===s.k?' active':'');
-    b.textContent=s.l+(ST.sortKey===s.k?(ST.sortAsc?' ↑':' ↓'):'');
-    b.onclick=function(){if(ST.sortKey===s.k)ST.sortAsc=!ST.sortAsc;else{ST.sortKey=s.k;ST.sortAsc=true;}initSortBtns();renderTable();};
-    el.appendChild(b);
-  });}
-  const te=document.getElementById('tsort-btns');if(te){te.innerHTML='';
-  sorts.forEach(function(s){
-    const b=document.createElement('button');b.className='sort-btn'+(ST.tsortKey===s.k?' active':'');
-    b.textContent=s.l+(ST.tsortKey===s.k?(ST.tsortAsc?' ↑':' ↓'):'');
-    b.onclick=function(){if(ST.tsortKey===s.k)ST.tsortAsc=!ST.tsortAsc;else{ST.tsortKey=s.k;ST.tsortAsc=true;}initSortBtns();renderMercado();};
-    te.appendChild(b);
-  });}
+  const el=document.getElementById('sort-btns');if(el){el.innerHTML='';}
+  const te=document.getElementById('tsort-btns');if(te){te.innerHTML='';}
+  initSortHeaders();
+}
+
+// Ordenação clicável nos headers da tabela do Elenco (Pos, Id., Nível)
+function initSortHeaders(){
+  document.querySelectorAll('th.sortable[data-sort]').forEach(function(th){
+    const key=th.getAttribute('data-sort');
+    const arrow=th.querySelector('.sort-arrow');
+    if(arrow)arrow.textContent=ST.sortKey===key?(ST.sortAsc?'↑':'↓'):'';
+    th.onclick=function(){
+      if(ST.sortKey===key)ST.sortAsc=!ST.sortAsc;else{ST.sortKey=key;ST.sortAsc=true;}
+      initSortBtns();renderTable();
+    };
+  });
 }
 
 // FIELD
@@ -1837,6 +1848,18 @@ function addRowTouchDrag(tr, p) {
   }, { passive: true });
 }
 
+// Exclui um jogador do elenco (com confirmação) e limpa referências no campo tático.
+// Reaproveitada pelo modal de edição (openPl) — antes vinculada ao ícone "✕" da linha.
+function deletePlayerById(id){
+  const p=gp(id);if(!p)return;
+  if(!confirm('Excluir '+p.name+'? Essa ação não pode ser desfeita.'))return;
+  ST.players=ST.players.filter(function(x){return x.id!==id;});
+  Object.keys(ST.slots).forEach(function(t){ST.slots[t]=ST.slots[t].map(function(s){return s===id?null:s;});});
+  save();
+  closePl();
+  render();
+}
+
 // Atualiza só o indicador ofdot de uma linha da tabela (evita recriar tudo no drop)
 function patchTableRow(pid){
   const tr=document.querySelector('tr[data-pid="'+pid+'"]');
@@ -1919,8 +1942,7 @@ function renderTable(){
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
     const eb=document.createElement('button');eb.className='ab';eb.textContent='✎';eb.onclick=function(){openPl(p.id);};
-    const db=document.createElement('button');db.className='ab dl';db.textContent='✕';db.onclick=function(){if(confirm('Remover '+p.name+'?')){ST.players=ST.players.filter(function(x){return x.id!==p.id;});Object.keys(ST.slots).forEach(function(t){ST.slots[t]=ST.slots[t].map(function(s){return s===p.id?null:s;});});save();render();}};
-    abtsInner.appendChild(eb);abtsInner.appendChild(db);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
+    abtsInner.appendChild(eb);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
@@ -2008,8 +2030,6 @@ function renderMercado(){
     const mpr=ST.filterTPrio.length===0||ST.filterTPrio.some(function(pr){return prioMap[pr]===t.prio;});
     return ms&&mp&&mpr;
   });
-  const tsortMap={age:'age',nivel:'nivel',valor:'val',pos:'pos'};
-  if(ST.tsortKey&&tsortMap[ST.tsortKey])filtered=sortArr(filtered,tsortMap[ST.tsortKey],ST.tsortAsc);
   const tgtCnt=document.getElementById('tgt-count');if(tgtCnt)tgtCnt.textContent=ST.targets.length+' alvo'+(ST.targets.length!==1?'s':'');
   if(!filtered.length){grid.innerHTML='<div class="empty"><p>Nenhum alvo cadastrado</p><span>Use "+ Alvo" para adicionar.</span></div>';return;}
   filtered.forEach(function(t,idx){
@@ -2572,6 +2592,7 @@ function openPl(id){
   else{['mpl-name','mpl-foto','mpl-obs','mpl-nivel','mpl-valor'].forEach(function(x){document.getElementById(x).value='';});document.getElementById('mpl-pos').value='CA';document.getElementById('mpl-age').value='';document.getElementById('mpl-nat').value='BRA';document.getElementById('mpl-status').value='Compõe elenco';setTimeout(function(){document.getElementById('mpl-name').focus();},50);}
   const tog=document.getElementById('mpl-sel-toggle');const lbl=document.getElementById('mpl-sel-lbl');
   if(mplSelVal){tog.classList.add('on');lbl.textContent='Sim';}else{tog.classList.remove('on');lbl.textContent='Não';}
+  const delBtn=document.getElementById('mpl-delete');if(delBtn)delBtn.style.display=id?'':'none';
 }
 var LEGAL_CONTENT={
   privacy:{
@@ -3153,6 +3174,7 @@ document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
+document.getElementById('mpl-delete').onclick=function(){if(ST.epid!==null)deletePlayerById(ST.epid);};
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
 document.getElementById('mpl-sel-toggle').onclick=function(){mplSelVal=!mplSelVal;this.classList.toggle('on',mplSelVal);document.getElementById('mpl-sel-lbl').textContent=mplSelVal?'Sim':'Não';};
 document.getElementById('mtgt-cancel').onclick=closeTgt;

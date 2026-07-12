@@ -122,6 +122,9 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .ss{flex:1;overflow-y:auto}.ss::-webkit-scrollbar{width:3px}.ss::-webkit-scrollbar-thumb{background:var(--dark4);border-radius:2px}
 table{width:100%;border-collapse:collapse}
 thead th{position:sticky;top:0;background:var(--dark2);padding:5px 9px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);white-space:nowrap;border-bottom:1px solid var(--dark3)}
+thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
+thead th.sortable:hover{color:var(--white)}
+.sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
 tbody tr:nth-child(even){background:var(--dark)}
@@ -297,6 +300,10 @@ canvas.pie-canvas{display:block;margin:0 auto;border-radius:50%}
 .frow .fg{flex:1}
 #modal-pl .fi,#modal-pl .fs{height:34px;box-sizing:border-box}
 .macts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.macts-split{justify-content:space-between}
+.macts-right{display:flex;gap:8px}
+.btn-outline-red{background:transparent;color:var(--red);border:1.5px solid var(--red)}
+.btn-outline-red:hover{background:rgba(200,0,0,.08)}
 /* SLOT ANIMATIONS */
 .slot:nth-child(1) .scard{animation-delay:.03s}
 .slot:nth-child(2) .scard{animation-delay:.06s}
@@ -487,9 +494,9 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .frow .fs{width:100%;min-width:0;box-sizing:border-box}
   /* Input não extrapola o container */
   .frow .fi{width:100%;min-width:0;box-sizing:border-box}
-  /* Nível: largura fixa para 3 dígitos (≈72px); Valor: ocupa o restante */
+  /* Nível: largura suficiente para o rótulo "NÍVEL (0–100)" não quebrar (ref.: campo Nac., 80px); Valor: ocupa o restante */
   /* .modal: mtitle(1)+fg-nome(2)+frow-pos/idade(3)+frow-nac/status(4)+frow-nivel/valor(5) */
-  .modal .frow:nth-child(5) .fg:first-child{flex:0 0 72px}
+  .modal .frow:nth-child(5) .fg:first-child{flex:0 0 96px}
   .modal .frow:nth-child(5) .fg:last-child{flex:1}
 
   /* ── ANÁLISE: 1 coluna ─────────────────────────────────────────── */

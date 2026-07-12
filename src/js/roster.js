@@ -133,6 +133,18 @@ function addRowTouchDrag(tr, p) {
   }, { passive: true });
 }
 
+// Exclui um jogador do elenco (com confirmação) e limpa referências no campo tático.
+// Reaproveitada pelo modal de edição (openPl) — antes vinculada ao ícone "✕" da linha.
+function deletePlayerById(id){
+  const p=gp(id);if(!p)return;
+  if(!confirm('Excluir '+p.name+'? Essa ação não pode ser desfeita.'))return;
+  ST.players=ST.players.filter(function(x){return x.id!==id;});
+  Object.keys(ST.slots).forEach(function(t){ST.slots[t]=ST.slots[t].map(function(s){return s===id?null:s;});});
+  save();
+  closePl();
+  render();
+}
+
 // Atualiza só o indicador ofdot de uma linha da tabela (evita recriar tudo no drop)
 function patchTableRow(pid){
   const tr=document.querySelector('tr[data-pid="'+pid+'"]');
@@ -215,8 +227,7 @@ function renderTable(){
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
     const eb=document.createElement('button');eb.className='ab';eb.textContent='✎';eb.onclick=function(){openPl(p.id);};
-    const db=document.createElement('button');db.className='ab dl';db.textContent='✕';db.onclick=function(){if(confirm('Remover '+p.name+'?')){ST.players=ST.players.filter(function(x){return x.id!==p.id;});Object.keys(ST.slots).forEach(function(t){ST.slots[t]=ST.slots[t].map(function(s){return s===p.id?null:s;});});save();render();}};
-    abtsInner.appendChild(eb);abtsInner.appendChild(db);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
+    abtsInner.appendChild(eb);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
@@ -304,8 +315,6 @@ function renderMercado(){
     const mpr=ST.filterTPrio.length===0||ST.filterTPrio.some(function(pr){return prioMap[pr]===t.prio;});
     return ms&&mp&&mpr;
   });
-  const tsortMap={age:'age',nivel:'nivel',valor:'val',pos:'pos'};
-  if(ST.tsortKey&&tsortMap[ST.tsortKey])filtered=sortArr(filtered,tsortMap[ST.tsortKey],ST.tsortAsc);
   const tgtCnt=document.getElementById('tgt-count');if(tgtCnt)tgtCnt.textContent=ST.targets.length+' alvo'+(ST.targets.length!==1?'s':'');
   if(!filtered.length){grid.innerHTML='<div class="empty"><p>Nenhum alvo cadastrado</p><span>Use "+ Alvo" para adicionar.</span></div>';return;}
   filtered.forEach(function(t,idx){

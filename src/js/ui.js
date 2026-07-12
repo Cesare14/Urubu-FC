@@ -156,22 +156,26 @@ function initFilters(){
 }
 
 // SORT
+// Elenco: ordenação via clique no header (ver initSortHeaders). Botões avulsos
+// removidos tanto do Elenco (#sort-btns) quanto do Mercado (#tsort-btns) —
+// o Mercado não tem mais nenhuma forma de ordenação (intencional).
 function initSortBtns(){
-  const sorts=[{k:'age',l:'Idade'},{k:'nivel',l:'Nível'},{k:'valor',l:'Valor'},{k:'pos',l:'Posição'}];
-  const el=document.getElementById('sort-btns');if(el){el.innerHTML='';
-  sorts.forEach(function(s){
-    const b=document.createElement('button');b.className='sort-btn'+(ST.sortKey===s.k?' active':'');
-    b.textContent=s.l+(ST.sortKey===s.k?(ST.sortAsc?' ↑':' ↓'):'');
-    b.onclick=function(){if(ST.sortKey===s.k)ST.sortAsc=!ST.sortAsc;else{ST.sortKey=s.k;ST.sortAsc=true;}initSortBtns();renderTable();};
-    el.appendChild(b);
-  });}
-  const te=document.getElementById('tsort-btns');if(te){te.innerHTML='';
-  sorts.forEach(function(s){
-    const b=document.createElement('button');b.className='sort-btn'+(ST.tsortKey===s.k?' active':'');
-    b.textContent=s.l+(ST.tsortKey===s.k?(ST.tsortAsc?' ↑':' ↓'):'');
-    b.onclick=function(){if(ST.tsortKey===s.k)ST.tsortAsc=!ST.tsortAsc;else{ST.tsortKey=s.k;ST.tsortAsc=true;}initSortBtns();renderMercado();};
-    te.appendChild(b);
-  });}
+  const el=document.getElementById('sort-btns');if(el){el.innerHTML='';}
+  const te=document.getElementById('tsort-btns');if(te){te.innerHTML='';}
+  initSortHeaders();
+}
+
+// Ordenação clicável nos headers da tabela do Elenco (Pos, Id., Nível)
+function initSortHeaders(){
+  document.querySelectorAll('th.sortable[data-sort]').forEach(function(th){
+    const key=th.getAttribute('data-sort');
+    const arrow=th.querySelector('.sort-arrow');
+    if(arrow)arrow.textContent=ST.sortKey===key?(ST.sortAsc?'↑':'↓'):'';
+    th.onclick=function(){
+      if(ST.sortKey===key)ST.sortAsc=!ST.sortAsc;else{ST.sortKey=key;ST.sortAsc=true;}
+      initSortBtns();renderTable();
+    };
+  });
 }
 
 // FIELD

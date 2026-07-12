@@ -326,6 +326,7 @@ function openPl(id){
   else{['mpl-name','mpl-foto','mpl-obs','mpl-nivel','mpl-valor'].forEach(function(x){document.getElementById(x).value='';});document.getElementById('mpl-pos').value='CA';document.getElementById('mpl-age').value='';document.getElementById('mpl-nat').value='BRA';document.getElementById('mpl-status').value='Compõe elenco';setTimeout(function(){document.getElementById('mpl-name').focus();},50);}
   const tog=document.getElementById('mpl-sel-toggle');const lbl=document.getElementById('mpl-sel-lbl');
   if(mplSelVal){tog.classList.add('on');lbl.textContent='Sim';}else{tog.classList.remove('on');lbl.textContent='Não';}
+  const delBtn=document.getElementById('mpl-delete');if(delBtn)delBtn.style.display=id?'':'none';
 }
 var LEGAL_CONTENT={
   privacy:{

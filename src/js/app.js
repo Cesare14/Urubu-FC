@@ -60,6 +60,7 @@ document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
+document.getElementById('mpl-delete').onclick=function(){if(ST.epid!==null)deletePlayerById(ST.epid);};
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
 document.getElementById('mpl-sel-toggle').onclick=function(){mplSelVal=!mplSelVal;this.classList.toggle('on',mplSelVal);document.getElementById('mpl-sel-lbl').textContent=mplSelVal?'Sim':'Não';};
 document.getElementById('mtgt-cancel').onclick=closeTgt;
