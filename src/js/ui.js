@@ -113,7 +113,21 @@ function positionMFDropdown(dd, btn) {
   var r = btn.getBoundingClientRect();
   dd.style.position = 'fixed';
   dd.style.top = (r.bottom + 4) + 'px';
-  dd.style.left = r.left + 'px';
+  // Mede a largura real do menu (precisa estar visível pra medir; o
+  // 'open' ainda não foi aplicado neste ponto, então força visibilidade
+  // temporária só para a medição, sem "piscar" na tela).
+  dd.style.visibility = 'hidden';
+  dd.style.display = 'block';
+  var ddW = dd.offsetWidth;
+  dd.style.display = '';
+  dd.style.visibility = '';
+  // Gruda na borda direita do botão quando não há espaço à direita da
+  // tela para abrir a partir da borda esquerda (evita vazar da viewport).
+  var margin = 8;
+  var left = r.left;
+  var maxLeft = window.innerWidth - ddW - margin;
+  if (left > maxLeft) left = Math.max(margin, maxLeft);
+  dd.style.left = left + 'px';
 }
 function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
   const dd=document.getElementById(ddId);

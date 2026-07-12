@@ -226,7 +226,7 @@ function renderTable(){
     const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=sanitizeText(e.target.value);save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
-    const eb=document.createElement('button');eb.className='ab';eb.textContent='✎';eb.onclick=function(){openPl(p.id);};
+    const eb=document.createElement('button');eb.className='ab';eb.title='Editar jogador';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openPl(p.id);};
     abtsInner.appendChild(eb);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
@@ -353,7 +353,7 @@ function renderMercado(){
     if(t.obs)infoDiv.innerHTML+='<div class="trow" style="flex-direction:column;align-items:flex-start;gap:1px"><span class="trl">Perfil</span><span class="trv" style="font-size:10px;white-space:normal;color:var(--gray-l)">'+sanitizeText(t.obs)+'</span></div>';
     c.appendChild(infoDiv);
     const acts=document.createElement('div');acts.className='tacts';
-    const eb=document.createElement('button');eb.className='tab';eb.textContent='✎';eb.onclick=function(){openTgt(t.id);};
+    const eb=document.createElement('button');eb.className='tab';eb.title='Editar alvo';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openTgt(t.id);};
     const db=document.createElement('button');db.className='tab dl';db.textContent='✕';db.onclick=function(){if(confirm('Remover '+t.name+'?')){ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();renderMercado();renderField();renderBar();}};
     const pb=document.createElement('button');pb.className='tprom';pb.textContent='→ Contratar';pb.onclick=function(){ST.players.push({id:npi(),name:t.name,pos:t.pos,age:t.age||22,nat:'',status:'Compõe elenco',nivel:t.nivel||nivelDef('Compõe elenco'),valor:t.val||0,selecionavel:false,foto:'',obs:t.club?'Contratado de '+t.club:''});ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();render();alert(t.name+' adicionado ao elenco.');};
     acts.appendChild(eb);acts.appendChild(db);acts.appendChild(pb);c.appendChild(acts);

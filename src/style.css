@@ -32,7 +32,12 @@ body.light-mode{
 @keyframes themeToggleSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 body{transition:background var(--trans-slow),color var(--trans-slow);}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* Remove a aparência nativa de <button> (Chrome/WebView Android pode manter
+   um preenchimento escuro de "pressionado" do próprio sistema mesmo com
+   background:transparent no CSS, se o appearance nativo não for desligado) —
+   causa raiz do "vazamento" preto reportado nos headers com filtro (▾). */
+button{-webkit-appearance:none;appearance:none}
 body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
 .hdr{background:var(--dark);border-bottom:2px solid var(--red);padding:8px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;gap:8px;flex-wrap:wrap;min-height:90px;transition:background var(--trans-slow);}
 .hdr-logo{display:flex;align-items:center;gap:10px}
@@ -126,11 +131,12 @@ thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
 thead th.sortable:hover{color:var(--white)}
 .sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
 /* Filtro embutido no header da tabela (Pos/Status do Elenco) — item #3 */
-thead th.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .th-sort-lbl{display:inline-flex;align-items:center}
 .mf-wrap.mf-th{position:relative;display:inline-flex}
 .mf-btn.mf-btn-th{min-width:auto;padding:1px 3px;background:transparent;border:none;color:var(--gray);gap:0}
 .mf-btn.mf-btn-th:hover{color:var(--white)}
+.mf-btn.mf-btn-th span{font-size:15px;font-weight:700;line-height:1}
 .mf-wrap.mf-th.mf-active::after{content:'';position:absolute;top:-1px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--red);pointer-events:none}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
@@ -540,11 +546,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .stag-compoe{max-width:44px;padding:1px 6px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
   #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
-  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:11%}
-  #thead-row th:nth-child(4),#tbody td:nth-child(4){width:8%}
-  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:12%}
-  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:21%}
-  #thead-row th:nth-child(9),#tbody td:nth-child(9){width:10%}
+  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:15%}
+  #thead-row th:nth-child(4),#tbody td:nth-child(4){width:10%}
+  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:11%}
+  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:20%}
+  #thead-row th:nth-child(9),#tbody td:nth-child(9){width:6%}
   #tbody td:nth-child(6){padding:3px 2px}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */

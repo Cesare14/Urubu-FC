@@ -44,7 +44,12 @@ body.light-mode{
 @keyframes themeToggleSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 body{transition:background var(--trans-slow),color var(--trans-slow);}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* Remove a aparência nativa de <button> (Chrome/WebView Android pode manter
+   um preenchimento escuro de "pressionado" do próprio sistema mesmo com
+   background:transparent no CSS, se o appearance nativo não for desligado) —
+   causa raiz do "vazamento" preto reportado nos headers com filtro (▾). */
+button{-webkit-appearance:none;appearance:none}
 body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
 .hdr{background:var(--dark);border-bottom:2px solid var(--red);padding:8px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;gap:8px;flex-wrap:wrap;min-height:90px;transition:background var(--trans-slow);}
 .hdr-logo{display:flex;align-items:center;gap:10px}
@@ -138,11 +143,12 @@ thead th.sortable{cursor:pointer;user-select:none;transition:color .12s}
 thead th.sortable:hover{color:var(--white)}
 .sort-arrow{display:inline-block;margin-left:3px;font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-l)}
 /* Filtro embutido no header da tabela (Pos/Status do Elenco) — item #3 */
-thead th.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.th-filterable{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .th-sort-lbl{display:inline-flex;align-items:center}
 .mf-wrap.mf-th{position:relative;display:inline-flex}
 .mf-btn.mf-btn-th{min-width:auto;padding:1px 3px;background:transparent;border:none;color:var(--gray);gap:0}
 .mf-btn.mf-btn-th:hover{color:var(--white)}
+.mf-btn.mf-btn-th span{font-size:15px;font-weight:700;line-height:1}
 .mf-wrap.mf-th.mf-active::after{content:'';position:absolute;top:-1px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--red);pointer-events:none}
 tbody tr{animation:rowFadeIn .2s ease both;border-bottom:1px solid var(--dark3)}
 tbody tr:nth-child(odd){background:#1a1a1a}
@@ -552,11 +558,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .stag-compoe{max-width:44px;padding:1px 6px}
   #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
   #thead-row th:nth-child(2),#tbody td:nth-child(2){width:38%}
-  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:11%}
-  #thead-row th:nth-child(4),#tbody td:nth-child(4){width:8%}
-  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:12%}
-  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:21%}
-  #thead-row th:nth-child(9),#tbody td:nth-child(9){width:10%}
+  #thead-row th:nth-child(3),#tbody td:nth-child(3){width:15%}
+  #thead-row th:nth-child(4),#tbody td:nth-child(4){width:10%}
+  #thead-row th:nth-child(6),#tbody td:nth-child(6){width:11%}
+  #thead-row th:nth-child(7),#tbody td:nth-child(7){width:20%}
+  #thead-row th:nth-child(9),#tbody td:nth-child(9){width:6%}
   #tbody td:nth-child(6){padding:3px 2px}
 
   /* ── MISCELÂNEA ────────────────────────────────────────────────── */
@@ -641,11 +647,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
           <thead><tr id="thead-row">
             <th></th>
             <th>Nome</th>
-            <th class="sortable th-filterable" data-sort="pos"><span class="th-sort-lbl">Pos<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-pos-wrap"><button class="mf-btn mf-btn-th" id="mf-pos-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-pos-dd"></div></div></th>
+            <th class="sortable" data-sort="pos"><div class="th-filterable"><span class="th-sort-lbl">Pos<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-pos-wrap"><button class="mf-btn mf-btn-th" id="mf-pos-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-pos-dd"></div></div></div></th>
             <th class="sortable" data-sort="age">Id.<span class="sort-arrow"></span></th>
             <th>Nac.</th>
             <th class="sortable" data-sort="nivel">Nível<span class="sort-arrow"></span></th>
-            <th class="th-filterable" id="th-status">Status<div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></th>
+            <th id="th-status"><div class="th-filterable">Status<div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></div></th>
             <th>Observação</th>
             <th></th>
           </tr></thead>
@@ -1105,7 +1111,21 @@ function positionMFDropdown(dd, btn) {
   var r = btn.getBoundingClientRect();
   dd.style.position = 'fixed';
   dd.style.top = (r.bottom + 4) + 'px';
-  dd.style.left = r.left + 'px';
+  // Mede a largura real do menu (precisa estar visível pra medir; o
+  // 'open' ainda não foi aplicado neste ponto, então força visibilidade
+  // temporária só para a medição, sem "piscar" na tela).
+  dd.style.visibility = 'hidden';
+  dd.style.display = 'block';
+  var ddW = dd.offsetWidth;
+  dd.style.display = '';
+  dd.style.visibility = '';
+  // Gruda na borda direita do botão quando não há espaço à direita da
+  // tela para abrir a partir da borda esquerda (evita vazar da viewport).
+  var margin = 8;
+  var left = r.left;
+  var maxLeft = window.innerWidth - ddW - margin;
+  if (left > maxLeft) left = Math.max(margin, maxLeft);
+  dd.style.left = left + 'px';
 }
 function buildMF(wrapId,btnId,ddId,opts,sel,onChange,allLabel){
   const dd=document.getElementById(ddId);
@@ -1948,7 +1968,7 @@ function renderTable(){
     const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=sanitizeText(e.target.value);save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
-    const eb=document.createElement('button');eb.className='ab';eb.textContent='✎';eb.onclick=function(){openPl(p.id);};
+    const eb=document.createElement('button');eb.className='ab';eb.title='Editar jogador';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openPl(p.id);};
     abtsInner.appendChild(eb);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
     tbody.appendChild(tr);
   });
@@ -2075,7 +2095,7 @@ function renderMercado(){
     if(t.obs)infoDiv.innerHTML+='<div class="trow" style="flex-direction:column;align-items:flex-start;gap:1px"><span class="trl">Perfil</span><span class="trv" style="font-size:10px;white-space:normal;color:var(--gray-l)">'+sanitizeText(t.obs)+'</span></div>';
     c.appendChild(infoDiv);
     const acts=document.createElement('div');acts.className='tacts';
-    const eb=document.createElement('button');eb.className='tab';eb.textContent='✎';eb.onclick=function(){openTgt(t.id);};
+    const eb=document.createElement('button');eb.className='tab';eb.title='Editar alvo';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openTgt(t.id);};
     const db=document.createElement('button');db.className='tab dl';db.textContent='✕';db.onclick=function(){if(confirm('Remover '+t.name+'?')){ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();renderMercado();renderField();renderBar();}};
     const pb=document.createElement('button');pb.className='tprom';pb.textContent='→ Contratar';pb.onclick=function(){ST.players.push({id:npi(),name:t.name,pos:t.pos,age:t.age||22,nat:'',status:'Compõe elenco',nivel:t.nivel||nivelDef('Compõe elenco'),valor:t.val||0,selecionavel:false,foto:'',obs:t.club?'Contratado de '+t.club:''});ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();render();alert(t.name+' adicionado ao elenco.');};
     acts.appendChild(eb);acts.appendChild(db);acts.appendChild(pb);c.appendChild(acts);
