@@ -2,6 +2,12 @@
 function safeNivel(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(100,n));}
 function safeValor(v){var n=parseFloat(v);if(isNaN(n))return 0;return Math.max(0,Math.min(999,n));}
 
+// ─── texto fixo explicativo por card (não é tooltip) ──────────────
+function cardDesc(cont,txt){
+  const d=document.createElement('div');d.className='a-card-desc';d.textContent=txt;
+  cont.appendChild(d);
+}
+
 function renderAnalise(){
   const grid=document.getElementById('agrid');grid.innerHTML='';
   const pl=ST.players;const tg=ST.targets;if(!pl.length)return;
@@ -13,6 +19,7 @@ function renderAnalise(){
 
   // ── 1. IDADE MÉDIA ──────────────────────────────────────────────
   const c1=makeCard(false,'Idade Média',['bar'],function(cont){
+    cardDesc(cont,'A idade média do elenco é um indicador de janela competitiva: um time muito jovem tende a ganhar valor de mercado com o tempo, mas pode pecar em experiência decisiva; um elenco mais velho costuma entregar resultado imediato, com risco de perda de rendimento físico nas temporadas seguintes. O detalhamento por posição ajuda a enxergar onde o envelhecimento está concentrado.');
     const ages=pl.map(function(p){return p.age||0;}).filter(Boolean);
     const avg=ages.length?(ages.reduce(function(a,b){return a+b;},0)/ages.length).toFixed(1):0;
     const bd=idadeBadge(parseFloat(avg));
@@ -31,6 +38,7 @@ function renderAnalise(){
 
   // ── 2. NÍVEL MÉDIO ──────────────────────────────────────────────
   const c2=makeCard(false,'Nível Médio',['bar'],function(cont){
+    cardDesc(cont,'Nível médio dos jogadores agrupados por status — Titular, Importante, Compõe elenco, Vender e Dispensável. É uma forma rápida de enxergar o equilíbrio geral do time: um Nível médio alto entre os Titulares indica um time competitivo; uma diferença grande entre Titulares e Reservas pode sinalizar falta de profundidade de elenco. A comparação entre escalações ajuda a decidir se vale reforçar o banco ou se a Projeção (com possíveis contratações) eleva o nível de forma significativa.');
     const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     const avg=nivs.length?(nivs.reduce(function(a,b){return a+b;},0)/nivs.length).toFixed(1):0;
     const bd=nivelBadge(parseFloat(avg));
@@ -96,6 +104,7 @@ function renderAnalise(){
 
   // ── 3. VALOR DO ELENCO ──────────────────────────────────────────
   const c3=makeCard(true,'Valor do Elenco',['bar'],function(cont,type){
+    cardDesc(cont,'Pense nessas barras como "força relativa de investimento", não como proporção direta de euros. Já o ranking de "Top jogadores por valor" evidencia onde está concentrado o capital do elenco — útil para embasar decisões de venda ou renovação de contrato.');
     const total=pl.reduce(function(a,p){return a+safeValor(p.valor);},0);
     const tgTotal=tg.reduce(function(a,t){return a+safeValor(t.val);},0);
 
@@ -141,6 +150,7 @@ function renderAnalise(){
 
   // ── 4. NACIONALIDADES ───────────────────────────────────────────
   const c4=makeCard(true,'Jogadores por Nacionalidade',['bar'],function(cont,type){
+    cardDesc(cont,'Mostra a distribuição de nacionalidades no elenco. Útil pra planejar contratações e ficar de olho no limite de estrangeiros das competições.');
     const natMap={};
     pl.forEach(function(p){const n=p.nat||'?';natMap[n]=(natMap[n]||0)+1;});
     const arr=Object.keys(natMap).sort(function(a,b){return natMap[b]-natMap[a];});
@@ -173,6 +183,7 @@ function renderAnalise(){
   // ── 5. STATUS ───────────────────────────────────────────────────
   var STATUS_HIER={'Titular':'#60a5fa','Importante':'#22c55e','Compõe elenco':'#f97316','Vender':'#ef4444','Dispensável':'#9ca3af'};
   const c5=makeCard(false,'Por Status',['bar'],function(cont,type){
+    cardDesc(cont,'Mede a quantidade de jogadores em cada categoria — Titular, Importante, Compõe elenco, Vender, Dispensável. Serve para avaliar o tamanho e a distribuição do elenco: um número baixo de Titulares em relação ao total pode indicar dependência de poucos jogadores-chave; um número alto em "Vender" ou "Dispensável" sinaliza necessidade de reformulação do elenco.');
     const data=SLIST.map(function(s){return{lbl:s,val:pl.filter(function(p){return p.status===s;}).length,customColor:STATUS_HIER[s]};}).filter(function(d){return d.val>0;});
     {
       const maxV=data.length?Math.max.apply(null,data.map(function(d){return d.val;})):1;
@@ -183,10 +194,11 @@ function renderAnalise(){
 
   // ── 6. SELECIONÁVEIS ────────────────────────────────────────────
   const c6=makeCard(false,'Selecionáveis por Seleção',['bar'],function(cont){
+    cardDesc(cont,'Mostra quantos jogadores do elenco podem ser convocados por suas seleções nacionais e o detalhamento por país. Jogadores convocados podem desfalcar o time em datas FIFA, e essa visão ajuda a antecipar esse impacto por origem.');
     const selMap={};
     pl.filter(function(p){return p.selecionavel;}).forEach(function(p){const n=p.nat||'?';selMap[n]=(selMap[n]||0)+1;});
     const arr=Object.keys(selMap).sort(function(a,b){return selMap[b]-selMap[a];});
-    if(!arr.length){cont.innerHTML='<div style="color:var(--gray);font-size:12px;padding:8px 0">Nenhum jogador marcado como selecionável.<br>Edite jogadores e ative o campo "Selecionável".</div>';return;}
+    if(!arr.length){const emp=document.createElement('div');emp.style.cssText='color:var(--gray);font-size:12px;padding:8px 0';emp.innerHTML='Nenhum jogador marcado como selecionável.<br>Edite jogadores e ative o campo "Selecionável".';cont.appendChild(emp);return;}
     const total=arr.reduce(function(a,k){return a+selMap[k];},0);
     const bd={icon:'⚑',label:total+' convocáveis',bg:'rgba(34,197,94,.12)',col:'#22c55e'};
     heroBlock(cont,total,'jogadores',bd,'selecionáveis por seleção nacional');
@@ -238,6 +250,7 @@ function renderAnalise(){
   c7right.appendChild(c7hint);c7right.appendChild(c7sbtn);
   c7title.appendChild(c7lbl);c7title.appendChild(c7right);
   c7.appendChild(c7title);
+  cardDesc(c7,'Este painel permite comparar o nível médio do elenco do Flamengo com os demais times da Série A. O Flamengo é preenchido automaticamente com base no elenco cadastrado no site; os demais clubes ficam em aberto para você inserir manualmente, seja com base em avaliação própria ou em fontes externas de scouting. É uma forma de benchmarking direto contra a concorrência do campeonato.');
 
   // layout: inputs (esquerda) + gráfico (direita)
   const c7body=document.createElement('div');c7body.style.cssText='display:flex;gap:20px;align-items:flex-start';
@@ -328,45 +341,3 @@ function openPl(id){
   if(mplSelVal){tog.classList.add('on');lbl.textContent='Sim';}else{tog.classList.remove('on');lbl.textContent='Não';}
   const delBtn=document.getElementById('mpl-delete');if(delBtn)delBtn.style.display=id?'':'none';
 }
-var LEGAL_CONTENT={
-  privacy:{
-    title:'Política de Privacidade',
-    body:`<h3>1. Informações que Coletamos</h3>
-Esta plataforma utiliza armazenamento local (<em>localStorage</em>) exclusivamente no seu navegador para salvar as configurações do elenco, escalações e metas de mercado. Nenhuma informação pessoal é coletada, transmitida ou armazenada em servidores externos.
-<h3>2. Cookies e Tecnologias de Rastreamento</h3>
-Utilizamos cookies estritamente necessários para o funcionamento da plataforma. Podemos utilizar ferramentas de análise agregada (como Google Analytics) para compreender padrões de uso sem identificar usuários individualmente. Ao aceitar, você consente com o uso de cookies analíticos.
-<h3>3. Publicidade</h3>
-Esta plataforma pode exibir anúncios veiculados pelo Google AdSense. O Google pode utilizar cookies para exibir anúncios relevantes com base em suas visitas anteriores a este e a outros sites. Saiba mais em <em>google.com/policies/privacy/partners</em>.
-<h3>4. Seus Direitos (LGPD)</h3>
-Nos termos da Lei nº 13.709/2018 (LGPD), você tem direito a: acessar, corrigir e excluir seus dados. Como todos os dados são armazenados localmente no seu navegador, você pode limpá-los a qualquer momento pelo gerenciador de armazenamento do navegador.
-<h3>5. Contato</h3>
-Dúvidas sobre esta política podem ser enviadas para: <em>privacidade@urubufc.com.br</em>`
-  },
-  terms:{
-    title:'Termos de Uso',
-    body:`<h3>1. Aceitação dos Termos</h3>
-Ao acessar e utilizar a plataforma Urubu FC, você concorda com estes Termos de Uso. Caso não concorde, por favor, não utilize a plataforma.
-<h3>2. Descrição do Serviço</h3>
-A plataforma Urubu FC é uma ferramenta de gestão de elenco de futebol destinada a fins recreativos e informativos. Todos os dados inseridos são de responsabilidade exclusiva do usuário.
-<h3>3. Uso Permitido</h3>
-É permitido o uso pessoal e não-comercial desta plataforma. É proibida a reprodução, distribuição ou modificação do código-fonte sem autorização expressa.
-<h3>4. Isenção de Responsabilidade</h3>
-A Urubu FC não se responsabiliza por decisões tomadas com base nos dados inseridos na plataforma. As informações sobre jogadores, valores de mercado e níveis são inseridas manualmente pelos usuários e não refletem dados oficiais.
-<h3>5. Propriedade Intelectual</h3>
-O design, código e identidade visual da plataforma Urubu FC são propriedade de seus criadores. Os dados sobre jogadores e clubes são de domínio público ou inseridos pelos próprios usuários.
-<h3>6. Alterações</h3>
-Estes termos podem ser atualizados periodicamente. O uso continuado da plataforma após alterações constitui aceitação dos novos termos.`
-  }
-};
-function openLegal(type){
-  var c=LEGAL_CONTENT[type];if(!c)return;
-  document.getElementById('legal-title').textContent=c.title;
-  document.getElementById('legal-body').innerHTML=c.body;
-  document.getElementById('legal-over').classList.add('open');
-}
-function closeLegal(){document.getElementById('legal-over').classList.remove('open');}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLegal();});
-// COOKIE
-function acceptCookies(){localStorage.setItem('ufc_cookie','1');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
-function declineCookies(){localStorage.setItem('ufc_cookie','0');var cb=document.getElementById('cookie-bar');if(cb)cb.classList.add('hidden');}
-

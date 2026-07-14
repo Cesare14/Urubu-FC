@@ -179,6 +179,10 @@ function compartilharCampo(){
           var nudge=1.2; // correção empírica pra compensar métrica da fonte (glifo vs caixa)
           lbl.style.transform='translate(-'+(w/2)+'px,-'+(h/2+nudge)+'px)';
         });
+        // suprimir o glow (box-shadow) do destaque .ftgt (jogador do Mercado escalado)
+        // só na imagem exportada — custoso para o html2canvas rasterizar. A borda
+        // dourada sólida (border) permanece intacta; a interface ao vivo não é afetada.
+        f.querySelectorAll('.scard.ftgt').forEach(function(sc){sc.style.boxShadow='none';});
       }
     }).then(function(canvas){
       canvas.toBlob(function(blob){

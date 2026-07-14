@@ -190,7 +190,9 @@
 <footer class="site-footer">
   © 2026 Urubu FC <span>•</span>
   <a onclick="openLegal('privacy')">Política de Privacidade</a> <span>•</span>
-  <a onclick="openLegal('terms')">Termos de Uso</a>
+  <a onclick="openLegal('terms')">Termos de Uso</a> <span>•</span>
+  <a onclick="openInfo('sobre')">Sobre</a> <span>•</span>
+  <a onclick="openInfo('ajuda')">Ajuda</a>
 </footer>
 </div><!-- /scrollwrap -->
 
@@ -200,6 +202,16 @@
     <div class="legal-title" id="legal-title">Política de Privacidade</div>
     <div class="legal-body" id="legal-body"></div>
     <div class="legal-close"><button class="btn btn-red" onclick="closeLegal()">Fechar</button></div>
+  </div>
+</div>
+
+<!-- INFO MODAL (Sobre/Ajuda) -->
+<div class="legal-over" id="info-over" onclick="if(event.target===this)closeInfo()">
+  <div class="legal-box info-box">
+    <div class="legal-title" id="info-title">Sobre</div>
+    <div class="info-tabs" id="info-tabs"></div>
+    <div class="legal-body" id="info-body"></div>
+    <div class="legal-close"><button class="btn btn-red" onclick="closeInfo()">Fechar</button></div>
   </div>
 </div>
 
