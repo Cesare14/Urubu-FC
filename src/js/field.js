@@ -329,13 +329,12 @@ function buildScard(i, tab) {
   if (IS_TOUCH) sc.style.touchAction = 'none';
 
   if (ent && ent.data) {
-    var d = ent.data, col = isTgt ? 'var(--cv)' : (SCOL[d.status] || 'var(--c5)');
+    var d = ent.data;
     sc.setAttribute('draggable', 'true');
     sc.dataset.ek = isTgt ? 't:' + d.id : d.id;
 
     var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
-    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto'; sc.appendChild(sdw); } }
-    var dot = document.createElement('div'); dot.className = 'sdot'; dot.style.cssText = 'background:' + col + ';margin:2px auto'; sc.appendChild(dot);
+    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto 0'; sc.appendChild(sdw); } }
     var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
     var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
     clr.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
