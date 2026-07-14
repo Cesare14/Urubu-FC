@@ -17,7 +17,7 @@ function clearTouchSel() {
 }
 
 // ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
-// Acende (outline dourado) todos os slots do campo compatíveis com `pos`,
+// Acende (outline roxo) todos os slots do campo compatíveis com `pos`,
 // ocupados ou vazios. Não altera slots incompatíveis.
 function highlightCompatibleSlots(pos, tab) {
   if (!pos) return;
@@ -26,10 +26,10 @@ function highlightCompatibleSlots(pos, tab) {
   fmt.forEach(function (s, i) {
     if (pmatch(pos, s[2])) {
       var sc = document.querySelector('.scard[data-si="' + i + '"]');
-      if (sc) {
+      if (sc && !sc.classList.contains('ftgt')) {
         sc.dataset.compat = '1';
-        sc.style.outline = '3px solid #FFD700';
-        sc.style.boxShadow = '0 0 8px 2px rgba(255,215,0,.65)';
+        sc.style.outline = '3px solid #a78bfa';
+        sc.style.boxShadow = '0 0 8px 2px rgba(167,139,250,.65)';
       }
     }
   });

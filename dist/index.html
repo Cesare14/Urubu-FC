@@ -84,7 +84,8 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .scard{width:72px;border-radius:6px;padding:5px 4px;text-align:center;border:1.5px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.3);cursor:pointer;transition:border-color var(--trans-mid),box-shadow var(--trans-fast),background var(--trans-mid);position:absolute;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:5;}
 .scard:hover{border-color:rgba(255,255,255,.55);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.6);}
 .scard.filled{border:1.5px solid rgba(255,255,255,.45);background:rgba(0,0,0,.6);animation:fieldEntrance var(--trans-slow) cubic-bezier(.22,.61,.36,1) both;cursor:grab}
-.scard.ftgt{border:1.5px solid rgba(167,139,250,.6);background:rgba(0,0,0,.6);animation:fieldEntrance var(--trans-slow) cubic-bezier(.22,.61,.36,1) both;cursor:grab}
+.scard.ftgt{border:2px solid #FFD700;background:rgba(0,0,0,.6);box-shadow:0 0 8px 2px rgba(255,215,0,.5);animation:fieldEntrance var(--trans-slow) cubic-bezier(.22,.61,.36,1) both;cursor:grab}
+.scard.ftgt::before{content:'★';position:absolute;top:-6px;left:-6px;font-size:11px;line-height:1;color:#FFD700;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none;z-index:1}
 .scard.filled:active,.scard.ftgt:active{cursor:grabbing}
 .scard.dov{border-color:#facc15;background:rgba(250,204,21,.1)}
 .sempty{font-family:'Barlow',sans-serif;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.28);text-transform:uppercase}
@@ -539,7 +540,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .scard{min-height:44px;min-width:44px}
   .scard:hover{border-color:rgba(255,255,255,.22);box-shadow:none;z-index:5}
   .scard.filled:hover{border-color:rgba(255,255,255,.45)}
-  .scard.ftgt:hover{border-color:rgba(167,139,250,.6)}
+  .scard.ftgt:hover{border-color:#FFD700}
   .scard.filled .sclr,.scard.ftgt .sclr{display:flex}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
   tr.touch-sel td{background:rgba(250,204,21,.1)!important}
@@ -1240,7 +1241,7 @@ function clearTouchSel() {
 }
 
 // ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
-// Acende (outline dourado) todos os slots do campo compatíveis com `pos`,
+// Acende (outline roxo) todos os slots do campo compatíveis com `pos`,
 // ocupados ou vazios. Não altera slots incompatíveis.
 function highlightCompatibleSlots(pos, tab) {
   if (!pos) return;
@@ -1249,10 +1250,10 @@ function highlightCompatibleSlots(pos, tab) {
   fmt.forEach(function (s, i) {
     if (pmatch(pos, s[2])) {
       var sc = document.querySelector('.scard[data-si="' + i + '"]');
-      if (sc) {
+      if (sc && !sc.classList.contains('ftgt')) {
         sc.dataset.compat = '1';
-        sc.style.outline = '3px solid #FFD700';
-        sc.style.boxShadow = '0 0 8px 2px rgba(255,215,0,.65)';
+        sc.style.outline = '3px solid #a78bfa';
+        sc.style.boxShadow = '0 0 8px 2px rgba(167,139,250,.65)';
       }
     }
   });
