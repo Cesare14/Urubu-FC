@@ -5,11 +5,17 @@
     <div><div class="hdr-title">Urubu FC</div><div class="hdr-sub">Gestão de Elenco da Nação</div></div>
   </div>
   <div class="hdr-right">
-    <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
     <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
-    <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
-    <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
+    <button class="btn btn-ghost" id="btn-export-roster" title="Exportar elenco (JSON)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+    <button class="btn btn-ghost" id="btn-import-roster" title="Importar elenco (JSON)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar
+    </button>
+    <input type="file" id="import-roster-input" accept=".json" style="display:none">
   </div>
 </header>
 <div class="scrollwrap" id="scrollwrap">
@@ -37,8 +43,8 @@
   </div>
   <div class="rpanel">
     <div class="rtabs">
-      <button class="rtab active" data-rt="elenco">Elenco</button>
-      <button class="rtab r-mkt" data-rt="mercado">Mercado / Alvos</button>
+      <button class="rtab active" data-rt="elenco">Elenco<span class="rtab-count" id="hdr-count"></span></button>
+      <button class="rtab r-mkt" data-rt="mercado">Mercado<span class="rtab-count" id="tgt-count"></span></button>
       <button class="rtab r-analise" data-rt="analise">Análise</button>
     </div>
     <!-- ELENCO -->
@@ -46,6 +52,7 @@
       <div class="tbar" id="elenco-tbar">
         <div class="swrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="si" id="si-search" placeholder="Buscar jogador..." autocomplete="off"></div>
         <div style="display:flex;gap:3px;margin-left:auto;align-items:center" id="sort-btns"></div>
+        <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
         <button class="btn-share" onclick="compartilharElenco()" title="Compartilhar elenco">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Elenco
@@ -81,7 +88,7 @@
           <div class="mf-dropdown" id="mf-tprio-dd"></div>
         </div>
         <div style="display:flex;gap:3px;margin-left:auto" id="tsort-btns"></div>
-        <span id="tgt-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
+        <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
         <button class="btn-share" onclick="compartilharMercado()" title="Compartilhar alvos de mercado">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Compartilhar

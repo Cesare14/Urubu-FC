@@ -233,34 +233,6 @@ function renderTable(){
     tbody.appendChild(tr);
   });
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
-  // Criar botões Export/Import no tbar se ainda não existem
-  if(!document.getElementById('btn-export-roster')){
-    const tbar=document.getElementById('elenco-tbar');
-    if(tbar){
-      // input file oculto
-      const fi=document.createElement('input');
-      fi.type='file';fi.accept='.json';fi.id='import-roster-input';
-      fi.style.cssText='display:none';
-      fi.addEventListener('change',handleImportFile);
-      document.body.appendChild(fi);
-      // botão exportar
-      const bExp=document.createElement('button');
-      bExp.id='btn-export-roster';
-      bExp.className='btn-share';
-      bExp.title='Exportar elenco (JSON)';
-      bExp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar';
-      bExp.onclick=exportRoster;
-      tbar.appendChild(bExp);
-      // botão importar
-      const bImp=document.createElement('button');
-      bImp.id='btn-import-roster';
-      bImp.className='btn-share';
-      bImp.title='Importar elenco (JSON)';
-      bImp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar';
-      bImp.onclick=importRoster;
-      tbar.appendChild(bImp);
-    }
-  }
 }
 
 // EXPORT / IMPORT

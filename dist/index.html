@@ -102,7 +102,8 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .hint{font-size:9px;color:var(--dark4);font-style:italic}
 .rpanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .rtabs{display:flex;border-bottom:1px solid var(--dark3);background:var(--dark)}
-.rtab{padding:8px 16px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.rtab{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 16px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.rtab-count{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-top:3px}
 .rtab:hover{color:var(--white)}
 .rtab.active{color:var(--white);border-bottom-color:var(--red)}
 .rtab.r-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
@@ -451,8 +452,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   #btn-addtgt{margin-left:10px;}
   /* Reduzir fonte dos botões principais */
   #btn-addtgt,#btn-addpl{font-size:11px;padding:5px 10px}
-  /* hdr-count compacto */
-  #hdr-count{font-size:10px}
+
+  /* Abas com subtítulo (contador) em 2 linhas: reduzir padding/fonte
+     para caber "Mercado / Alvos" + contador sem estourar a largura */
+  .rtab{padding:6px 8px;font-size:11px;letter-spacing:.5px}
+  .rtab-count{font-size:8.5px}
 
   /* ── LAYOUT PRINCIPAL ──────────────────────────────────────────── */
   .main{flex-direction:column;overflow:visible;height:auto}
@@ -599,11 +603,17 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <div><div class="hdr-title">Urubu FC</div><div class="hdr-sub">Gestão de Elenco da Nação</div></div>
   </div>
   <div class="hdr-right">
-    <span id="hdr-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
     <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
-    <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
-    <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
+    <button class="btn btn-ghost" id="btn-export-roster" title="Exportar elenco (JSON)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+    <button class="btn btn-ghost" id="btn-import-roster" title="Importar elenco (JSON)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar
+    </button>
+    <input type="file" id="import-roster-input" accept=".json" style="display:none">
   </div>
 </header>
 <div class="scrollwrap" id="scrollwrap">
@@ -631,8 +641,8 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   </div>
   <div class="rpanel">
     <div class="rtabs">
-      <button class="rtab active" data-rt="elenco">Elenco</button>
-      <button class="rtab r-mkt" data-rt="mercado">Mercado / Alvos</button>
+      <button class="rtab active" data-rt="elenco">Elenco<span class="rtab-count" id="hdr-count"></span></button>
+      <button class="rtab r-mkt" data-rt="mercado">Mercado<span class="rtab-count" id="tgt-count"></span></button>
       <button class="rtab r-analise" data-rt="analise">Análise</button>
     </div>
     <!-- ELENCO -->
@@ -640,6 +650,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
       <div class="tbar" id="elenco-tbar">
         <div class="swrap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="si" id="si-search" placeholder="Buscar jogador..." autocomplete="off"></div>
         <div style="display:flex;gap:3px;margin-left:auto;align-items:center" id="sort-btns"></div>
+        <button class="btn btn-red" id="btn-addpl">+ Jogador</button>
         <button class="btn-share" onclick="compartilharElenco()" title="Compartilhar elenco">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Elenco
@@ -675,7 +686,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
           <div class="mf-dropdown" id="mf-tprio-dd"></div>
         </div>
         <div style="display:flex;gap:3px;margin-left:auto" id="tsort-btns"></div>
-        <span id="tgt-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase"></span>
+        <button class="btn btn-purple" id="btn-addtgt">+ Alvo</button>
         <button class="btn-share" onclick="compartilharMercado()" title="Compartilhar alvos de mercado">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           Compartilhar
@@ -1978,34 +1989,6 @@ function renderTable(){
     tbody.appendChild(tr);
   });
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
-  // Criar botões Export/Import no tbar se ainda não existem
-  if(!document.getElementById('btn-export-roster')){
-    const tbar=document.getElementById('elenco-tbar');
-    if(tbar){
-      // input file oculto
-      const fi=document.createElement('input');
-      fi.type='file';fi.accept='.json';fi.id='import-roster-input';
-      fi.style.cssText='display:none';
-      fi.addEventListener('change',handleImportFile);
-      document.body.appendChild(fi);
-      // botão exportar
-      const bExp=document.createElement('button');
-      bExp.id='btn-export-roster';
-      bExp.className='btn-share';
-      bExp.title='Exportar elenco (JSON)';
-      bExp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar';
-      bExp.onclick=exportRoster;
-      tbar.appendChild(bExp);
-      // botão importar
-      const bImp=document.createElement('button');
-      bImp.id='btn-import-roster';
-      bImp.className='btn-share';
-      bImp.title='Importar elenco (JSON)';
-      bImp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar';
-      bImp.onclick=importRoster;
-      tbar.appendChild(bImp);
-    }
-  }
 }
 
 // EXPORT / IMPORT
@@ -3204,6 +3187,9 @@ document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
+document.getElementById('btn-export-roster').onclick=exportRoster;
+document.getElementById('btn-import-roster').onclick=importRoster;
+document.getElementById('import-roster-input').addEventListener('change',handleImportFile);
 document.getElementById('mpl-cancel').onclick=closePl;
 document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('mpl-delete').onclick=function(){if(ST.epid!==null)deletePlayerById(ST.epid);};

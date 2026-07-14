@@ -90,7 +90,8 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .hint{font-size:9px;color:var(--dark4);font-style:italic}
 .rpanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .rtabs{display:flex;border-bottom:1px solid var(--dark3);background:var(--dark)}
-.rtab{padding:8px 16px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.rtab{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 16px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.rtab-count{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-top:3px}
 .rtab:hover{color:var(--white)}
 .rtab.active{color:var(--white);border-bottom-color:var(--red)}
 .rtab.r-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
@@ -439,8 +440,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   #btn-addtgt{margin-left:10px;}
   /* Reduzir fonte dos botões principais */
   #btn-addtgt,#btn-addpl{font-size:11px;padding:5px 10px}
-  /* hdr-count compacto */
-  #hdr-count{font-size:10px}
+
+  /* Abas com subtítulo (contador) em 2 linhas: reduzir padding/fonte
+     para caber "Mercado / Alvos" + contador sem estourar a largura */
+  .rtab{padding:6px 8px;font-size:11px;letter-spacing:.5px}
+  .rtab-count{font-size:8.5px}
 
   /* ── LAYOUT PRINCIPAL ──────────────────────────────────────────── */
   .main{flex-direction:column;overflow:visible;height:auto}
