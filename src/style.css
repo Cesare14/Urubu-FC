@@ -146,13 +146,18 @@ tbody tr:hover{background:var(--dark3)}
 tbody tr.onf{opacity:1}
 tbody td{padding:3px 9px;vertical-align:middle;white-space:nowrap}
 /* Coluna Status: largura fixa (substitui o width:125px inline removido do body.html) */
-#thead-row th:nth-child(7),#tbody td:nth-child(7){width:125px}
+#thead-row th:nth-child(7),#tbody td:nth-child(7){width:125px;text-align:center}
+/* Header Status: texto centralizado, seta+filtro fixos à direita (3 zonas via grid) */
+#th-status .th-filterable{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;column-gap:4px}
+#th-status .th-sort-lbl{grid-column:2;justify-self:center}
+#th-status .sort-arrow{grid-column:3}
+#th-status .mf-wrap{grid-column:4}
 /* Demais colunas: largura fixa desktop (substitui widths inline removidos do body.html) */
 #thead-row th:nth-child(1),#tbody td:nth-child(1){width:16px}
 #thead-row th:nth-child(3),#tbody td:nth-child(3){width:62px}
 #thead-row th:nth-child(4),#tbody td:nth-child(4){width:32px}
 #thead-row th:nth-child(5),#tbody td:nth-child(5){width:34px}
-#thead-row th:nth-child(6),#tbody td:nth-child(6){width:72px}
+#thead-row th:nth-child(6),#tbody td:nth-child(6){width:72px;text-align:center}
 #thead-row th:nth-child(9),#tbody td:nth-child(9){width:50px}
 .dh{color:var(--dark4);font-size:14px;cursor:grab;user-select:none}
 tr:hover .dh{color:var(--gray)}
@@ -258,7 +263,7 @@ tr:hover .dh{color:var(--gray)}
 .donut-wrap canvas{display:block}
 .donut-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Barlow Condensed',sans-serif;font-weight:800;line-height:1;text-align:center;pointer-events:none}
 /* STATUS TAGS */
-.stag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-family:'Barlow',sans-serif;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.stag{display:inline-flex;align-items:center;padding:1px 6px;border-radius:20px;font-family:'Barlow',sans-serif;font-size:9px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
 .stag-titular{background:#1a2f4a;color:#60a5fa;border:1px solid rgba(96,165,250,.45)}
 .stag-importante{background:#14301f;color:#22c55e;border:1px solid rgba(34,197,94,.45)}
 .stag-compoe{background:#2e1f0e;color:#f97316;border:1px solid rgba(249,115,22,.45)}
@@ -570,7 +575,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   /* ── BADGE DE STATUS MOBILE: compacta, com quebra de linha ─────── */
   .stag{padding:1px 4px;font-size:7px;line-height:1.15;white-space:normal;max-width:60px;text-align:center}
   .stag-compoe{max-width:44px;padding:1px 6px}
-  #tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
+  #thead-row th:nth-child(7),#tbody td:nth-child(6),#tbody td:nth-child(7){text-align:center}
   #thead-row th:nth-child(2),#tbody td:nth-child(2){width:37%}
   #thead-row th:nth-child(3),#tbody td:nth-child(3){width:15%}
   #thead-row th:nth-child(4),#tbody td:nth-child(4){width:10%}
@@ -603,5 +608,5 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   thead th{font-size:11.5px}
   .pname{font-size:14px}
   .pbadge{font-size:11.5px}
-  .stag{font-size:11.5px}
+  .stag{font-size:9px}
 }
