@@ -32,10 +32,13 @@ function _buildStripePatternSVG(corFaixa){
     +'</svg>';
   return 'data:image/svg+xml;base64,'+btoa(svg);
 }
+// Cor da faixa unificada nas 3 abas, igual à paleta verde Copa do Mundo aplicada
+// em .field/.field.res/.field.mkt (style.css) — antes estas 3 chaves usavam
+// cores antigas por aba, divergentes da paleta ao vivo atual.
 var _FIELD_STRIPE_PATTERNS={
-  A:_buildStripePatternSVG('rgba(0,0,0,0.08)'),
-  B:_buildStripePatternSVG('rgba(0,0,0,0.07)'),
-  C:_buildStripePatternSVG('rgba(0,0,0,0.10)')
+  A:_buildStripePatternSVG('rgba(31,90,31,.35)'),
+  B:_buildStripePatternSVG('rgba(31,90,31,.35)'),
+  C:_buildStripePatternSVG('rgba(31,90,31,.35)')
 };
 
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
@@ -133,18 +136,17 @@ function compartilharCampo(){
 
   setTimeout(function(){
     var fieldEl=document.getElementById('field');
-    var cores={
-      A:{base:'#1a5c24',faixa:'rgba(0,0,0,0.08)',borda:'#0e4019'},
-      B:{base:'#122e52',faixa:'rgba(0,0,0,0.07)',borda:'#0a2240'},
-      C:{base:'#7a1208',faixa:'rgba(0,0,0,0.10)',borda:'#4a0a06'}
-    };
-    var c=cores[tab]||cores.A;
+    // Paleta unificada nas 3 abas — igual à paleta verde Copa do Mundo ao vivo
+    // (.field/.field.res/.field.mkt em style.css). A faixa vem de
+    // _FIELD_STRIPE_PATTERNS (já corrigida acima).
+    var CAMPO_BASE='#3CAC3B';
     var sc=2;
-    // Medir a dimensão real já resolvida pelo navegador (pixels concretos), em vez
-    // de deixar o html2canvas recalcular a altura do campo (que depende de flex
-    // sobre 100vh no body — unidade que o html2canvas resolve de forma
-    // inconsistente dentro do próprio clone, causando o esticamento vertical).
-    var fw=fieldEl.offsetWidth,fh=fieldEl.offsetHeight;
+    // Tamanho de exportação FIXO (não depende mais da tela de origem): 540x590
+    // sem escala, que com scale:2 vira 1080x1180. Preserva a proporção real do
+    // campo (viewBox 140x153, ~140:153) sem distorcer. A diferença até 1350 de
+    // altura é preenchida depois com letterbox preto (ver .then abaixo), para
+    // sair sempre 1080x1350 (4:5), igual nas 3 abas e em qualquer dispositivo.
+    var fw=540,fh=590;
 
     html2canvas(fieldEl,{
       backgroundColor:null,
@@ -154,20 +156,56 @@ function compartilharCampo(){
       logging:false,
       width:fw,
       height:fh,
-      windowWidth:window.innerWidth,
-      windowHeight:window.innerHeight,
+      // Viewport do clone FIXO em fw/fh, não mais o tamanho real da tela de
+      // origem (window.innerWidth/innerHeight). Antes, mesmo fixando o
+      // #field em 540x590 dentro do onclone, o clone inteiro ainda era
+      // montado no viewport real do dispositivo (ex.: ~390px num celular) —
+      // menor que os 540px do campo — então o campo ultrapassava esse
+      // viewport e ficava cortado, independente do que fizéssemos em
+      // .fwrap/.lpanel. Fixar o viewport do clone elimina essa causa raiz e
+      // também garante breakpoint de mídia (mobile/desktop) sempre igual,
+      // não importa de onde a captura foi disparada.
+      windowWidth:fw,
+      windowHeight:fh,
       onclone:function(doc){
         var f=doc.getElementById('field');
         if(!f)return;
-        // Fixar o tamanho do campo dentro do clone com os valores reais medidos
-        // na tela (fw/fh), em vez de deixar o #field recalcular sua altura via
-        // height:100% → .fwrap{flex:3} → body{height:100vh} dentro do clone —
-        // essa cadeia dependente de vh/flex é resolvida de forma inconsistente
-        // pelo html2canvas e era a causa do esticamento vertical.
+        // Tirar o #field do fluxo normal do documento (position:fixed,
+        // ancorado em 0,0) — assim ele para de depender do tamanho real de
+        // qualquer container ancestral (.fwrap, .lpanel) e do overflow deles.
+        // Combinado com o viewport fixo (windowWidth/windowHeight acima),
+        // garante que o campo sempre renderiza no tamanho exato fw x fh,
+        // sem corte, em qualquer tela de origem.
+        f.style.position='fixed';
+        f.style.top='0';
+        f.style.left='0';
+        f.style.margin='0';
         f.style.width=fw+'px';
         f.style.height=fh+'px';
         f.style.flex='none';
-        f.style.background=c.base+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
+        f.style.background=CAMPO_BASE+' url("'+_FIELD_STRIPE_PATTERNS[tab]+'")';
+        // Forçar dimensões explícitas em pixels no SVG das linhas do campo
+        // (.fsvg, viewBox 140x153). O html2canvas não resolve de forma
+        // confiável width:100%/height:100% (CSS) em elementos <svg> — sem
+        // isso, ele renderiza no tamanho intrínseco do viewBox, fazendo o
+        // desenho (retângulo, meio-campo, círculo central) sair pequeno e
+        // centralizado, com sobra de verde ao redor. Só afeta o clone da
+        // captura — o desenho do SVG em si (definido em field.js) não é
+        // tocado, só o tamanho de renderização.
+        // Descontar a borda de 2px do #field (box-sizing:border-box global):
+        // fw/fh já incluem a borda, mas o SVG (inset:0, preenche o espaço
+        // dentro da borda) precisa do tamanho do padding-box, senão sobra
+        // 4px que o overflow:hidden do campo corta à direita/embaixo,
+        // descentralizando o desenho (mais verde sobrando à esquerda).
+        var svgEl=f.querySelector('svg.fsvg');
+        if(svgEl){
+          var FIELD_BORDER=2;
+          var svgW=fw-FIELD_BORDER*2,svgH=fh-FIELD_BORDER*2;
+          svgEl.setAttribute('width',svgW);
+          svgEl.setAttribute('height',svgH);
+          svgEl.style.width=svgW+'px';
+          svgEl.style.height=svgH+'px';
+        }
         // ocultar o "×" de remover jogador — só na imagem exportada
         f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
         // centralização do número dentro do donut na captura — troca translate(%) por
@@ -185,7 +223,18 @@ function compartilharCampo(){
         f.querySelectorAll('.scard.ftgt').forEach(function(sc){sc.style.boxShadow='none';});
       }
     }).then(function(canvas){
-      canvas.toBlob(function(blob){
+      // Letterbox: canvas sai em 1080x1180 (540x590 @ scale:2). Completar para
+      // 1080x1350 fixo (4:5) com faixas pretas neutras em cima/embaixo,
+      // centralizando o campo capturado sem esticar nem cortar.
+      var finalW=1080,finalH=1350;
+      var finalCanvas=document.createElement('canvas');
+      finalCanvas.width=finalW;finalCanvas.height=finalH;
+      var ctx=finalCanvas.getContext('2d');
+      ctx.fillStyle='#000';
+      ctx.fillRect(0,0,finalW,finalH);
+      var offY=Math.round((finalH-canvas.height)/2);
+      ctx.drawImage(canvas,0,offY);
+      finalCanvas.toBlob(function(blob){
         _shareBlob=blob;
         var url=URL.createObjectURL(blob);
         var img=document.getElementById('share-preview-img');
