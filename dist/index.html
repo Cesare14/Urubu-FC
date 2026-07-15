@@ -76,9 +76,9 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .fmtab.active{background:var(--red);border-color:var(--red);color:#fff}
 .fmtab-reset{font-size:11px;padding:3px 10px;letter-spacing:.5px}
 .fwrap{flex:3;padding:6px 8px;display:flex;align-items:stretch;justify-content:center;overflow:hidden;min-height:0}
-.field{position:relative;width:100%;height:100%;border-radius:6px;overflow:hidden;border:2px solid #0e4019;background:#1a5c24 repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,.08) 40px,rgba(0,0,0,.08) 80px)}
-.field.res{background:#122e52 repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,.07) 40px,rgba(0,0,0,.07) 80px);border-color:#0a2240}
-.field.mkt{background:#7a1208 repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,.1) 40px,rgba(0,0,0,.1) 80px);border-color:#4a0a06}
+.field{position:relative;width:100%;height:100%;border-radius:6px;overflow:hidden;border:2px solid #1F5A1F;background:#3CAC3B repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(31,90,31,.35) 40px,rgba(31,90,31,.35) 80px)}
+.field.res{background:#3CAC3B repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(31,90,31,.35) 40px,rgba(31,90,31,.35) 80px);border-color:#1F5A1F}
+.field.mkt{background:#3CAC3B repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(31,90,31,.35) 40px,rgba(31,90,31,.35) 80px);border-color:#1F5A1F}
 .fsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .fbadge{position:absolute;top:5px;left:50%;transform:translateX(-50%);font-family:'Barlow',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);pointer-events:none;z-index:1}
 .scard{width:66px;border-radius:6px;padding:5px 4px;text-align:center;border:1.5px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.3);cursor:pointer;transition:border-color var(--trans-mid),box-shadow var(--trans-fast),background var(--trans-mid);position:absolute;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;z-index:5;}
@@ -384,8 +384,8 @@ body.light-mode .stag-importante{background:rgba(34,197,94,.15);color:#15803d;bo
 body.light-mode .stag-compoe{background:rgba(249,115,22,.15);color:#c2410c;border-color:rgba(249,115,22,.5);}
 body.light-mode .stag-vender{background:rgba(239,68,68,.15);color:#b91c1c;border-color:rgba(239,68,68,.5);}
 body.light-mode .stag-dispensavel{background:rgba(75,85,99,.15);color:#374151;border-color:rgba(75,85,99,.5);}
-body.light-mode .field.res{border-color:#0a3a70;}
-body.light-mode .field.mkt{border-color:#8a1a10;}
+body.light-mode .field.res{border-color:#1F5A1F;}
+body.light-mode .field.mkt{border-color:#1F5A1F;}
 body.light-mode .scard{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.22);}
 body.light-mode .scard.filled{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.45);}
 body.light-mode .scard:hover{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.55);}
@@ -1691,20 +1691,17 @@ function renderField() {
   var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'fsvg');
   svg.setAttribute('viewBox', '0 0 140 153');
-  var sl1 = tab === 'C' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.16)';
-  var sl2 = tab === 'C' ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.12)';
-  var sl3 = tab === 'C' ? 'rgba(0,0,0,.60)' : 'rgba(255,255,255,.22)';
-  var sl4 = tab === 'C' ? 'rgba(0,0,0,.50)' : 'rgba(255,255,255,.18)';
+  var sl = 'rgba(255,255,255,.38)';
   svg.innerHTML =
-    '<rect x="2" y="2" width="136" height="149" fill="none" stroke="' + sl1 + '" stroke-width=".6"/>' +
-    '<line x1="2" y1="76.5" x2="138" y2="76.5" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="76.5" r="15" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="76.5" r=".9" fill="' + sl3 + '"/>' +
-    '<rect x="42" y="2" width="56" height="16" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<rect x="42" y="135" width="56" height="16" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="13" r="1.1" fill="' + sl4 + '"/>' +
-    '<circle cx="70" cy="140" r="1.1" fill="' + sl4 + '"/>' +
-    '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.22"/>';
+    '<rect x="2" y="2" width="136" height="149" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<line x1="2" y1="76.5" x2="138" y2="76.5" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="76.5" r="15" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="76.5" r=".9" fill="' + sl + '"/>' +
+    '<rect x="42" y="2" width="56" height="16" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<rect x="42" y="135" width="56" height="16" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="13" r="1.1" fill="' + sl + '"/>' +
+    '<circle cx="70" cy="140" r="1.1" fill="' + sl + '"/>' +
+    '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.50"/>';
   field.appendChild(svg);
 
   var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = ST.fmt[tab];

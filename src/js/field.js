@@ -434,20 +434,17 @@ function renderField() {
   var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'fsvg');
   svg.setAttribute('viewBox', '0 0 140 153');
-  var sl1 = tab === 'C' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.16)';
-  var sl2 = tab === 'C' ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.12)';
-  var sl3 = tab === 'C' ? 'rgba(0,0,0,.60)' : 'rgba(255,255,255,.22)';
-  var sl4 = tab === 'C' ? 'rgba(0,0,0,.50)' : 'rgba(255,255,255,.18)';
+  var sl = 'rgba(255,255,255,.38)';
   svg.innerHTML =
-    '<rect x="2" y="2" width="136" height="149" fill="none" stroke="' + sl1 + '" stroke-width=".6"/>' +
-    '<line x1="2" y1="76.5" x2="138" y2="76.5" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="76.5" r="15" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="76.5" r=".9" fill="' + sl3 + '"/>' +
-    '<rect x="42" y="2" width="56" height="16" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<rect x="42" y="135" width="56" height="16" fill="none" stroke="' + sl2 + '" stroke-width=".5"/>' +
-    '<circle cx="70" cy="13" r="1.1" fill="' + sl4 + '"/>' +
-    '<circle cx="70" cy="140" r="1.1" fill="' + sl4 + '"/>' +
-    '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.22"/>';
+    '<rect x="2" y="2" width="136" height="149" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<line x1="2" y1="76.5" x2="138" y2="76.5" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="76.5" r="15" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="76.5" r=".9" fill="' + sl + '"/>' +
+    '<rect x="42" y="2" width="56" height="16" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<rect x="42" y="135" width="56" height="16" fill="none" stroke="' + sl + '" stroke-width="1"/>' +
+    '<circle cx="70" cy="13" r="1.1" fill="' + sl + '"/>' +
+    '<circle cx="70" cy="140" r="1.1" fill="' + sl + '"/>' +
+    '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.50"/>';
   field.appendChild(svg);
 
   var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = ST.fmt[tab];
