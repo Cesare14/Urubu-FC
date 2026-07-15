@@ -399,15 +399,15 @@ body.light-mode .share-box{background:#f0f0ec;border-color:#c0c0bc;}
 body.light-mode .site-footer{background:var(--dark);color:#666;}
 body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
-/* ── SÉRIE A INPUT GRID ─────────────────────────────────────────────── */
-.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px}
-.sa-row{display:flex;align-items:center;gap:7px}
+/* ── SÉRIE A: LISTA ÚNICA (rank + donut/input + nome) ───────────────── */
+.sa-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px}
+.sa-item{display:flex;align-items:center;gap:10px}
+.sa-rank{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--dark4);width:16px;text-align:right;flex-shrink:0}
+.sa-slot{width:46px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .sa-lbl{font-family:'Barlow',sans-serif;font-size:12px;color:var(--gray-l);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sa-lbl.fla{color:#a78bfa;font-weight:700}
 .sa-inp{width:46px;flex-shrink:0;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;padding:2px 5px;background:var(--dark3);border:1px solid var(--dark4);border-radius:3px;color:var(--white);outline:none;text-align:center}
 .sa-inp:focus{border-color:var(--red)}
-.sa-inp.fla-inp{border-color:rgba(167,139,250,.4);color:#a78bfa;background:rgba(167,139,250,.06)}
-.sa-row-donut{display:none}
 
 /* ── BOTTOM SHEET ───────────────────────────────────────────────── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:149;display:none}
@@ -559,10 +559,6 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
   tr.touch-sel td{background:rgba(250,204,21,.1)!important}
   .touch-drag-clone{position:fixed;pointer-events:none;z-index:9999;opacity:.85;transform:scale(1.08);transition:none}
-
-  /* ── SÉRIE A: donut inline, ocultar gráfico lateral ───────────── */
-  .sa-row-donut{display:inline-flex}
-  .c7chart{display:none}
 
   /* Coluna Nível/Donut: reduzir canvas (exceto donuts grandes de análise e inline série A) */
   .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:7px!important}

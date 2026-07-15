@@ -250,76 +250,63 @@ function renderAnalise(){
   c7right.appendChild(c7hint);c7right.appendChild(c7sbtn);
   c7title.appendChild(c7lbl);c7title.appendChild(c7right);
   c7.appendChild(c7title);
-  cardDesc(c7,'Este painel permite comparar o nível médio do elenco do Flamengo com os demais times da Série A. O Flamengo é preenchido automaticamente com base no elenco cadastrado no site; os demais clubes ficam em aberto para você inserir manualmente, seja com base em avaliação própria ou em fontes externas de scouting. É uma forma de benchmarking direto contra a concorrência do campeonato.');
+  cardDesc(c7,'Este painel permite comparar o nível médio do elenco do Flamengo com os demais times da Série A. O Flamengo é preenchido automaticamente com base no elenco cadastrado no site; os demais clubes ficam em aberto para você inserir manualmente, seja com base em avaliação própria ou em fontes externas de scouting. É uma forma de benchmarking direto contra a concorrência do campeonato. Clique no donut de um time para editar o nível.');
 
-  // layout: inputs (esquerda) + gráfico (direita)
-  const c7body=document.createElement('div');c7body.style.cssText='display:flex;gap:20px;align-items:flex-start';
+  // ─ lista única: cada clube = rank + componente (input OU donut) + nome
+  const salist=document.createElement('div');salist.className='sa-list';
+  c7.appendChild(salist);
 
-  // ─ inputs grid
-  const igrid=document.createElement('div');igrid.className='sa-grid';igrid.style.width='290px';igrid.style.flexShrink='0';
-  ST.serieA.forEach(function(c,ci){
-    const row=document.createElement('div');row.className='sa-row';
-    const lbl=document.createElement('span');lbl.className='sa-lbl'+(c.fla?' fla':'');lbl.textContent=c.clube;lbl.title=c.clube;
-    const inp=document.createElement('input');inp.type='number';inp.min='0';inp.max='100';
-    inp.className='sa-inp'+(c.fla?' fla-inp':'');
-    inp.value=c.nivel||'';inp.placeholder='—';
-    if(c.fla){inp.readOnly=true;inp.tabIndex=-1;}
-    inp.oninput=function(){
-      ST.serieA[ci].nivel=parseFloat(inp.value)||0;
-      save();
-      // atualiza donut inline
-      var existing=row.querySelector('.sa-row-donut');
-      var nd=nivelDonutEl(ST.serieA[ci].nivel,28);nd.className+=' sa-row-donut';
-      if(existing)row.replaceChild(nd,existing);
-      buildC7Chart();
-    };
-    row.appendChild(lbl);row.appendChild(inp);
-    // donut inline — visível só no mobile via CSS
-    const rowDonut=nivelDonutEl(c.nivel||0,28);rowDonut.className+=' sa-row-donut';
-    row.appendChild(rowDonut);
-    igrid.appendChild(row);
-  });
-  c7body.appendChild(igrid);
-
-  // ─ gráfico
-  const c7chart=document.createElement('div');c7chart.className='c7chart';c7chart.style.cssText='flex:1;min-width:0';
-  c7body.appendChild(c7chart);
-  c7.appendChild(c7body);
-
-  function buildC7Chart(){
-    c7chart.innerHTML='';
-    const data=ST.serieA.filter(function(c){return c.nivel>0;})
-      .slice().sort(function(a,b){return b.nivel-a.nivel;});
-    if(!data.length){
-      const emp=document.createElement('div');emp.style.cssText='color:var(--gray);font-size:12px;padding:16px 0';
-      emp.textContent='Insira os níveis dos clubes para gerar o gráfico.';
-      c7chart.appendChild(emp);return;
-    }
-    // two-column grid of donuts
-    const grid=document.createElement('div');
-    grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px 20px';
-    data.forEach(function(c,idx){
-      const col=c.fla?'#a78bfa':nivelColor(c.nivel);
-      const item=document.createElement('div');
-      item.style.cssText='display:flex;align-items:center;gap:8px;padding:4px 0;'+(idx>0?'border-top:1px solid rgba(255,255,255,.04)':'');
-      // rank badge
-      const rank=document.createElement('div');rank.style.cssText='font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:700;color:var(--dark4);width:14px;text-align:right;flex-shrink:0';rank.textContent=(idx+1)+'°';
-      item.appendChild(rank);
-      // donut
-      item.appendChild(nivelDonutEl(c.nivel,34));
-      // text
-      const txt=document.createElement('div');txt.style.cssText='min-width:0;flex:1';
-      const cname=document.createElement('div');
-      cname.style.cssText='font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:'+(c.fla?'800':'600')+';color:'+(c.fla?'#a78bfa':'var(--white)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-      cname.textContent=c.clube;
-      const cnivel=document.createElement('div');cnivel.style.cssText='font-size:9px;color:'+col+';font-family:Barlow Condensed,sans-serif;font-weight:700';cnivel.textContent=c.nivel+'/100';
-      txt.appendChild(cname);txt.appendChild(cnivel);
-      item.appendChild(txt);
-      grid.appendChild(item);
+  // ordem: preenchidos por nível desc primeiro; vazios por ordem alfabética depois
+  function sortedSerieA(){
+    return ST.serieA.map(function(c,ci){return{c:c,ci:ci};}).sort(function(a,b){
+      const af=a.c.nivel>0,bf=b.c.nivel>0;
+      if(af&&bf)return b.c.nivel-a.c.nivel;
+      if(af&&!bf)return -1;
+      if(!af&&bf)return 1;
+      return a.c.clube.localeCompare(b.c.clube);
     });
-    c7chart.appendChild(grid);
   }
-  buildC7Chart();
+
+  function buildSaList(){
+    salist.innerHTML='';
+    sortedSerieA().forEach(function(entry,idx){
+      const c=entry.c,ci=entry.ci;
+      const row=document.createElement('div');row.className='sa-item';
+      const rank=document.createElement('span');rank.className='sa-rank';rank.textContent=(idx+1)+'°';
+      const slot=document.createElement('span');slot.className='sa-slot';
+      const lbl=document.createElement('span');lbl.className='sa-lbl'+(c.fla?' fla':'');lbl.textContent=c.clube;lbl.title=c.clube;
+      row.appendChild(rank);row.appendChild(slot);row.appendChild(lbl);
+      salist.appendChild(row);
+
+      function showDonut(){
+        slot.innerHTML='';
+        const d=nivelDonutEl(c.nivel,28);d.className+=' sa-row-donut';
+        if(!c.fla){
+          d.style.cursor='pointer';d.title='Clique para editar';
+          d.onclick=function(){showInput(true);};
+        }
+        slot.appendChild(d);
+      }
+      function showInput(focusIt){
+        slot.innerHTML='';
+        const inp=document.createElement('input');inp.type='number';inp.min='0';inp.max='100';
+        inp.className='sa-inp';inp.value=c.nivel||'';
+        slot.appendChild(inp);
+        if(focusIt){inp.focus();if(c.nivel)inp.select();}
+        inp.addEventListener('keydown',function(e){
+          if(e.key==='Enter'){e.preventDefault();inp.blur();}
+        });
+        inp.addEventListener('blur',function(){
+          ST.serieA[ci].nivel=safeNivel(inp.value);
+          save();
+          buildSaList();
+        });
+      }
+
+      if(c.nivel>0)showDonut();else showInput();
+    });
+  }
+  buildSaList();
   // Ordem final: c2(Nível), c1(Idade), c7(Série A), c3(Valor), c5(Status)+c6(Sel.) lado a lado, c4(Nac.)
   grid.appendChild(c2);
   grid.appendChild(c1);
