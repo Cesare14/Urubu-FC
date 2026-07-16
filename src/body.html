@@ -6,16 +6,18 @@
   </div>
   <div class="hdr-right">
     <button class="btn-theme" id="btn-theme" title="Alternar tema claro/escuro">🌙</button>
-    <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
-    <button class="btn btn-ghost" id="btn-export-roster" title="Exportar elenco (JSON)">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Exportar
-    </button>
-    <button class="btn btn-ghost" id="btn-import-roster" title="Importar elenco (JSON)">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Importar
-    </button>
-    <input type="file" id="import-roster-input" accept=".json" style="display:none">
+    <div class="hdr-right-group">
+      <button class="btn btn-ghost" id="btn-share-menu">🔗 Compartilhar</button>
+      <button class="btn btn-ghost" id="btn-export-roster" title="Exportar elenco (JSON)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn btn-ghost" id="btn-import-roster" title="Importar elenco (JSON)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importar
+      </button>
+      <input type="file" id="import-roster-input" accept=".json" style="display:none">
+    </div>
   </div>
 </header>
 <div class="scrollwrap" id="scrollwrap">

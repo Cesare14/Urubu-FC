@@ -455,9 +455,15 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   }
   .hdr-logo img{width:44px;height:44px}
   .hdr-title{font-size:20px}
-  /* Linha 2: botões à direita */
+  /* Linha 2: Tema à esquerda, demais botões agrupados à direita */
   .hdr-right{
-    justify-content:flex-end;
+    justify-content:space-between;
+    gap:2px;
+    flex-wrap:nowrap;
+  }
+  .hdr-right-group{
+    display:flex;
+    align-items:center;
     gap:2px;
     flex-wrap:nowrap;
   }
