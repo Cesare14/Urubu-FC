@@ -208,6 +208,105 @@ function compartilharCampo(){
         }
         // ocultar o "×" de remover jogador — só na imagem exportada
         f.querySelectorAll('.sclr').forEach(function(x){x.style.display='none';});
+        // Legibilidade dos scards na imagem exportada: aumentar nome, donut
+        // e posição juntos. NÃO usa transform:scale — o html2canvas resolve
+        // de forma inconsistente <svg> aninhado (o donut) sob transform 2D
+        // pós-render. NÃO usa zoom — propriedade não padrão, sem suporte no
+        // Firefox (checklist de compatibilidade do projeto exige Firefox).
+        // Em vez disso, redimensiona width/height/font-size reais — força o
+        // motor a recalcular o box model antes de rasterizar, técnica
+        // recomendada pela própria documentação do html2canvas para casos
+        // onde transform falha com conteúdo complexo. Executa uma única vez,
+        // de forma síncrona, sobre no máximo 11 elementos — custo
+        // desprezível, sem impacto no tempo de geração validado (~3-4s).
+        // Recentraliza via margin negativo para compensar o crescimento e
+        // manter o card alinhado ao slot (left/top definidos por field.js).
+        // IMPORTANTE: roda ANTES do bloco de centralização do .donut-num
+        // logo abaixo — aquele bloco calcula translate() a partir do
+        // offsetWidth/offsetHeight do número, então precisa medir o número
+        // já no tamanho final (pós font-size aumentado), senão descentraliza.
+        var SCARD_ZOOM=1.2;
+        f.querySelectorAll('.scard').forEach(function(sc){
+          var w0=sc.offsetWidth,h0=sc.offsetHeight;
+          var w1=w0*SCARD_ZOOM,h1=h0*SCARD_ZOOM;
+          sc.style.width=w1+'px';
+          sc.style.minHeight=h1+'px';
+          sc.style.marginLeft='-'+((w1-w0)/2)+'px';
+          sc.style.marginTop='-'+((h1-h0)/2)+'px';
+          var sname=sc.querySelector('.sname');
+          if(sname){
+            var fs0=parseFloat(getComputedStyle(sname).fontSize);
+            sname.style.fontSize=(fs0*SCARD_ZOOM)+'px';
+            sname.style.maxWidth=(w1-8)+'px';
+          }
+          var ssub=sc.querySelector('.ssub');
+          if(ssub){
+            var fs1=parseFloat(getComputedStyle(ssub).fontSize);
+            // legibilidade da posição (MEI, LD etc): além do fator de escala
+            // do card, aplica um reforço extra de tamanho + negrito — pedido
+            // específico do usuário além do aumento proporcional do resto.
+            ssub.style.fontSize=(fs1*SCARD_ZOOM*1.3)+'px';
+            ssub.style.fontWeight='700';
+          }
+          var dwrap=sc.querySelector('.donut-wrap');
+          if(dwrap){
+            // Donut: NÃO esticar o <canvas> existente via CSS width/height —
+            // ele é um bitmap já rasterizado em 28px (Canvas 2D, não SVG);
+            // esticar via CSS produz um resultado borrado. Em vez disso,
+            // redesenha um canvas novo, no tamanho final, com a mesma
+            // matemática de traçado usada em drawDonut() (ui.js, área
+            // finalizada — não modificada, só replicada aqui porque a
+            // função original não é chamada com segurança de dentro do
+            // onclone: o html2canvas pode renderizar o clone num documento/
+            // iframe isolado, sem acesso às funções globais da página, e um
+            // ReferenceError ali quebraria a geração inteira da imagem).
+            var DONUT_SIZE=40; // tamanho alvo fixo, mais agressivo que o fator 1.2x do card
+            var oldCanvas=dwrap.querySelector('canvas');
+            var num=dwrap.querySelector('.donut-num');
+            if(oldCanvas&&num){
+              var nivelVal=Math.max(0,parseFloat(num.textContent)||0);
+              var col=num.style.color||getComputedStyle(num).color;
+              var newCanvas=doc.createElement('canvas');
+              var dpr=window.devicePixelRatio||1;
+              var s=DONUT_SIZE;
+              newCanvas.width=s*dpr;newCanvas.height=s*dpr;
+              newCanvas.style.width=s+'px';newCanvas.style.height=s+'px';
+              var ctx=newCanvas.getContext('2d');
+              ctx.scale(dpr,dpr);
+              // Espessura do traço: a tabela original de drawDonut() (ui.js)
+              // não previa 40px como faixa própria — caía em "size>=27" (4px),
+              // fino demais para esse diâmetro. Usa 6px, intermediário entre
+              // a faixa de 28px (4px) e a de 50px+ (7px), proporcional ao
+              // novo tamanho fixo desta captura.
+              var lw=6;
+              var cx=s/2,cy=s/2,r=s/2-lw/2-1;
+              ctx.clearRect(0,0,s,s);
+              ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
+              ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=lw;ctx.stroke();
+              var pct=nivelVal/100;
+              ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pct*2*Math.PI);
+              ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+              oldCanvas.replaceWith(newCanvas);
+              dwrap.style.width=DONUT_SIZE+'px';
+              dwrap.style.height=DONUT_SIZE+'px';
+              // O número não aumentava apesar do style.fontSize inline por
+              // causa de uma regra em style.css:
+              //   .donut-wrap:not(.donut-wrap--lg)... .donut-num{font-size:7px!important}
+              // Esse !important vence qualquer estilo inline enquanto o
+              // wrap não tiver a classe donut-wrap--lg (só existe para
+              // size>=50 em nivelDonutEl/ui.js — não é o nosso caso, size
+              // original é 28). Adicionar a classe aqui, só no clone,
+              // neutraliza o :not() e libera o font-size abaixo para valer.
+              // Não toca em ui.js nem em style.css.
+              dwrap.classList.add('donut-wrap--lg');
+              // 23px estourava o espaço interno do anel (raio útil ≈16px
+              // com lw=6, diâmetro limpo ≈26px) e sobrepunha o traço,
+              // principalmente em números de 2 dígitos. 16px cabe com folga
+              // dentro do anel mantendo boa legibilidade.
+              num.style.fontSize='16px';
+            }
+          }
+        });
         // centralização do número dentro do donut na captura — troca translate(%) por
         // translate(px), calculado a partir do próprio tamanho do elemento. Mantém
         // position:absolute;top:50%;left:50% (herdado do CSS) intacto — não usa
@@ -221,6 +320,20 @@ function compartilharCampo(){
         // só na imagem exportada — custoso para o html2canvas rasterizar. A borda
         // dourada sólida (border) permanece intacta; a interface ao vivo não é afetada.
         f.querySelectorAll('.scard.ftgt').forEach(function(sc){sc.style.boxShadow='none';});
+        // Posição do rótulo de formação (.fbadge, top:5px em style.css): no
+        // tamanho fixo de captura (540x590) esse top fica colado à linha de
+        // fundo superior do campo (retângulo do SVG, próximo ao topo),
+        // parcialmente sobreposto. Empurrar para baixo só no clone da
+        // captura, sem alterar o CSS ao vivo (.fbadge em style.css).
+        var badge=f.querySelector('.fbadge');
+        if(badge)badge.style.top='14px';
+        // Posição do rótulo de formação (.fbadge, top:5px em style.css): no
+        // tamanho fixo de captura (540x590) esse top fica colado à linha de
+        // fundo superior do campo (retângulo do SVG, próximo ao topo),
+        // parcialmente sobreposto. Empurrar para baixo só no clone da
+        // captura, sem alterar o CSS ao vivo (.fbadge em style.css).
+        var badge=f.querySelector('.fbadge');
+        if(badge)badge.style.top='14px';
       }
     }).then(function(canvas){
       // Letterbox: canvas sai em 1080x1180 (540x590 @ scale:2). Completar para
