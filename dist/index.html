@@ -2877,27 +2877,37 @@ function compartilharCampo(){
         // logo abaixo — aquele bloco calcula translate() a partir do
         // offsetWidth/offsetHeight do número, então precisa medir o número
         // já no tamanho final (pós font-size aumentado), senão descentraliza.
+        // Dimensões FIXAS em px (não medidas via offsetWidth/getComputedStyle
+        // do clone) — mesmo padrão já usado no donut (DONUT_SIZE). Medir o
+        // clone antes de aplicar o zoom é uma corrida com o reflow/carga da
+        // fonte custom (Barlow) dentro do onclone: em mobile o layout pode
+        // não ter convergido no instante da leitura, fazendo offsetWidth
+        // variar entre dispositivos e produzir scards/textos menores que no
+        // desktop mesmo com viewport e canvas finais idênticos — era a causa
+        // raiz confirmada do bug. Valores abaixo = base real do .scard em
+        // style.css (66px largura / 50px min-height / 9.5px nome / 7px
+        // posição) × o mesmo fator 1.2 (e 1.3 extra p/ .ssub) já usado antes,
+        // agora pré-calculados e fixos — reproduzem exatamente o resultado
+        // visual já validado no desktop, independente da origem da captura.
+        var SCARD_W0=66,SCARD_H0=50,SNAME_FS0=9.5,SSUB_FS0=7;
         var SCARD_ZOOM=1.2;
+        var w1=SCARD_W0*SCARD_ZOOM,h1=SCARD_H0*SCARD_ZOOM;
         f.querySelectorAll('.scard').forEach(function(sc){
-          var w0=sc.offsetWidth,h0=sc.offsetHeight;
-          var w1=w0*SCARD_ZOOM,h1=h0*SCARD_ZOOM;
           sc.style.width=w1+'px';
           sc.style.minHeight=h1+'px';
-          sc.style.marginLeft='-'+((w1-w0)/2)+'px';
-          sc.style.marginTop='-'+((h1-h0)/2)+'px';
+          sc.style.marginLeft='-'+((w1-SCARD_W0)/2)+'px';
+          sc.style.marginTop='-'+((h1-SCARD_H0)/2)+'px';
           var sname=sc.querySelector('.sname');
           if(sname){
-            var fs0=parseFloat(getComputedStyle(sname).fontSize);
-            sname.style.fontSize=(fs0*SCARD_ZOOM)+'px';
+            sname.style.fontSize=(SNAME_FS0*SCARD_ZOOM)+'px';
             sname.style.maxWidth=(w1-8)+'px';
           }
           var ssub=sc.querySelector('.ssub');
           if(ssub){
-            var fs1=parseFloat(getComputedStyle(ssub).fontSize);
             // legibilidade da posição (MEI, LD etc): além do fator de escala
             // do card, aplica um reforço extra de tamanho + negrito — pedido
             // específico do usuário além do aumento proporcional do resto.
-            ssub.style.fontSize=(fs1*SCARD_ZOOM*1.3)+'px';
+            ssub.style.fontSize=(SSUB_FS0*SCARD_ZOOM*1.3)+'px';
             ssub.style.fontWeight='700';
           }
           var dwrap=sc.querySelector('.donut-wrap');
