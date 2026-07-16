@@ -94,6 +94,67 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .splbl{font-size:7px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.5px}
 .sclr{position:absolute;top:-5px;right:-5px;width:13px;height:13px;border-radius:50%;background:var(--red);color:#fff;font-size:8px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1}
 .scard.filled:hover .sclr,.scard.ftgt:hover .sclr{display:flex}
+
+/* ── TOKEN CIRCULAR (Fase A do redesign — só campo Titulares) ───────────── */
+/* .scard--circle é o MESMO container .scard de sempre (hitbox, left/top
+   calculados a partir de SCARD_W/H, drag-drop, grid — nada disso muda).
+   Só marca o contexto; não carrega tamanho/aparência do círculo.
+   IMPORTANTE: .scard.filled/.scard.ftgt (regras antigas) têm 2 classes
+   de especificidade — pra neutralizá-las aqui, preciso igualar com
+   .scard--circle.filled/.ftgt (também 2 classes), não .scard--circle
+   sozinho (1 classe), que perderia o empate de especificidade. */
+.scard--circle{padding:0;border:none;background:transparent;overflow:visible;gap:0}
+.scard--circle.filled,.scard--circle.ftgt{
+  border:none;background:transparent;box-shadow:none;animation:none;
+}
+.scard--circle.dov{border-color:transparent;background:transparent}
+.scard--circle:hover{border-color:transparent;box-shadow:none}
+.scard--circle.ftgt::before{content:none}
+.scard--circle.dov .circle-visual{border-color:#facc15;background:rgba(250,204,21,.15)}
+/* .circle-visual é um FILHO, centralizado pelo próprio flex do pai
+   (.scard já tem align-items:center;justify-content:center) — o
+   tamanho do círculo é só dele, sem precisar compensar via transform. */
+.circle-visual{
+  position:relative;
+  width:40px;height:40px;
+  border-radius:50%;
+  border:1.5px dashed rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+/* Fundo preto translúcido: desenhado DENTRO do canvas (drawDonut(),
+   parâmetro bgFill), usando as mesmas coordenadas matemáticas do
+   traço (cx,cy,r,lw) — não há CSS separado pra sincronizar aqui. */
+.circle-visual.filled{border:none;}
+.circle-visual.ftgt{border:2px solid #FFD700;box-shadow:0 0 8px 2px rgba(255,215,0,.5)}
+.circle-visual.ftgt::before{content:'★';position:absolute;top:-6px;left:-6px;font-size:11px;line-height:1;color:#FFD700;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none;z-index:1}
+.circle-visual .donut-wrap{margin:0}
+.circle-visual .sclr{z-index:1}
+/* Nome fora do círculo, centralizado logo abaixo, sempre 1 linha.
+   Fase A3: fonte fixa (sem auto-shrink) — width:max-content no pill já
+   garante que nenhum nome quebra ou é cortado, independente do tamanho. */
+.sname--outside{
+  position:absolute;
+  top:100%;
+  left:50%;
+  transform:translateX(-50%);
+  margin-top:1px;
+  max-width:none;
+  width:max-content;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+  pointer-events:none;
+  background:rgba(0,0,0,.72);
+  border-radius:999px;
+  padding:3px 6px;
+  font-size:11px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+}
+/* X de remover: reposicionado para a borda do círculo (sobrepõe levemente) */
+.circle-visual .sclr{position:absolute;top:-2px;right:-2px}
 .sbar{padding:5px 12px;border-top:1px solid var(--dark3);display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sbar:empty{display:none}
 .spill{font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500;white-space:nowrap}
@@ -394,6 +455,7 @@ body.light-mode .field.mkt{border-color:#1F5A1F;}
 body.light-mode .scard{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.22);}
 body.light-mode .scard.filled{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.45);}
 body.light-mode .scard:hover{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.55);}
+body.light-mode .scard--circle,body.light-mode .scard--circle.filled,body.light-mode .scard--circle:hover{background:transparent;border-color:transparent;}
 body.light-mode .scard .sname{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);}
 body.light-mode .scard .ssub{color:rgba(255,255,255,.6);}
 body.light-mode .scard .sempty{color:rgba(255,255,255,.35);}
@@ -570,11 +632,17 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── TOUCH: scard tap-friendly ────────────────────────────────── */
   .scard{min-height:36px;min-width:36px}
+
+  /* ── TOKEN CIRCULAR MOBILE (Fase A do redesign) ──────────────── */
+  .circle-visual{width:28px;height:28px}
+  .sname--outside{margin-top:2px}
   .scard:hover{border-color:rgba(255,255,255,.22);box-shadow:none;z-index:5}
   .scard.filled:hover{border-color:rgba(255,255,255,.45)}
   .scard.ftgt:hover{border-color:#FFD700}
   .scard.filled .sclr,.scard.ftgt .sclr{display:flex}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
+  .scard--circle.touch-sel{border-color:transparent!important;box-shadow:none!important}
+  .scard--circle.touch-sel .circle-visual{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.4)}
   tr.touch-sel td{background:rgba(250,204,21,.1)!important}
   .touch-drag-clone{position:fixed;pointer-events:none;z-index:9999;opacity:.85;transform:scale(1.08);transition:none}
 
@@ -899,10 +967,10 @@ const PIE_COLS=['#e11d48','#f97316','#f59e0b','#22c55e','#0ea5e9','#a78bfa','#ec
 const POSITIONS=['GOL','ZAG','LD','LE','VOL','MEI','PD','PE','CA'];
 const PRIO_LABELS=['','Baixa','Média','Alta','Oportunidade'];
 const FMTS={
-  '4-2-3-1':[[50,85,'GOL'],[87,72,'LD'],[65,79,'ZAG'],[35,79,'ZAG'],[13,72,'LE'],[63,56,'VOL'],[37,56,'VOL'],[82,33,'PD'],[50,36,'MEI'],[18,33,'PE'],[50,18,'CA']],
-  '4-3-3':[[50,85,'GOL'],[87,72,'LD'],[65,79,'ZAG'],[35,79,'ZAG'],[13,72,'LE'],[74,50,'VOL'],[50,47,'MEI'],[26,50,'VOL'],[82,20,'PD'],[50,16,'CA'],[18,20,'PE']],
-  '4-4-2':[[50,85,'GOL'],[87,72,'LD'],[65,79,'ZAG'],[35,79,'ZAG'],[13,72,'LE'],[84,50,'PD'],[61,53,'VOL'],[39,53,'MEI'],[16,50,'PE'],[33,16,'CA'],[67,16,'CA']],
-  '3-5-2':[[50,85,'GOL'],[74,79,'ZAG'],[50,81,'ZAG'],[26,79,'ZAG'],[92,55,'LD'],[68,52,'VOL'],[50,50,'MEI'],[32,52,'VOL'],[8,55,'LE'],[33,18,'CA'],[67,18,'CA']]
+  '4-2-3-1':[[50,86,'GOL'],[81.5,69,'LD'],[62.8,76,'ZAG'],[37.2,76,'ZAG'],[18.6,69,'LE'],[61,53,'VOL'],[39,53,'VOL'],[77.2,30,'PD'],[50,33,'MEI'],[22.8,30,'PE'],[50,12,'CA']],
+  '4-3-3':[[50,86,'GOL'],[81.5,69,'LD'],[62.8,76,'ZAG'],[37.2,76,'ZAG'],[18.6,69,'LE'],[70.4,47,'VOL'],[50,44,'MEI'],[29.6,47,'VOL'],[77.2,17,'PD'],[50,10,'CA'],[22.8,17,'PE']],
+  '4-4-2':[[50,86,'GOL'],[81.5,69,'LD'],[62.8,76,'ZAG'],[37.2,76,'ZAG'],[18.6,69,'LE'],[78.9,47,'PD'],[59.4,50,'VOL'],[40.6,50,'MEI'],[21.1,47,'PE'],[33,10,'CA'],[67,10,'CA']],
+  '3-5-2':[[50,86,'GOL'],[70.4,76,'ZAG'],[50,78,'ZAG'],[29.6,76,'ZAG'],[85.7,52,'LD'],[65.3,49,'VOL'],[50,47,'MEI'],[34.7,49,'VOL'],[14.3,52,'LE'],[33,12,'CA'],[67,12,'CA']]
 };
 
 function pmatch(p,l){const m={GOL:['GOL'],LD:['LD'],LE:['LE'],ZAG:['ZAG'],VOL:['VOL'],MEI:['MEI'],CA:['CA'],PD:['PD','MEI'],PE:['PE','MEI']};return(m[l]||[l]).includes(p);}
@@ -1091,16 +1159,25 @@ function nivelColor(v){
   if(v>=55)return'#f97316';
   return'#ef4444';
 }
-function drawDonut(canvas,value,color,size){
+function drawDonut(canvas,value,color,size,thick,bgFill){
   const dpr=window.devicePixelRatio||1;
   const s=size||32;
   canvas.width=s*dpr;canvas.height=s*dpr;
   canvas.style.width=s+'px';canvas.style.height=s+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-  const lw=size>=70?8:size>=50?7:size>=27?4:3;
+  const lw=thick||(size>=70?8:size>=50?7:size>=27?4:3);
   const cx=s/2,cy=s/2,r=s/2-lw/2-1;
   ctx.clearRect(0,0,s,s);
+  // fundo preenchido (opcional): raio um pouco MENOR que a borda externa
+  // da faixa (r+lw/2), com folga de segurança — evita vazamento por
+  // anti-aliasing entre dois arcos distintos (fill vs stroke) que nunca
+  // renderizam pixel-a-pixel idênticos no raio exato. O disco continua
+  // preenchido do centro até esse raio, cobrindo o miolo inteiro.
+  if(bgFill){
+    ctx.beginPath();ctx.arc(cx,cy,r+lw/2-0.75,0,2*Math.PI);
+    ctx.fillStyle=bgFill;ctx.fill();
+  }
   // track
   ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=lw;ctx.stroke();
@@ -1109,16 +1186,17 @@ function drawDonut(canvas,value,color,size){
   ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pct*2*Math.PI);
   ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
 }
-function nivelDonutEl(nivel,size){
+function nivelDonutEl(nivel,size,opts){
   size=size||32;
+  opts=opts||{};
   const n=Math.max(0,parseFloat(nivel)||0);
   const col=nivelColor(n);
   const wrap=document.createElement('div');wrap.className='donut-wrap'+(size>=50?' donut-wrap--lg':'');
   wrap.style.width=size+'px';wrap.style.height=size+'px';
   const canvas=document.createElement('canvas');
-  drawDonut(canvas,n,col,size);
+  drawDonut(canvas,n,col,size,opts.thick,opts.bgFill);
   const label=document.createElement('div');label.className='donut-num';
-  label.style.cssText='font-size:'+(size>=70?15:size>=50?13:9)+'px;color:'+col;
+  label.style.cssText='font-size:'+(opts.numSize||(size>=70?15:size>=50?13:9))+'px;color:'+col;
   label.textContent=n||'—';
   wrap.appendChild(canvas);wrap.appendChild(label);
   return wrap;
@@ -1272,7 +1350,6 @@ var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 var touchSel = null;
 
 function clearTouchSel() {
-  clearCompatibleHighlight();
   if (!touchSel) return;
   if (touchSel.rowEl) touchSel.rowEl.classList.remove('touch-sel');
   if (touchSel.si !== null) {
@@ -1280,32 +1357,6 @@ function clearTouchSel() {
     if (sc) sc.classList.remove('touch-sel');
   }
   touchSel = null;
-}
-
-// ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
-// Acende (outline roxo) todos os slots do campo compatíveis com `pos`,
-// ocupados ou vazios. Não altera slots incompatíveis.
-function highlightCompatibleSlots(pos, tab) {
-  if (!pos) return;
-  var fmt = FMTS[ST.fmt[tab]];
-  if (!fmt) return;
-  fmt.forEach(function (s, i) {
-    if (pmatch(pos, s[2])) {
-      var sc = document.querySelector('.scard[data-si="' + i + '"]');
-      if (sc && !sc.classList.contains('ftgt')) {
-        sc.dataset.compat = '1';
-        sc.style.outline = '3px solid #a78bfa';
-        sc.style.boxShadow = '0 0 8px 2px rgba(167,139,250,.65)';
-      }
-    }
-  });
-}
-function clearCompatibleHighlight() {
-  document.querySelectorAll('.scard[data-compat="1"]').forEach(function (sc) {
-    delete sc.dataset.compat;
-    sc.style.outline = '';
-    sc.style.boxShadow = '';
-  });
 }
 
 // ── CANCELAR SELEÇÃO AO TOCAR FORA DO CAMPO/LISTA (toque) ───────────────────
@@ -1421,10 +1472,6 @@ function addTouchDrag(sc, tab) {
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
-
-      // Destaque de posições compatíveis
-      var draggedEnt = slotEnt(tab, dragSi);
-      if (draggedEnt && draggedEnt.data) highlightCompatibleSlots(draggedEnt.data.pos, tab);
     }
 
     if (moved && clone) {
@@ -1445,8 +1492,6 @@ function addTouchDrag(sc, tab) {
       if (clone) { document.body.removeChild(clone); clone = null; }
       return;
     }
-
-    clearCompatibleHighlight();
 
     // Remover clone
     document.body.removeChild(clone); clone = null;
@@ -1498,7 +1543,6 @@ function addTouchDrag(sc, tab) {
 
   sc.addEventListener('touchcancel', function () {
     stopAutoScroll();
-    clearCompatibleHighlight();
     var fElCancel = document.getElementById('field');
     if (fElCancel) fElCancel.style.touchAction = 'auto';
     if (clone) { document.body.removeChild(clone); clone = null; }
@@ -1523,8 +1567,6 @@ function onRowTap(pid, rowEl) {
   clearTouchSel();
   rowEl.classList.add('touch-sel');
   touchSel = { type: 'row', id: pid, si: null, tab: ST.ft, rowEl: rowEl };
-  var pl = gp(pid);
-  if (pl) highlightCompatibleSlots(pl.pos, ST.ft);
 }
 
 // ── TAP NO SCARD ────────────────────────────────────────────────────────────
@@ -1572,8 +1614,6 @@ function onScardTap(sc, tab) {
   if (slotVal !== null) {
     sc.classList.add('touch-sel');
     touchSel = { type: 'scard', id: slotVal, si: si, tab: tab, rowEl: null };
-    var selEnt = slotEnt(tab, si);
-    if (selEnt && selEnt.data) highlightCompatibleSlots(selEnt.data.pos, tab);
     return;
   }
 
@@ -1585,8 +1625,9 @@ function onScardTap(sc, tab) {
 function buildScard(i, tab) {
   var s = FMTS[ST.fmt[tab]][i];
   var ent = slotEnt(tab, i); var isTgt = ent && ent.type === 't';
+  var isCircle = tab === 'A'; // Fase A do redesign: só o campo Titulares vira círculo
   var sc = document.createElement('div');
-  sc.className = 'scard' + (ent ? (isTgt ? ' ftgt' : ' filled') : '');
+  sc.className = 'scard' + (ent ? (isTgt ? ' ftgt' : ' filled') : '') + (isCircle ? ' scard--circle' : '');
   sc.dataset.si = i;
 
   var pos = slotPos(tab, i);
@@ -1599,13 +1640,30 @@ function buildScard(i, tab) {
     sc.setAttribute('draggable', 'true');
     sc.dataset.ek = isTgt ? 't:' + d.id : d.id;
 
-    var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
-    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto 0'; sc.appendChild(sdw); } }
-    var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
-    var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
-    clr.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
-    clr.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
-    sc.appendChild(clr);
+    if (isCircle) {
+      // ── TOKEN CIRCULAR (campo Titulares — Fase A do redesign) ──
+      // sc (.scard) continua com seu tamanho/hitbox originais (drag-drop,
+      // grid, left/top calculados a partir de SCARD_W/H — nada disso muda).
+      // O círculo é um wrapper FILHO, centralizado pelo próprio flex do
+      // pai — sem precisar de transform manual pra compensar tamanhos.
+      var circleWrap = document.createElement('div'); circleWrap.className = 'circle-visual' + (isTgt ? ' ftgt' : ' filled');
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, 40, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
+      clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+      clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
+      circleWrap.appendChild(clrC);
+      var snC = document.createElement('div'); snC.className = 'sname sname--outside'; snC.textContent = d.name;
+      circleWrap.appendChild(snC);
+      sc.appendChild(circleWrap);
+    } else {
+      var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
+      if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto 0'; sc.appendChild(sdw); } }
+      var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
+      var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
+      clr.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+      clr.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
+      sc.appendChild(clr);
+    }
 
     // ── MOUSE DRAG (desktop) ──────────────────────────────────────
     sc.addEventListener('dragstart', function (e) {
@@ -1618,13 +1676,8 @@ function buildScard(i, tab) {
       dragOffX = ((e.clientX - scRect.left) / fRect.width) * 100;
       dragOffY = ((e.clientY - scRect.top) / fRect.height) * 100;
 
-      // Destaque de posições compatíveis
-      clearCompatibleHighlight();
-      highlightCompatibleSlots(ent.data.pos, tab);
-
       function onDragEnd() {
         document.removeEventListener('dragend', onDragEnd, true);
-        clearCompatibleHighlight();
         if (dragSi === null || dragId === null || lastFieldX === null) { dragId = null; dragSi = null; lastFieldX = null; lastFieldY = null; return; }
         var fEl = document.getElementById('field');
         var fR = fEl ? fEl.getBoundingClientRect() : { width: 1, height: 1 };
@@ -1646,7 +1699,6 @@ function buildScard(i, tab) {
   sc.addEventListener('drop', function (e) {
     e.preventDefault(); e.stopPropagation(); sc.classList.remove('dov');
     if (dragId === null && dragId !== 0) return;
-    clearCompatibleHighlight();
     var ti = +sc.dataset.si;
     if (dragSi !== null && dragSi === ti) {
       var rect = document.getElementById('field').getBoundingClientRect();
@@ -1734,7 +1786,6 @@ function renderField() {
     var isForeignFilled = overCard && overSi !== dragSi && ST.slots[tab][overSi] != null;
     if (isForeignFilled) return;
     e.preventDefault(); e.stopPropagation();
-    clearCompatibleHighlight();
     var rect = field.getBoundingClientRect();
     var xPct = ((e.clientX - rect.left) / rect.width) * 100 - dragOffX + (SCARD_W / 2 / rect.width * 100);
     var yPct = ((e.clientY - rect.top) / rect.height) * 100 - dragOffY + (SCARD_H / 2 / rect.height * 100);

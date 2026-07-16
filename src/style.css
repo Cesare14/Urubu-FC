@@ -82,6 +82,67 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .splbl{font-size:7px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.5px}
 .sclr{position:absolute;top:-5px;right:-5px;width:13px;height:13px;border-radius:50%;background:var(--red);color:#fff;font-size:8px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1}
 .scard.filled:hover .sclr,.scard.ftgt:hover .sclr{display:flex}
+
+/* ── TOKEN CIRCULAR (Fase A do redesign — só campo Titulares) ───────────── */
+/* .scard--circle é o MESMO container .scard de sempre (hitbox, left/top
+   calculados a partir de SCARD_W/H, drag-drop, grid — nada disso muda).
+   Só marca o contexto; não carrega tamanho/aparência do círculo.
+   IMPORTANTE: .scard.filled/.scard.ftgt (regras antigas) têm 2 classes
+   de especificidade — pra neutralizá-las aqui, preciso igualar com
+   .scard--circle.filled/.ftgt (também 2 classes), não .scard--circle
+   sozinho (1 classe), que perderia o empate de especificidade. */
+.scard--circle{padding:0;border:none;background:transparent;overflow:visible;gap:0}
+.scard--circle.filled,.scard--circle.ftgt{
+  border:none;background:transparent;box-shadow:none;animation:none;
+}
+.scard--circle.dov{border-color:transparent;background:transparent}
+.scard--circle:hover{border-color:transparent;box-shadow:none}
+.scard--circle.ftgt::before{content:none}
+.scard--circle.dov .circle-visual{border-color:#facc15;background:rgba(250,204,21,.15)}
+/* .circle-visual é um FILHO, centralizado pelo próprio flex do pai
+   (.scard já tem align-items:center;justify-content:center) — o
+   tamanho do círculo é só dele, sem precisar compensar via transform. */
+.circle-visual{
+  position:relative;
+  width:40px;height:40px;
+  border-radius:50%;
+  border:1.5px dashed rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+/* Fundo preto translúcido: desenhado DENTRO do canvas (drawDonut(),
+   parâmetro bgFill), usando as mesmas coordenadas matemáticas do
+   traço (cx,cy,r,lw) — não há CSS separado pra sincronizar aqui. */
+.circle-visual.filled{border:none;}
+.circle-visual.ftgt{border:2px solid #FFD700;box-shadow:0 0 8px 2px rgba(255,215,0,.5)}
+.circle-visual.ftgt::before{content:'★';position:absolute;top:-6px;left:-6px;font-size:11px;line-height:1;color:#FFD700;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none;z-index:1}
+.circle-visual .donut-wrap{margin:0}
+.circle-visual .sclr{z-index:1}
+/* Nome fora do círculo, centralizado logo abaixo, sempre 1 linha.
+   Fase A3: fonte fixa (sem auto-shrink) — width:max-content no pill já
+   garante que nenhum nome quebra ou é cortado, independente do tamanho. */
+.sname--outside{
+  position:absolute;
+  top:100%;
+  left:50%;
+  transform:translateX(-50%);
+  margin-top:1px;
+  max-width:none;
+  width:max-content;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+  pointer-events:none;
+  background:rgba(0,0,0,.72);
+  border-radius:999px;
+  padding:3px 6px;
+  font-size:11px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+}
+/* X de remover: reposicionado para a borda do círculo (sobrepõe levemente) */
+.circle-visual .sclr{position:absolute;top:-2px;right:-2px}
 .sbar{padding:5px 12px;border-top:1px solid var(--dark3);display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .sbar:empty{display:none}
 .spill{font-size:10px;padding:2px 6px;border-radius:20px;font-weight:500;white-space:nowrap}
@@ -382,6 +443,7 @@ body.light-mode .field.mkt{border-color:#1F5A1F;}
 body.light-mode .scard{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.22);}
 body.light-mode .scard.filled{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.45);}
 body.light-mode .scard:hover{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.55);}
+body.light-mode .scard--circle,body.light-mode .scard--circle.filled,body.light-mode .scard--circle:hover{background:transparent;border-color:transparent;}
 body.light-mode .scard .sname{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);}
 body.light-mode .scard .ssub{color:rgba(255,255,255,.6);}
 body.light-mode .scard .sempty{color:rgba(255,255,255,.35);}
@@ -558,11 +620,17 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── TOUCH: scard tap-friendly ────────────────────────────────── */
   .scard{min-height:36px;min-width:36px}
+
+  /* ── TOKEN CIRCULAR MOBILE (Fase A do redesign) ──────────────── */
+  .circle-visual{width:28px;height:28px}
+  .sname--outside{margin-top:2px}
   .scard:hover{border-color:rgba(255,255,255,.22);box-shadow:none;z-index:5}
   .scard.filled:hover{border-color:rgba(255,255,255,.45)}
   .scard.ftgt:hover{border-color:#FFD700}
   .scard.filled .sclr,.scard.ftgt .sclr{display:flex}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
+  .scard--circle.touch-sel{border-color:transparent!important;box-shadow:none!important}
+  .scard--circle.touch-sel .circle-visual{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.4)}
   tr.touch-sel td{background:rgba(250,204,21,.1)!important}
   .touch-drag-clone{position:fixed;pointer-events:none;z-index:9999;opacity:.85;transform:scale(1.08);transition:none}
 

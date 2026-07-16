@@ -6,7 +6,6 @@ var IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 var touchSel = null;
 
 function clearTouchSel() {
-  clearCompatibleHighlight();
   if (!touchSel) return;
   if (touchSel.rowEl) touchSel.rowEl.classList.remove('touch-sel');
   if (touchSel.si !== null) {
@@ -14,32 +13,6 @@ function clearTouchSel() {
     if (sc) sc.classList.remove('touch-sel');
   }
   touchSel = null;
-}
-
-// ── DESTAQUE DE POSIÇÕES COMPATÍVEIS ────────────────────────────────────────
-// Acende (outline roxo) todos os slots do campo compatíveis com `pos`,
-// ocupados ou vazios. Não altera slots incompatíveis.
-function highlightCompatibleSlots(pos, tab) {
-  if (!pos) return;
-  var fmt = FMTS[ST.fmt[tab]];
-  if (!fmt) return;
-  fmt.forEach(function (s, i) {
-    if (pmatch(pos, s[2])) {
-      var sc = document.querySelector('.scard[data-si="' + i + '"]');
-      if (sc && !sc.classList.contains('ftgt')) {
-        sc.dataset.compat = '1';
-        sc.style.outline = '3px solid #a78bfa';
-        sc.style.boxShadow = '0 0 8px 2px rgba(167,139,250,.65)';
-      }
-    }
-  });
-}
-function clearCompatibleHighlight() {
-  document.querySelectorAll('.scard[data-compat="1"]').forEach(function (sc) {
-    delete sc.dataset.compat;
-    sc.style.outline = '';
-    sc.style.boxShadow = '';
-  });
 }
 
 // ── CANCELAR SELEÇÃO AO TOCAR FORA DO CAMPO/LISTA (toque) ───────────────────
@@ -155,10 +128,6 @@ function addTouchDrag(sc, tab) {
       var scRect = sc.getBoundingClientRect();
       dragOffX = ((startX - scRect.left) / fRect.width) * 100;
       dragOffY = ((startY - scRect.top) / fRect.height) * 100;
-
-      // Destaque de posições compatíveis
-      var draggedEnt = slotEnt(tab, dragSi);
-      if (draggedEnt && draggedEnt.data) highlightCompatibleSlots(draggedEnt.data.pos, tab);
     }
 
     if (moved && clone) {
@@ -179,8 +148,6 @@ function addTouchDrag(sc, tab) {
       if (clone) { document.body.removeChild(clone); clone = null; }
       return;
     }
-
-    clearCompatibleHighlight();
 
     // Remover clone
     document.body.removeChild(clone); clone = null;
@@ -232,7 +199,6 @@ function addTouchDrag(sc, tab) {
 
   sc.addEventListener('touchcancel', function () {
     stopAutoScroll();
-    clearCompatibleHighlight();
     var fElCancel = document.getElementById('field');
     if (fElCancel) fElCancel.style.touchAction = 'auto';
     if (clone) { document.body.removeChild(clone); clone = null; }
@@ -257,8 +223,6 @@ function onRowTap(pid, rowEl) {
   clearTouchSel();
   rowEl.classList.add('touch-sel');
   touchSel = { type: 'row', id: pid, si: null, tab: ST.ft, rowEl: rowEl };
-  var pl = gp(pid);
-  if (pl) highlightCompatibleSlots(pl.pos, ST.ft);
 }
 
 // ── TAP NO SCARD ────────────────────────────────────────────────────────────
@@ -306,8 +270,6 @@ function onScardTap(sc, tab) {
   if (slotVal !== null) {
     sc.classList.add('touch-sel');
     touchSel = { type: 'scard', id: slotVal, si: si, tab: tab, rowEl: null };
-    var selEnt = slotEnt(tab, si);
-    if (selEnt && selEnt.data) highlightCompatibleSlots(selEnt.data.pos, tab);
     return;
   }
 
@@ -319,8 +281,9 @@ function onScardTap(sc, tab) {
 function buildScard(i, tab) {
   var s = FMTS[ST.fmt[tab]][i];
   var ent = slotEnt(tab, i); var isTgt = ent && ent.type === 't';
+  var isCircle = tab === 'A'; // Fase A do redesign: só o campo Titulares vira círculo
   var sc = document.createElement('div');
-  sc.className = 'scard' + (ent ? (isTgt ? ' ftgt' : ' filled') : '');
+  sc.className = 'scard' + (ent ? (isTgt ? ' ftgt' : ' filled') : '') + (isCircle ? ' scard--circle' : '');
   sc.dataset.si = i;
 
   var pos = slotPos(tab, i);
@@ -333,13 +296,30 @@ function buildScard(i, tab) {
     sc.setAttribute('draggable', 'true');
     sc.dataset.ek = isTgt ? 't:' + d.id : d.id;
 
-    var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
-    if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto 0'; sc.appendChild(sdw); } }
-    var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
-    var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
-    clr.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
-    clr.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
-    sc.appendChild(clr);
+    if (isCircle) {
+      // ── TOKEN CIRCULAR (campo Titulares — Fase A do redesign) ──
+      // sc (.scard) continua com seu tamanho/hitbox originais (drag-drop,
+      // grid, left/top calculados a partir de SCARD_W/H — nada disso muda).
+      // O círculo é um wrapper FILHO, centralizado pelo próprio flex do
+      // pai — sem precisar de transform manual pra compensar tamanhos.
+      var circleWrap = document.createElement('div'); circleWrap.className = 'circle-visual' + (isTgt ? ' ftgt' : ' filled');
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, 40, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
+      clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+      clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
+      circleWrap.appendChild(clrC);
+      var snC = document.createElement('div'); snC.className = 'sname sname--outside'; snC.textContent = d.name;
+      circleWrap.appendChild(snC);
+      sc.appendChild(circleWrap);
+    } else {
+      var sn = document.createElement('div'); sn.className = 'sname'; sn.textContent = d.name; sc.appendChild(sn);
+      if (d.nivel) { var sdw = nivelDonutEl(d.nivel, 28); if (sdw) { sdw.style.margin = '1px auto 0'; sc.appendChild(sdw); } }
+      var ssub = document.createElement('div'); ssub.className = 'ssub'; ssub.textContent = d.pos || ''; sc.appendChild(ssub);
+      var clr = document.createElement('button'); clr.className = 'sclr'; clr.innerHTML = '×';
+      clr.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+      clr.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
+      sc.appendChild(clr);
+    }
 
     // ── MOUSE DRAG (desktop) ──────────────────────────────────────
     sc.addEventListener('dragstart', function (e) {
@@ -352,13 +332,8 @@ function buildScard(i, tab) {
       dragOffX = ((e.clientX - scRect.left) / fRect.width) * 100;
       dragOffY = ((e.clientY - scRect.top) / fRect.height) * 100;
 
-      // Destaque de posições compatíveis
-      clearCompatibleHighlight();
-      highlightCompatibleSlots(ent.data.pos, tab);
-
       function onDragEnd() {
         document.removeEventListener('dragend', onDragEnd, true);
-        clearCompatibleHighlight();
         if (dragSi === null || dragId === null || lastFieldX === null) { dragId = null; dragSi = null; lastFieldX = null; lastFieldY = null; return; }
         var fEl = document.getElementById('field');
         var fR = fEl ? fEl.getBoundingClientRect() : { width: 1, height: 1 };
@@ -380,7 +355,6 @@ function buildScard(i, tab) {
   sc.addEventListener('drop', function (e) {
     e.preventDefault(); e.stopPropagation(); sc.classList.remove('dov');
     if (dragId === null && dragId !== 0) return;
-    clearCompatibleHighlight();
     var ti = +sc.dataset.si;
     if (dragSi !== null && dragSi === ti) {
       var rect = document.getElementById('field').getBoundingClientRect();
@@ -468,7 +442,6 @@ function renderField() {
     var isForeignFilled = overCard && overSi !== dragSi && ST.slots[tab][overSi] != null;
     if (isForeignFilled) return;
     e.preventDefault(); e.stopPropagation();
-    clearCompatibleHighlight();
     var rect = field.getBoundingClientRect();
     var xPct = ((e.clientX - rect.left) / rect.width) * 100 - dragOffX + (SCARD_W / 2 / rect.width * 100);
     var yPct = ((e.clientY - rect.top) / rect.height) * 100 - dragOffY + (SCARD_H / 2 / rect.height * 100);

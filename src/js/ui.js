@@ -36,16 +36,25 @@ function nivelColor(v){
   if(v>=55)return'#f97316';
   return'#ef4444';
 }
-function drawDonut(canvas,value,color,size){
+function drawDonut(canvas,value,color,size,thick,bgFill){
   const dpr=window.devicePixelRatio||1;
   const s=size||32;
   canvas.width=s*dpr;canvas.height=s*dpr;
   canvas.style.width=s+'px';canvas.style.height=s+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
-  const lw=size>=70?8:size>=50?7:size>=27?4:3;
+  const lw=thick||(size>=70?8:size>=50?7:size>=27?4:3);
   const cx=s/2,cy=s/2,r=s/2-lw/2-1;
   ctx.clearRect(0,0,s,s);
+  // fundo preenchido (opcional): raio um pouco MENOR que a borda externa
+  // da faixa (r+lw/2), com folga de segurança — evita vazamento por
+  // anti-aliasing entre dois arcos distintos (fill vs stroke) que nunca
+  // renderizam pixel-a-pixel idênticos no raio exato. O disco continua
+  // preenchido do centro até esse raio, cobrindo o miolo inteiro.
+  if(bgFill){
+    ctx.beginPath();ctx.arc(cx,cy,r+lw/2-0.75,0,2*Math.PI);
+    ctx.fillStyle=bgFill;ctx.fill();
+  }
   // track
   ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=lw;ctx.stroke();
@@ -54,16 +63,17 @@ function drawDonut(canvas,value,color,size){
   ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+pct*2*Math.PI);
   ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
 }
-function nivelDonutEl(nivel,size){
+function nivelDonutEl(nivel,size,opts){
   size=size||32;
+  opts=opts||{};
   const n=Math.max(0,parseFloat(nivel)||0);
   const col=nivelColor(n);
   const wrap=document.createElement('div');wrap.className='donut-wrap'+(size>=50?' donut-wrap--lg':'');
   wrap.style.width=size+'px';wrap.style.height=size+'px';
   const canvas=document.createElement('canvas');
-  drawDonut(canvas,n,col,size);
+  drawDonut(canvas,n,col,size,opts.thick,opts.bgFill);
   const label=document.createElement('div');label.className='donut-num';
-  label.style.cssText='font-size:'+(size>=70?15:size>=50?13:9)+'px;color:'+col;
+  label.style.cssText='font-size:'+(opts.numSize||(size>=70?15:size>=50?13:9))+'px;color:'+col;
   label.textContent=n||'—';
   wrap.appendChild(canvas);wrap.appendChild(label);
   return wrap;
