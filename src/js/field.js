@@ -315,8 +315,12 @@ function buildScard(i, tab) {
       // mobile). Breakpoint igual ao do CSS (max-width:767px). thick e
       // numSize ficam intocados — ajuste de proporção do número é assunto
       // do próximo briefing, depois que este tamanho estiver validado.
-      var circleSize = window.matchMedia('(max-width:767px)').matches ? 28 : 40;
-      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      var circleSize = window.matchMedia('(max-width:767px)').matches ? 34 : 40;
+      // thick e numSize escalados proporcionalmente ao circleSize (0.15 e
+      // 0.3 = 6/40 e 12/40, a proporção já validada no desktop) — antes
+      // eram fixos e não acompanhavam o tamanho real do donut em mobile,
+      // deixando o traço relativamente mais grosso e o número desproporcional.
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: circleSize * 0.15, numSize: circleSize * 0.3, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
       var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };

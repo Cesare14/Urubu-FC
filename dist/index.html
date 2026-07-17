@@ -671,11 +671,13 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .scard{min-height:36px;min-width:36px}
 
   /* ── TOKEN CIRCULAR MOBILE (Fase A do redesign) ──────────────── */
-  .circle-visual{width:28px;height:28px}
-  /* Redesign do Scard: afastado de 2px pra 7px — o valor anterior deixava a
-     pill sobrepondo a base do donut real (que vaza ~6px além da caixa de
-     28px). 7px garante "quase encostando, sem encostar". */
-  .sname--outside{margin-top:7px}
+  .circle-visual{width:34px;height:34px}
+  /* Redesign do Scard: reduzido de 7px pra 2px — o valor de 7px era
+     compensação pro vazamento do canvas (corrigido depois, ver field.js
+     circleSize). Sem vazamento, a pill pode ficar quase colada no donut,
+     como já é no desktop (margin-top:1px, linha 136) — 2px no touch só
+     pra dar um respiro mínimo. */
+  .sname--outside{margin-top:1px}
   .scard:hover{border-color:rgba(255,255,255,.22);box-shadow:none;z-index:5}
   .scard.filled:hover{border-color:rgba(255,255,255,.45)}
   .scard.ftgt:hover{border-color:#FFD700}
@@ -698,10 +700,14 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   /* Coluna Nível/Donut: reduzir canvas (exceto donuts grandes de análise e inline série A) */
   .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:7px!important}
   /* Redesign do Scard: token circular (Titulares) — número proporcional ao
-     círculo mobile (28px), replicando a razão número/círculo do desktop
-     (12/40 = 0.3 → 28*0.3 ≈ 8px). Especificidade maior que a regra acima
-     (mesma cadeia + .circle-visual) pra não depender de ordem no arquivo. */
-  .circle-visual .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:8px!important}
+     círculo REAL exibido. Como o vazamento do canvas (40px dentro da caixa
+     de 28px — ver nota em field.js linha ~311) ainda está ativo, o círculo
+     visível de fato continua ~40px, igual ao desktop. Por isso o valor
+     correto aqui é 12px (mesma proporção do desktop pra 40px), e não um
+     valor calculado para 28px — isso só fará sentido quando o vazamento for
+     corrigido em outra tarefa. Especificidade maior que a regra de 7px
+     acima pra não depender de ordem no arquivo. */
+  .circle-visual .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:12px!important}
 
   /* ── NÍVEL MOBILE: número colorido em vez de donut (tabela elenco + card alvo) ── */
   .nivel-compact canvas{display:none}
@@ -1721,8 +1727,12 @@ function buildScard(i, tab) {
       // mobile). Breakpoint igual ao do CSS (max-width:767px). thick e
       // numSize ficam intocados — ajuste de proporção do número é assunto
       // do próximo briefing, depois que este tamanho estiver validado.
-      var circleSize = window.matchMedia('(max-width:767px)').matches ? 28 : 40;
-      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      var circleSize = window.matchMedia('(max-width:767px)').matches ? 34 : 40;
+      // thick e numSize escalados proporcionalmente ao circleSize (0.15 e
+      // 0.3 = 6/40 e 12/40, a proporção já validada no desktop) — antes
+      // eram fixos e não acompanhavam o tamanho real do donut em mobile,
+      // deixando o traço relativamente mais grosso e o número desproporcional.
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: circleSize * 0.15, numSize: circleSize * 0.3, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
       var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
