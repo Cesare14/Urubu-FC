@@ -672,11 +672,23 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* ── TOKEN CIRCULAR MOBILE (Fase A do redesign) ──────────────── */
   .circle-visual{width:28px;height:28px}
-  .sname--outside{margin-top:2px}
+  /* Redesign do Scard: afastado de 2px pra 7px — o valor anterior deixava a
+     pill sobrepondo a base do donut real (que vaza ~6px além da caixa de
+     28px). 7px garante "quase encostando, sem encostar". */
+  .sname--outside{margin-top:7px}
   .scard:hover{border-color:rgba(255,255,255,.22);box-shadow:none;z-index:5}
   .scard.filled:hover{border-color:rgba(255,255,255,.45)}
   .scard.ftgt:hover{border-color:#FFD700}
   .scard.filled .sclr,.scard.ftgt .sclr{display:flex}
+  /* Redesign do Scard: token circular (Titulares) — "x" some por padrão,
+     só aparece quando o scard está selecionado via toque-toque (mesma
+     classe touch-sel já usada pra acender o destaque, reaproveitada aqui
+     sem novo estado). Reposicionado mais pra fora, colado na borda externa
+     do donut real (que vaza ~6px além da caixa .circle-visual de 28px —
+     ver nota em field.js linha ~311 sobre o tamanho fixo de 40px do canvas). */
+  .scard--circle.filled .sclr,.scard--circle.ftgt .sclr{display:none}
+  .scard--circle.touch-sel .sclr{display:flex}
+  .circle-visual .sclr{top:-7px;right:-7px}
   .scard.touch-sel{border-color:#facc15!important;box-shadow:0 0 0 2px rgba(250,204,21,.4)!important;z-index:20}
   .scard--circle.touch-sel{border-color:transparent!important;box-shadow:none!important}
   .scard--circle.touch-sel .circle-visual{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.4)}
@@ -685,6 +697,11 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 
   /* Coluna Nível/Donut: reduzir canvas (exceto donuts grandes de análise e inline série A) */
   .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:7px!important}
+  /* Redesign do Scard: token circular (Titulares) — número proporcional ao
+     círculo mobile (28px), replicando a razão número/círculo do desktop
+     (12/40 = 0.3 → 28*0.3 ≈ 8px). Especificidade maior que a regra acima
+     (mesma cadeia + .circle-visual) pra não depender de ordem no arquivo. */
+  .circle-visual .donut-wrap:not(.donut-wrap--lg):not(.sa-row-donut):not(.nivel-compact) .donut-num{font-size:8px!important}
 
   /* ── NÍVEL MOBILE: número colorido em vez de donut (tabela elenco + card alvo) ── */
   .nivel-compact canvas{display:none}
@@ -1697,7 +1714,15 @@ function buildScard(i, tab) {
       // O círculo é um wrapper FILHO, centralizado pelo próprio flex do
       // pai — sem precisar de transform manual pra compensar tamanhos.
       var circleWrap = document.createElement('div'); circleWrap.className = 'circle-visual' + (isTgt ? ' ftgt' : ' filled');
-      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, 40, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      // Redesign do Scard: o donut precisa nascer desenhado no tamanho real
+      // de cada viewport (não é pra continuar desenhando 40px e deixar o
+      // CSS espremer o container visualmente por fora — isso deixava o
+      // canvas real vazando ~6px além da caixa .circle-visual de 28px no
+      // mobile). Breakpoint igual ao do CSS (max-width:767px). thick e
+      // numSize ficam intocados — ajuste de proporção do número é assunto
+      // do próximo briefing, depois que este tamanho estiver validado.
+      var circleSize = window.matchMedia('(max-width:767px)').matches ? 28 : 40;
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
       var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };

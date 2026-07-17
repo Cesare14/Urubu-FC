@@ -308,7 +308,15 @@ function buildScard(i, tab) {
       // O círculo é um wrapper FILHO, centralizado pelo próprio flex do
       // pai — sem precisar de transform manual pra compensar tamanhos.
       var circleWrap = document.createElement('div'); circleWrap.className = 'circle-visual' + (isTgt ? ' ftgt' : ' filled');
-      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, 40, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      // Redesign do Scard: o donut precisa nascer desenhado no tamanho real
+      // de cada viewport (não é pra continuar desenhando 40px e deixar o
+      // CSS espremer o container visualmente por fora — isso deixava o
+      // canvas real vazando ~6px além da caixa .circle-visual de 28px no
+      // mobile). Breakpoint igual ao do CSS (max-width:767px). thick e
+      // numSize ficam intocados — ajuste de proporção do número é assunto
+      // do próximo briefing, depois que este tamanho estiver validado.
+      var circleSize = window.matchMedia('(max-width:767px)').matches ? 28 : 40;
+      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: 6, numSize: 12, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
       var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
