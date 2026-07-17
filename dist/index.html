@@ -1698,7 +1698,7 @@ function onScardTap(sc, tab) {
 function buildScard(i, tab) {
   var s = FMTS[ST.fmt[tab]][i];
   var ent = slotEnt(tab, i); var isTgt = ent && ent.type === 't';
-  var isCircle = tab === 'A'; // Fase A do redesign: só o campo Titulares vira círculo
+  var isCircle = tab === 'A' || tab === 'B' || tab === 'C'; // Fase B do redesign: circular em Titulares, Reservas e Projeção. Mercado/Alvos é painel separado (market.js) e não passa por buildScard.
   var sc = document.createElement('div');
   sc.className = 'scard' + (ent ? (isTgt ? ' ftgt' : ' filled') : '') + (isCircle ? ' scard--circle' : '');
   sc.dataset.si = i;
