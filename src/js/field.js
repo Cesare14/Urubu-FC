@@ -370,7 +370,18 @@ function buildScard(i, tab) {
       document.addEventListener('dragend', onDragEnd, true);
     });
   } else {
-    sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+    if (isCircle) {
+      // Contorno tracejado circular do slot vazio: reaproveita o
+      // .circle-visual base (border dashed já definido no CSS para o
+      // estado não-.filled/.ftgt) — sem isso, o slot vazio ficava sem
+      // nenhuma indicação visual de área de destino no redesign circular.
+      var emptyWrap = document.createElement('div'); emptyWrap.className = 'circle-visual circle-visual--empty';
+      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = s[2];
+      emptyWrap.appendChild(semptyEl);
+      sc.appendChild(emptyWrap);
+    } else {
+      sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+    }
   }
 
   // ── MOUSE DROP (desktop) ──────────────────────────────────────

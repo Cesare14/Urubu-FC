@@ -115,6 +115,13 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
    parâmetro bgFill), usando as mesmas coordenadas matemáticas do
    traço (cx,cy,r,lw) — não há CSS separado pra sincronizar aqui. */
 .circle-visual.filled{border:none;}
+/* Preenchimento translúcido do slot vazio circular — mesmo valor de fundo
+   usado no .scard quadrado antigo (rgba(0,0,0,.3)), pra manter a mesma
+   sensação visual de "área" no novo formato circular.
+   Nome circle-visual--empty (não .empty) pra não colidir com a classe
+   .empty já existente (estado vazio de listas, com padding 36px 20px —
+   colisão anterior inflava o círculo num oval). */
+.circle-visual--empty{background:rgba(0,0,0,.3)}
 /* Destaque de jogador escalado do Mercado (.ftgt): glow removido por
    decisão do usuário (efeito produzia faixa translúcida residual entre
    o traço do donut e o CSS externo, sem solução limpa dado o mix de

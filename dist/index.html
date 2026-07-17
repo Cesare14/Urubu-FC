@@ -127,6 +127,13 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
    parâmetro bgFill), usando as mesmas coordenadas matemáticas do
    traço (cx,cy,r,lw) — não há CSS separado pra sincronizar aqui. */
 .circle-visual.filled{border:none;}
+/* Preenchimento translúcido do slot vazio circular — mesmo valor de fundo
+   usado no .scard quadrado antigo (rgba(0,0,0,.3)), pra manter a mesma
+   sensação visual de "área" no novo formato circular.
+   Nome circle-visual--empty (não .empty) pra não colidir com a classe
+   .empty já existente (estado vazio de listas, com padding 36px 20px —
+   colisão anterior inflava o círculo num oval). */
+.circle-visual--empty{background:rgba(0,0,0,.3)}
 /* Destaque de jogador escalado do Mercado (.ftgt): glow removido por
    decisão do usuário (efeito produzia faixa translúcida residual entre
    o traço do donut e o CSS externo, sem solução limpa dado o mix de
@@ -1782,7 +1789,18 @@ function buildScard(i, tab) {
       document.addEventListener('dragend', onDragEnd, true);
     });
   } else {
-    sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+    if (isCircle) {
+      // Contorno tracejado circular do slot vazio: reaproveita o
+      // .circle-visual base (border dashed já definido no CSS para o
+      // estado não-.filled/.ftgt) — sem isso, o slot vazio ficava sem
+      // nenhuma indicação visual de área de destino no redesign circular.
+      var emptyWrap = document.createElement('div'); emptyWrap.className = 'circle-visual circle-visual--empty';
+      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = s[2];
+      emptyWrap.appendChild(semptyEl);
+      sc.appendChild(emptyWrap);
+    } else {
+      sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+    }
   }
 
   // ── MOUSE DROP (desktop) ──────────────────────────────────────
