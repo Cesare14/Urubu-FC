@@ -51,9 +51,17 @@ function drawDonut(canvas,value,color,size,thick,bgFill){
   // anti-aliasing entre dois arcos distintos (fill vs stroke) que nunca
   // renderizam pixel-a-pixel idênticos no raio exato. O disco continua
   // preenchido do centro até esse raio, cobrindo o miolo inteiro.
+  // shadowBlur leve (1.5px): a borda do disco terminava de forma abrupta
+  // (salto de >60 valores RGB num único pixel) contra fundos de alto
+  // contraste atrás do canvas (ex: glow do .ftgt) — não era um vão sem
+  // preenchimento, e sim falta de suavização na transição. O blur suaviza
+  // esse degrau sem alterar nenhum raio/posição calibrados.
   if(bgFill){
+    ctx.save();
+    ctx.shadowColor=bgFill;ctx.shadowBlur=1.5;
     ctx.beginPath();ctx.arc(cx,cy,r+lw/2-0.75,0,2*Math.PI);
     ctx.fillStyle=bgFill;ctx.fill();
+    ctx.restore();
   }
   // track
   ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);

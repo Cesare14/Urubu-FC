@@ -308,7 +308,7 @@ function buildScard(i, tab) {
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
       circleWrap.appendChild(clrC);
-      var snC = document.createElement('div'); snC.className = 'sname sname--outside'; snC.textContent = d.name;
+      var snC = document.createElement('div'); snC.className = 'sname sname--outside' + (isTgt ? ' ftgt' : ''); snC.textContent = d.name;
       circleWrap.appendChild(snC);
       sc.appendChild(circleWrap);
     } else {

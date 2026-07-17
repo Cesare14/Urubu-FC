@@ -8,6 +8,7 @@
   --c4:#f97316;--c4b:rgba(249,115,22,.12);
   --c5:#9ca3af;--c5b:rgba(156,163,175,.12);
   --cv:#a78bfa;--cvb:rgba(167,139,250,.12);
+  --ftgt-gold:#FFD700;
   --trans-fast:0.12s;--trans-mid:0.22s;--trans-slow:0.4s;
 }
 /* ── TEMA CLARO ─────────────────────────────────────────────────── */
@@ -114,8 +115,14 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
    parâmetro bgFill), usando as mesmas coordenadas matemáticas do
    traço (cx,cy,r,lw) — não há CSS separado pra sincronizar aqui. */
 .circle-visual.filled{border:none;}
-.circle-visual.ftgt{border:2px solid #FFD700;box-shadow:0 0 8px 2px rgba(255,215,0,.5)}
-.circle-visual.ftgt::before{content:'★';position:absolute;top:-6px;left:-6px;font-size:11px;line-height:1;color:#FFD700;text-shadow:0 1px 2px rgba(0,0,0,.7);pointer-events:none;z-index:1}
+/* Destaque de jogador escalado do Mercado (.ftgt): glow removido por
+   decisão do usuário (efeito produzia faixa translúcida residual entre
+   o traço do donut e o CSS externo, sem solução limpa dado o mix de
+   Canvas 2D + box-shadow). A pill dourada do nome (.sname--outside.ftgt)
+   permanece como único indicador visual. border:none mantido por
+   consistência com .circle-visual.filled — sem isso, herdaria o
+   border dashed da regra base (slot vazio). */
+.circle-visual.ftgt{border:none}
 .circle-visual .donut-wrap{margin:0}
 .circle-visual .sclr{z-index:1}
 /* Nome fora do círculo, centralizado logo abaixo, sempre 1 linha.
@@ -140,6 +147,21 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
   line-height:1;
   display:flex;
   align-items:center;
+}
+/* Destaque de jogador escalado do Mercado (.ftgt) na pill de nome:
+   mesma cor --ftgt-gold usada no glow do círculo (fonte única, sem
+   duplicar hex). Texto escuro para manter contraste sobre fundo claro. */
+/* Destaque de jogador escalado do Mercado (.ftgt) na pill de nome:
+   gradiente metálico "reflexo lateral" validado visualmente pelo usuário
+   (mockup de referência) — paleta própria (#8A6108/#E8B33D/#FFF0C2),
+   dessincronizada de --ftgt-gold por decisão explícita nesta tarefa.
+   Sombra interna dupla + borda de contenção sutil. Texto escuro em
+   negrito para contraste e reforço de destaque. */
+.sname--outside.ftgt{
+  background:linear-gradient(100deg, #A9791A 0%, #D4A53B 20%, #F0DBA0 40%, #D4A53B 60%, #A9791A 100%);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(90,60,5,0.3);
+  color:#000;
+  font-weight:600;
 }
 /* X de remover: reposicionado para a borda do círculo (sobrepõe levemente) */
 .circle-visual .sclr{position:absolute;top:-2px;right:-2px}
