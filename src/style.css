@@ -158,11 +158,26 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
    Sombra interna dupla + borda de contenção sutil. Texto escuro em
    negrito para contraste e reforço de destaque. */
 .sname--outside.ftgt{
-  background:linear-gradient(100deg, #A9791A 0%, #D4A53B 20%, #F0DBA0 40%, #D4A53B 60%, #A9791A 100%);
+  background:linear-gradient(100deg, #D9BA6A 0%, #E8CE8F 20%, #F5E7B8 40%, #E8CE8F 60%, #D9BA6A 100%);
   box-shadow:inset 0 1px 2px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(90,60,5,0.3);
   color:#000;
   font-weight:600;
+  gap:4px;
 }
+/* Ícone de alvo (Twemoji, MIT) ao lado do nome — cores fixas do emoji,
+   fora da paleta champagne por decisão explícita desta tarefa. */
+.sname--outside.ftgt .ftgt-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  line-height:0;
+  order:2;
+  width:11px;
+  height:11px;
+}
+.sname--outside.ftgt .ftgt-name{order:1}
+.sname--outside.ftgt .ftgt-icon svg{display:block;width:100%;height:100%;overflow:visible}
 /* X de remover: reposicionado para a borda do círculo (sobrepõe levemente) */
 .circle-visual .sclr{position:absolute;top:-2px;right:-2px}
 .sbar{padding:5px 12px;border-top:1px solid var(--dark3);display:flex;gap:4px;flex-wrap:wrap;align-items:center}
