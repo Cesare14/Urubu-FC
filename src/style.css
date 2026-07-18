@@ -170,6 +170,11 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
   color:#000;
   font-weight:600;
   gap:4px;
+  /* Zera o text-shadow herdado de .sname (0 1px 3px rgba(0,0,0,.8)),
+     pensado pra dar contraste em texto BRANCO sobre scard escuro — sem
+     efeito útil (e com leve efeito de "engrossar"/borrar a fonte) sobre o
+     texto preto desta pill, cujo fundo é sempre claro nos dois temas. */
+  text-shadow:none;
 }
 /* Ícone de alvo (Twemoji, MIT) ao lado do nome — cores fixas do emoji,
    fora da paleta champagne por decisão explícita desta tarefa. */
@@ -489,6 +494,14 @@ body.light-mode .scard.filled{background:rgba(0,0,0,.6);border-color:rgba(255,25
 body.light-mode .scard:hover{background:rgba(0,0,0,.6);border-color:rgba(255,255,255,.55);}
 body.light-mode .scard--circle,body.light-mode .scard--circle.filled,body.light-mode .scard--circle:hover{background:transparent;border-color:transparent;}
 body.light-mode .scard .sname{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);}
+/* Exceção à regra genérica acima: a pill .ftgt (nome do jogador contratado/
+   escalado do Mercado) tem fundo claro (gradiente champagne) fixo nos dois
+   temas — o texto precisa continuar escuro também no tema claro. Especifici-
+   dade maior (4 classes+elemento vs. 3 classes+elemento da regra acima)
+   resolve isso pela cascata normal, sem !important. text-shadow:none porque
+   a sombra escura da regra genérica (pensada pra texto branco) não faz
+   sentido aplicada a texto preto. */
+body.light-mode .scard .sname--outside.ftgt{color:#000;text-shadow:none;}
 body.light-mode .scard .ssub{color:rgba(255,255,255,.6);}
 body.light-mode .scard .sempty{color:rgba(255,255,255,.35);}
 body.light-mode .sempty{color:rgba(0,0,0,.3);}
