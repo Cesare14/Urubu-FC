@@ -41,6 +41,7 @@ var _FIELD_STRIPE_PATTERNS={
   C:_buildStripePatternSVG('rgba(31,90,31,.35)')
 };
 
+
 function openShare(){var o=document.getElementById('share-over');if(o)o.classList.add('open');}
 function closeShare(){var o=document.getElementById('share-over');if(o)o.classList.remove('open');_shareBlob=null;}
 
@@ -259,7 +260,24 @@ function compartilharCampo(){
             ssub.style.fontWeight='700';
           }
           var dwrap=sc.querySelector('.donut-wrap');
+          // Forçar o .circle-visual (contêiner do círculo) para o mesmo
+          // tamanho fixo do donut nesta captura. O viewport fixo da captura
+          // (540px) é menor que o breakpoint mobile de .circle-visual em
+          // style.css (max-width:767px → 34px) — então o clone do
+          // html2canvas herda a REGRA MOBILE (34px) mesmo capturando de um
+          // desktop, só porque essa classe não é redimensionada por JS em
+          // lugar nenhum. Sem esta correção, o donut redesenhado abaixo
+          // (40px, tamanho fixo) fica maior que a caixa de 34px que deveria
+          // contê-lo e vaza por cima do espaço onde a pill do nome fica —
+          // era isso que comia o espaçamento visual só na imagem exportada.
+          // Não altera o CSS ao vivo nem o breakpoint mobile real do site.
+          var circleWrap=sc.querySelector('.circle-visual');
           if(dwrap){
+            var DONUT_SIZE=40; // tamanho alvo fixo, mais agressivo que o fator 1.2x do card
+            if(circleWrap){
+              circleWrap.style.width=DONUT_SIZE+'px';
+              circleWrap.style.height=DONUT_SIZE+'px';
+            }
             // Donut: NÃO esticar o <canvas> existente via CSS width/height —
             // ele é um bitmap já rasterizado em 28px (Canvas 2D, não SVG);
             // esticar via CSS produz um resultado borrado. Em vez disso,
@@ -270,7 +288,6 @@ function compartilharCampo(){
             // onclone: o html2canvas pode renderizar o clone num documento/
             // iframe isolado, sem acesso às funções globais da página, e um
             // ReferenceError ali quebraria a geração inteira da imagem).
-            var DONUT_SIZE=40; // tamanho alvo fixo, mais agressivo que o fator 1.2x do card
             var oldCanvas=dwrap.querySelector('canvas');
             var num=dwrap.querySelector('.donut-num');
             if(oldCanvas&&num){
@@ -291,6 +308,21 @@ function compartilharCampo(){
               var lw=6;
               var cx=s/2,cy=s/2,r=s/2-lw/2-1;
               ctx.clearRect(0,0,s,s);
+              // Fundo escuro atrás do anel (bgFill): replica a mesma lógica
+              // de drawDonut() em ui.js (área finalizada, não modificada —
+              // só espelhada aqui pelo mesmo motivo do redesenho acima: o
+              // onclone não pode chamar a função original com segurança).
+              // Mesmo valor de bgFill passado em field.js para os donuts do
+              // campo circular ('rgba(0,0,0,.78)'). Sem isso, o novo canvas
+              // desenhava só os dois arcos (track + progresso) e nunca
+              // preenchia o disco de fundo — o verde do campo aparecia
+              // através do donut só na imagem exportada.
+              var BG_FILL='rgba(0,0,0,.78)';
+              ctx.save();
+              ctx.shadowColor=BG_FILL;ctx.shadowBlur=1.5;
+              ctx.beginPath();ctx.arc(cx,cy,r+lw/2-0.75,0,2*Math.PI);
+              ctx.fillStyle=BG_FILL;ctx.fill();
+              ctx.restore();
               ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);
               ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=lw;ctx.stroke();
               var pct=nivelVal/100;
@@ -329,7 +361,75 @@ function compartilharCampo(){
         // suprimir o glow (box-shadow) do destaque .ftgt (jogador do Mercado escalado)
         // só na imagem exportada — custoso para o html2canvas rasterizar. A borda
         // dourada sólida (border) permanece intacta; a interface ao vivo não é afetada.
-        f.querySelectorAll('.scard.ftgt').forEach(function(sc){sc.style.boxShadow='none';});
+        f.querySelectorAll('.scard.ftgt').forEach(function(sc){
+          sc.style.boxShadow='none';
+          // Gradiente champagne da pill (.sname--outside.ftgt): o
+          // linear-gradient(100deg, ...) do CSS ao vivo é rasterizado mal
+          // pelo html2canvas e sai quase branco sólido na imagem exportada.
+          // Substituído por um <canvas> real desenhado atrás do texto, no
+          // tamanho real de cada pill (não distorce o ângulo do gradiente).
+          // Não altera o CSS ao vivo nem o box-shadow inset da pill.
+          var pill=sc.querySelector('.sname--outside.ftgt');
+          if(pill){
+            // Trava um tamanho mínimo sensato: se o clone ainda não tiver
+            // resolvido o layout de largura variável (width:max-content) no
+            // momento exato desta leitura, offsetWidth/offsetHeight podem
+            // vir zerados (ou quase).
+            var pw=Math.max(pill.offsetWidth||0,40);
+            var ph=Math.max(pill.offsetHeight||0,16);
+            // Tentativa anterior (background-image via CSS) não pegou no
+            // html2canvas — mesma classe de limitação, mas dessa vez a
+            // troca de propriedade CSS dentro do onclone simplesmente não
+            // foi refletida na rasterização final. Troca de abordagem: em
+            // vez de PEDIR ao html2canvas pra interpretar um CSS
+            // background-image, desenha o gradiente direto num <canvas>
+            // real — a mesma técnica já usada e comprovada no donut acima,
+            // que o html2canvas sabe capturar com fidelidade total (é só um
+            // bitmap, não CSS a ser interpretado).
+            pill.style.background='none';
+            pill.style.position='absolute'; // já é (herdado do CSS); explícito para o z-index abaixo valer
+            pill.style.zIndex='0'; // cria contexto de empilhamento próprio, só para o canvas ficar atrás do texto desta pill (não afeta mais nada)
+            var gradCanvas=doc.createElement('canvas');
+            var gdpr=window.devicePixelRatio||1;
+            gradCanvas.width=pw*gdpr;gradCanvas.height=ph*gdpr;
+            gradCanvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;border-radius:999px;z-index:-1;';
+            var gctx=gradCanvas.getContext('2d');
+            gctx.scale(gdpr,gdpr);
+            // Conversão ângulo CSS (100deg) → vetor de gradiente do Canvas
+            // 2D pela fórmula do próprio spec do CSS (projeção nos cantos
+            // da caixa) — garante a mesma direção/proporção do gradiente ao
+            // vivo, não importa o tamanho real de cada pill.
+            var ga=(100%360)*Math.PI/180;
+            var gdx=Math.sin(ga),gdy=-Math.cos(ga);
+            var gL=Math.abs(pw*gdx)+Math.abs(ph*gdy);
+            var gcx=pw/2,gcy=ph/2,ghalf=gL/2;
+            var grad=gctx.createLinearGradient(gcx-gdx*ghalf,gcy-gdy*ghalf,gcx+gdx*ghalf,gcy+gdy*ghalf);
+            // Mesmos 5 stops e cores de .sname--outside.ftgt em style.css —
+            // fonte única de verdade continua sendo o CSS; aqui só replica.
+            grad.addColorStop(0,'#D9BA6A');
+            grad.addColorStop(0.2,'#E8CE8F');
+            grad.addColorStop(0.4,'#F5E7B8');
+            grad.addColorStop(0.6,'#E8CE8F');
+            grad.addColorStop(1,'#D9BA6A');
+            // Desenha o formato de pill (retângulo com cantos 100% arredondados,
+            // raio = metade da altura) preenchido com o gradiente.
+            var rad=ph/2;
+            gctx.beginPath();
+            gctx.moveTo(rad,0);
+            gctx.lineTo(pw-rad,0);
+            gctx.arcTo(pw,0,pw,rad,rad);
+            gctx.lineTo(pw,ph-rad);
+            gctx.arcTo(pw,ph,pw-rad,ph,rad);
+            gctx.lineTo(rad,ph);
+            gctx.arcTo(0,ph,0,ph-rad,rad);
+            gctx.lineTo(0,rad);
+            gctx.arcTo(0,0,rad,0,rad);
+            gctx.closePath();
+            gctx.fillStyle=grad;
+            gctx.fill();
+            pill.insertBefore(gradCanvas,pill.firstChild);
+          }
+        });
         // Posição do rótulo de formação (.fbadge, top:5px em style.css): no
         // tamanho fixo de captura (540x590) esse top fica colado à linha de
         // fundo superior do campo (retângulo do SVG, próximo ao topo),
