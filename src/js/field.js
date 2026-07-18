@@ -331,7 +331,18 @@ function buildScard(i, tab) {
         var snText = document.createElement('span'); snText.className = 'ftgt-name'; snText.textContent = d.name;
         snC.appendChild(snIcon); snC.appendChild(snText);
       } else {
-        snC.textContent = d.name;
+        // Nome envolvido num <span> (não mais texto cru direto no container
+        // flex .sname--outside) — mesmo padrão já usado no ramo .ftgt acima.
+        // Um nó de texto solto como item flex é válido no CSS e renderiza
+        // certo em qualquer navegador real, mas o html2canvas (que usa seu
+        // próprio parser de layout, não o do navegador) trata essa "caixa
+        // anônima" de forma inconsistente — é a causa raiz confirmada do
+        // nome saindo desalinhado (não respeitando align-items:center) e do
+        // espaço sumindo em nomes compostos na imagem exportada, mais
+        // visível em engines mobile. Span sem estilo próprio se comporta
+        // identicamente a texto cru no site ao vivo — não muda nada visual.
+        var snPlain = document.createElement('span'); snPlain.textContent = d.name;
+        snC.appendChild(snPlain);
       }
       circleWrap.appendChild(snC);
       sc.appendChild(circleWrap);

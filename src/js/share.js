@@ -246,7 +246,18 @@ function compartilharCampo(){
           sc.style.minHeight=h1+'px';
           sc.style.marginLeft='-'+((w1-SCARD_W0)/2)+'px';
           sc.style.marginTop='-'+((h1-SCARD_H0)/2)+'px';
-          var sname=sc.querySelector('.sname');
+          // :not(.sname--outside) — esse bloco de zoom foi escrito para o
+          // .sname do scard quadrado antigo. Nas 3 abas do campo circular
+          // (Titulares/Reservas/Projeção), a pill (.sname--outside) também
+          // carrega a classe .sname e acabava sendo pega aqui, recebendo um
+          // max-width fixo (~71px) que não existe na sua CSS (width:max-
+          // content, sem limite). Para nomes longos ("Gonzalo Plata",
+          // "GonzaloPlata"), isso estourava a pill e, dependendo do motor de
+          // renderização (mais visível em mobile), desalinhava o texto
+          // verticalmente e comia o espaço em nomes compostos. Excluindo a
+          // pill deste seletor, ela é capturada fielmente como está definida
+          // em style.css — sem alterar o zoom do donut nem do .ssub.
+          var sname=sc.querySelector('.sname:not(.sname--outside)');
           if(sname){
             sname.style.fontSize=(SNAME_FS0*SCARD_ZOOM)+'px';
             sname.style.maxWidth=(w1-8)+'px';
