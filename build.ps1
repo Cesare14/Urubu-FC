@@ -28,7 +28,9 @@ $writer = [System.IO.StreamWriter]::new($OUT, $false, $enc)
 # 1. <head> + CSS inline
 $writer.WriteLine((Get-Content "$SRC\head.html" -Raw -Encoding UTF8).TrimEnd())
 $writer.WriteLine("<style>")
-$writer.WriteLine((Get-Content "$SRC\style.css" -Raw -Encoding UTF8).TrimEnd())
+# escapa </style para nao encerrar o bloco <style> prematuramente
+$css = (Get-Content "$SRC\style.css" -Raw -Encoding UTF8).TrimEnd() -replace '</([sS][tT][yY][lL][eE])', '<\/$1'
+$writer.WriteLine($css)
 $writer.WriteLine("</style>")
 $writer.WriteLine("</head>")
 
@@ -40,7 +42,9 @@ $writer.WriteLine("<script>")
 foreach ($f in $JS_FILES) {
   $name = Split-Path $f -Leaf
   $writer.WriteLine("/* === $name === */")
-  $writer.WriteLine((Get-Content $f -Raw -Encoding UTF8).TrimEnd())
+  # escapa </script para nao encerrar o bloco <script> prematuramente
+  $js = (Get-Content $f -Raw -Encoding UTF8).TrimEnd() -replace '</([sS][cC][rR][iI][pP][tT])', '<\/$1'
+  $writer.WriteLine($js)
   $writer.WriteLine("")
 }
 $writer.WriteLine("</script>")

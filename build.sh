@@ -27,7 +27,8 @@ JS_FILES=(
   # 1. <head> + CSS inline
   cat "$SRC/head.html"
   echo "<style>"
-  cat "$SRC/style.css"
+  # escapa </style para nao encerrar o bloco <style> prematuramente
+  sed -E 's#</([sS][tT][yY][lL][eE])#<\\/\1#g' "$SRC/style.css"
   echo "</style>"
   echo "</head>"
 
@@ -43,7 +44,8 @@ JS_FILES=(
   echo "<script>"
   for f in "${JS_FILES[@]}"; do
     echo "/* === $(basename "$f") === */"
-    cat "$f"
+    # escapa </script para nao encerrar o bloco <script> prematuramente
+    sed -E 's#</([sS][cC][rR][iI][pP][tT])#<\\/\1#g' "$f"
     echo ""
   done
   echo "</script>"
