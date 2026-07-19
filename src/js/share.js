@@ -127,7 +127,172 @@ function shareDownload(){
   a.click();
 }
 
+// ── ROTA 1: BASTIDOR OFF-SCREEN (iframe enxuto) ─────────────────────────────
+// Monta um iframe invisível, fora da tela, contendo SÓ o campo (#field) + os
+// estilos/fontes do site. O html2canvas, ao capturar um elemento, clona o
+// documento inteiro do contexto desse elemento — e é esse clone que consome
+// 82-84% do tempo. Rodando a captura dentro deste bastidor enxuto, o "documento
+// inteiro" a ser clonado passa a ser só o campo, em vez da página real com
+// elenco, mercado, análise, menus e modais. A imagem final é IDÊNTICA: toda a
+// lógica visual validada continua no onclone de compartilharCampo, intocada —
+// aqui só se troca ONDE o campo mora no momento da captura.
+//
+// O iframe é criado sem src (about:blank), o mesmo tipo que o próprio
+// html2canvas já cria internamente e que funciona sob a CSP atual. Ele é
+// destruído logo após a captura (limpar()), então nunca aparece para o usuário
+// nem deixa resíduo no DOM.
+function _campoMontarBastidor(vw, vh, onReady, onError){
+  var ifr=null;
+  function limpar(){
+    if(ifr&&ifr.parentNode){ifr.parentNode.removeChild(ifr);}
+    ifr=null;
+  }
+  try{
+    var live=document.getElementById('field');
+    if(!live){if(onError)onError(new Error('campo não encontrado'));return;}
+
+    ifr=document.createElement('iframe');
+    ifr.setAttribute('aria-hidden','true');
+    ifr.setAttribute('tabindex','-1');
+    // Fora da tela e invisível; dimensionado igual ao viewport de exportação
+    // (vw x vh) para que os mesmos breakpoints de mídia do site sejam aplicados
+    // — coerente com o windowWidth/windowHeight passados ao html2canvas.
+    ifr.style.cssText='position:fixed;left:-99999px;top:0;width:'+vw+'px;height:'+vh+'px;border:0;margin:0;padding:0;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(ifr);
+
+    var idoc=ifr.contentDocument||(ifr.contentWindow&&ifr.contentWindow.document);
+    if(!idoc){limpar();if(onError)onError(new Error('sem acesso ao documento do bastidor (CSP frame-src?)'));return;}
+
+    // Um iframe recém-criado (sem src) já nasce com um documento em branco
+    // válido — elementos raiz, head e body já existem — sem precisar escrever
+    // nenhuma marcação como texto. A tentativa anterior usava idoc.write com
+    // as marcações de raiz, head e body em texto: dentro do arquivo final
+    // gerado pelo build, isso confundia o processo de montagem do próprio
+    // documento (que já monta essas mesmas marcações no nível de fora),
+    // fazendo o restante do script vazar como texto puro na página — foi a
+    // causa da tela quebrada nas duas telas anteriores. Aqui não escrevemos
+    // nenhuma marcação como texto: só criamos o elemento head via API do
+    // DOM (createElement), sem digitar seu nome entre sinais de maior/menor,
+    // caso o iframe ainda não tenha um (alguns navegadores entregam vazio).
+    var ihead=idoc.head;
+    if(!ihead){
+      ihead=idoc.createElement('head');
+      idoc.documentElement.appendChild(ihead);
+    }
+    if(!idoc.body){
+      var ibody=idoc.createElement('body');
+      idoc.documentElement.appendChild(ibody);
+    }
+    var pendentes=0, jaChamou=false;
+
+    function tentarPronto(){
+      if(jaChamou)return;
+      jaChamou=true;
+      // Garantir que as fontes (Barlow/Barlow Condensed) estejam carregadas no
+      // bastidor antes de capturar — as correções de tamanho de nome/donut
+      // dependem da métrica correta da fonte. fonts.ready resolve após a carga;
+      // como o site já usa as mesmas fontes, elas costumam vir do cache na hora.
+      var fontsP=(idoc.fonts&&idoc.fonts.ready)?idoc.fonts.ready:Promise.resolve();
+      fontsP.then(function(){
+        if(onReady)onReady(ifr, idoc.getElementById('field'), limpar);
+      }).catch(function(){
+        if(onReady)onReady(ifr, idoc.getElementById('field'), limpar);
+      });
+    }
+
+    // Timeout de segurança: nunca travar a captura esperando um recurso.
+    var to=setTimeout(tentarPronto, 1500);
+    function umPronto(){
+      pendentes--;
+      if(pendentes<=0){clearTimeout(to);tentarPronto();}
+    }
+
+    // Copiar TODOS os estilos do documento vivo para o bastidor: blocos <style>
+    // (build injeta o style.css aqui) e <link rel="stylesheet"> (Google Fonts +
+    // eventuais CSS externos). Copiar em tempo real mantém o bastidor sempre em
+    // sincronia com o CSS do site — sem duplicar nem manter cópia à parte.
+    var estilos=document.querySelectorAll('style');
+    for(var i=0;i<estilos.length;i++){
+      var st=idoc.createElement('style');
+      st.textContent=estilos[i].textContent;
+      ihead.appendChild(st);
+    }
+    var links=document.querySelectorAll('link[rel="stylesheet"]');
+    for(var j=0;j<links.length;j++){
+      var ln=idoc.createElement('link');
+      ln.rel='stylesheet';
+      if(links[j].href)ln.href=links[j].href;
+      if(links[j].media)ln.media=links[j].media;
+      pendentes++;
+      ln.onload=umPronto;
+      ln.onerror=umPronto;
+      ihead.appendChild(ln);
+    }
+
+    // Clonar o campo vivo para dentro do bastidor. Os donuts (<canvas>) não
+    // carregam o bitmap desenhado através do cloneNode — mas isso é irrelevante:
+    // o onclone de compartilharCampo redesenha cada donut do zero a partir do
+    // número, então o canvas de origem pode vir vazio sem qualquer perda.
+    var clone=live.cloneNode(true);
+    idoc.body.appendChild(clone);
+
+    // Esperar a(s) imagem(ns) do SVG do campo (marca d'água, <image> com
+    // Data URI) terminarem de carregar/decodificar NESTE documento novo antes
+    // de liberar a captura. cloneNode() copia a referência da imagem, mas o
+    // navegador pode precisar decodificá-la de novo neste contexto recém
+    // criado — em mobile (CPU/GPU mais lentos), o html2canvas podia começar a
+    // desenhar antes dessa decodificação terminar, fazendo a marca d'água sair
+    // com opacidade inconsistente em relação ao 0.50 real (era mais rápido o
+    // suficiente no desktop pra nunca expor essa corrida). Mesmo padrão de
+    // pendentes/umPronto já usado acima para as folhas de estilo.
+    var imgs=clone.querySelectorAll('image');
+    for(var k=0;k<imgs.length;k++){
+      var im=imgs[k];
+      // <image> de SVG não tem a propriedade .complete (isso é exclusivo de
+      // <img> HTML) — não há como checar de antemão se já terminou. Sempre
+      // esperar o evento 'load' é seguro: ele dispara mesmo para Data URI,
+      // e como este documento é recém-criado, não há cache que o suprima.
+      pendentes++;
+      im.addEventListener('load',umPronto,{once:true});
+      im.addEventListener('error',umPronto,{once:true});
+    }
+
+    // Sem nenhum <link>/<image> a esperar → seguir direto (clone já no DOM,
+    // para as fontes serem requisitadas).
+    if(pendentes===0){clearTimeout(to);tentarPronto();}
+  }catch(e){
+    limpar();
+    if(onError)onError(e);
+  }
+}
+
 function compartilharCampo(){
+  // ── INSTRUMENTAÇÃO DE PERFORMANCE (diagnóstico — não altera comportamento) ──
+  // Medição via Performance API (performance.now()), técnica padrão de mercado
+  // para instrumentar código real em produção, em vez de estimar por inspeção
+  // visual. _tm acumula os tempos (ms) de cada etapa; relatório completo é
+  // impresso no console ao final (sucesso) ou no catch (falha), com os
+  // parciais já coletados até o ponto da falha.
+  var _t0=performance.now();
+  var _tm={
+    iframeBuildMs:0,     // montagem do bastidor (iframe enxuto) + carga de estilos/fontes
+    setupMs:0,            // da entrada da função até a chamada do html2canvas
+    gapCallToOncloneMs:0,  // do início do html2canvas até o onclone disparar (clone do DOM)
+    oncloneFieldSetupMs:0, // dentro do onclone: estilos do #field + SVG + ocultar "×"
+    scardLoopMs:0,         // total do forEach('.scard') (zoom+fonte+donut)
+    donutCount:0,          // nº de donuts redesenhados
+    donutTotalMs:0,        // soma do redesenho do canvas do donut (todos os jogadores)
+    donutNumCenterMs:0,    // forEach('.donut-num') — centralização do número
+    ftgtLoopMs:0,          // total do forEach('.scard.ftgt')
+    gradientCount:0,       // nº de gradientes champagne desenhados
+    gradientTotalMs:0,     // soma do canvas do gradiente champagne (pill .ftgt)
+    oncloneTailMs:0,       // resto do onclone após os loops acima (fbadge etc.)
+    oncloneTotalMs:0,      // total do onclone (medido diretamente, início ao fim)
+    html2canvasTotalMs:0,  // total da chamada html2canvas (chamada → .then)
+    html2canvasRasterEstMs:0, // estimativa: html2canvasTotal - (gap + oncloneTotal) = clone+decode+rasterização internos da lib
+    letterboxMs:0,         // desenho do canvas final (letterbox 1080x1350)
+    toBlobMs:0             // canvas.toBlob (assíncrono)
+  };
   var nomes={A:'titulares',B:'reservas',C:'projecao'};
   var tab=ST&&ST.ft?ST.ft:'A';
   _shareFilename='urubufc-escala-'+nomes[tab]+'.png';
@@ -136,7 +301,10 @@ function compartilharCampo(){
   openShare();
 
   setTimeout(function(){
-    var fieldEl=document.getElementById('field');
+    // O campo NÃO é mais capturado direto da página: ele será clonado para
+    // dentro do bastidor (iframe enxuto) e o fieldEl abaixo virá de lá, via
+    // callback de _campoMontarBastidor. Assim o html2canvas clona só o campo,
+    // não a página inteira — que era 82-84% do tempo.
     // Paleta unificada nas 3 abas — igual à paleta verde Copa do Mundo ao vivo
     // (.field/.field.res/.field.mkt em style.css). A faixa vem de
     // _FIELD_STRIPE_PATTERNS (já corrigida acima).
@@ -149,6 +317,11 @@ function compartilharCampo(){
     // sair sempre 1080x1350 (4:5), igual nas 3 abas e em qualquer dispositivo.
     var fw=540,fh=590;
 
+    var _tBuildStart=performance.now();
+    _campoMontarBastidor(fw,fh,function(_bastidor,fieldEl,_limparBastidor){
+    _tm.iframeBuildMs=performance.now()-_tBuildStart;
+    _tm.setupMs=performance.now()-_t0;
+    var _tHtmlCanvasStart=performance.now();
     html2canvas(fieldEl,{
       backgroundColor:null,
       scale:sc,
@@ -169,6 +342,8 @@ function compartilharCampo(){
       windowWidth:fw,
       windowHeight:fh,
       onclone:function(doc){
+        var _tOncloneStart=performance.now();
+        _tm.gapCallToOncloneMs=_tOncloneStart-_tHtmlCanvasStart;
         var f=doc.getElementById('field');
         if(!f)return;
         // Tirar o #field do fluxo normal do documento (position:fixed,
@@ -241,6 +416,8 @@ function compartilharCampo(){
         var SCARD_W0=66,SCARD_H0=50,SNAME_FS0=9.5,SSUB_FS0=7;
         var SCARD_ZOOM=1.2;
         var w1=SCARD_W0*SCARD_ZOOM,h1=SCARD_H0*SCARD_ZOOM;
+        _tm.oncloneFieldSetupMs=performance.now()-_tOncloneStart;
+        var _tScardLoopStart=performance.now();
         f.querySelectorAll('.scard').forEach(function(sc){
           sc.style.width=w1+'px';
           sc.style.minHeight=h1+'px';
@@ -302,6 +479,7 @@ function compartilharCampo(){
             var oldCanvas=dwrap.querySelector('canvas');
             var num=dwrap.querySelector('.donut-num');
             if(oldCanvas&&num){
+              var _tDonutStart=performance.now();
               var nivelVal=Math.max(0,parseFloat(num.textContent)||0);
               var col=num.style.color||getComputedStyle(num).color;
               var newCanvas=doc.createElement('canvas');
@@ -357,21 +535,27 @@ function compartilharCampo(){
               // principalmente em números de 2 dígitos. 16px cabe com folga
               // dentro do anel mantendo boa legibilidade.
               num.style.fontSize='16px';
+              _tm.donutCount++;
+              _tm.donutTotalMs+=performance.now()-_tDonutStart;
             }
           }
         });
+        _tm.scardLoopMs=performance.now()-_tScardLoopStart;
         // centralização do número dentro do donut na captura — troca translate(%) por
         // translate(px), calculado a partir do próprio tamanho do elemento. Mantém
         // position:absolute;top:50%;left:50% (herdado do CSS) intacto — não usa
         // flex/grid, que se mostrou custoso para o html2canvas no diagnóstico anterior.
+        var _tDonutNumStart=performance.now();
         f.querySelectorAll('.donut-num').forEach(function(lbl){
           var w=lbl.offsetWidth,h=lbl.offsetHeight;
           var nudge=1.2; // correção empírica pra compensar métrica da fonte (glifo vs caixa)
           lbl.style.transform='translate(-'+(w/2)+'px,-'+(h/2+nudge)+'px)';
         });
+        _tm.donutNumCenterMs=performance.now()-_tDonutNumStart;
         // suprimir o glow (box-shadow) do destaque .ftgt (jogador do Mercado escalado)
         // só na imagem exportada — custoso para o html2canvas rasterizar. A borda
         // dourada sólida (border) permanece intacta; a interface ao vivo não é afetada.
+        var _tFtgtLoopStart=performance.now();
         f.querySelectorAll('.scard.ftgt').forEach(function(sc){
           sc.style.boxShadow='none';
           // Gradiente champagne da pill (.sname--outside.ftgt): o
@@ -382,6 +566,7 @@ function compartilharCampo(){
           // Não altera o CSS ao vivo nem o box-shadow inset da pill.
           var pill=sc.querySelector('.sname--outside.ftgt');
           if(pill){
+            var _tGradStart=performance.now();
             // Trava um tamanho mínimo sensato: se o clone ainda não tiver
             // resolvido o layout de largura variável (width:max-content) no
             // momento exato desta leitura, offsetWidth/offsetHeight podem
@@ -439,8 +624,11 @@ function compartilharCampo(){
             gctx.fillStyle=grad;
             gctx.fill();
             pill.insertBefore(gradCanvas,pill.firstChild);
+            _tm.gradientCount++;
+            _tm.gradientTotalMs+=performance.now()-_tGradStart;
           }
         });
+        _tm.ftgtLoopMs=performance.now()-_tFtgtLoopStart;
         // Posição do rótulo de formação (.fbadge, top:5px em style.css): no
         // tamanho fixo de captura (540x590) esse top fica colado à linha de
         // fundo superior do campo (retângulo do SVG, próximo ao topo),
@@ -455,11 +643,36 @@ function compartilharCampo(){
         // captura, sem alterar o CSS ao vivo (.fbadge em style.css).
         var badge=f.querySelector('.fbadge');
         if(badge)badge.style.top='14px';
+        _tm.oncloneTotalMs=performance.now()-_tOncloneStart;
+        _tm.oncloneTailMs=_tm.oncloneTotalMs-_tm.oncloneFieldSetupMs-_tm.scardLoopMs-_tm.donutNumCenterMs-_tm.ftgtLoopMs;
+        // Log imediato (síncrono) do que aconteceu dentro do onclone — garante
+        // que estes dados fiquem registrados mesmo se algo falhar depois,
+        // durante a rasterização assíncrona do html2canvas.
+        console.log(
+          '[perf] compartilharCampo — onclone (DOM já clonado, ainda dentro do html2canvas):\n'+
+          '  gap chamada→onclone (clone do DOM pelo html2canvas): '+_tm.gapCallToOncloneMs.toFixed(1)+'ms\n'+
+          '  setup do #field/SVG/ocultar "×": '+_tm.oncloneFieldSetupMs.toFixed(1)+'ms\n'+
+          '  loop .scard (zoom+fonte+donut) TOTAL: '+_tm.scardLoopMs.toFixed(1)+'ms\n'+
+          '    └─ redesenho canvas donut: '+_tm.donutTotalMs.toFixed(1)+'ms em '+_tm.donutCount+' jogador(es)'+
+            (_tm.donutCount?' ('+(_tm.donutTotalMs/_tm.donutCount).toFixed(2)+'ms/jogador)':'')+'\n'+
+          '  centralização .donut-num: '+_tm.donutNumCenterMs.toFixed(1)+'ms\n'+
+          '  loop .scard.ftgt TOTAL: '+_tm.ftgtLoopMs.toFixed(1)+'ms\n'+
+          '    └─ canvas gradiente champagne: '+_tm.gradientTotalMs.toFixed(1)+'ms em '+_tm.gradientCount+' jogador(es)'+
+            (_tm.gradientCount?' ('+(_tm.gradientTotalMs/_tm.gradientCount).toFixed(2)+'ms/jogador)':'')+'\n'+
+          '  resto (fbadge etc.): '+_tm.oncloneTailMs.toFixed(1)+'ms\n'+
+          '  ── ONCLONE TOTAL: '+_tm.oncloneTotalMs.toFixed(1)+'ms'
+        );
       }
     }).then(function(canvas){
+      _tm.html2canvasTotalMs=performance.now()-_tHtmlCanvasStart;
+      // Estimativa da parte "caixa-preta" do html2canvas (carregamento de
+      // imagens/fontes + rasterização em si), já que só temos visibilidade
+      // do que roda dentro do nosso onclone via instrumentação manual.
+      _tm.html2canvasRasterEstMs=_tm.html2canvasTotalMs-_tm.gapCallToOncloneMs-_tm.oncloneTotalMs;
       // Letterbox: canvas sai em 1080x1180 (540x590 @ scale:2). Completar para
       // 1080x1350 fixo (4:5) com faixas pretas neutras em cima/embaixo,
       // centralizando o campo capturado sem esticar nem cortar.
+      var _tLetterboxStart=performance.now();
       var finalW=1080,finalH=1350;
       var finalCanvas=document.createElement('canvas');
       finalCanvas.width=finalW;finalCanvas.height=finalH;
@@ -468,18 +681,64 @@ function compartilharCampo(){
       ctx.fillRect(0,0,finalW,finalH);
       var offY=Math.round((finalH-canvas.height)/2);
       ctx.drawImage(canvas,0,offY);
+      _tm.letterboxMs=performance.now()-_tLetterboxStart;
+      var _tToBlobStart=performance.now();
       finalCanvas.toBlob(function(blob){
+        _tm.toBlobMs=performance.now()-_tToBlobStart;
+        var _totalMs=performance.now()-_t0;
+        console.log(
+          '[perf] compartilharCampo — RELATÓRIO FINAL (ms):\n'+
+          '  0. bastidor (iframe enxuto + estilos/fontes): '+_tm.iframeBuildMs.toFixed(1)+'\n'+
+          '  1. setup (entrada função → chamada html2canvas): '+_tm.setupMs.toFixed(1)+'\n'+
+          '  2. html2canvas TOTAL (chamada → canvas pronto): '+_tm.html2canvasTotalMs.toFixed(1)+'\n'+
+          '     2.1 gap até onclone (clone do DOM p/ iframe interno): '+_tm.gapCallToOncloneMs.toFixed(1)+'\n'+
+          '     2.2 onclone TOTAL (nosso código síncrono): '+_tm.oncloneTotalMs.toFixed(1)+'\n'+
+          '         - setup #field/SVG: '+_tm.oncloneFieldSetupMs.toFixed(1)+'\n'+
+          '         - loop .scard (total): '+_tm.scardLoopMs.toFixed(1)+'   [donut: '+_tm.donutTotalMs.toFixed(1)+'ms / '+_tm.donutCount+' jogador(es)]\n'+
+          '         - centralização .donut-num: '+_tm.donutNumCenterMs.toFixed(1)+'\n'+
+          '         - loop .scard.ftgt (total): '+_tm.ftgtLoopMs.toFixed(1)+'   [gradiente: '+_tm.gradientTotalMs.toFixed(1)+'ms / '+_tm.gradientCount+' jogador(es)]\n'+
+          '         - resto (fbadge etc.): '+_tm.oncloneTailMs.toFixed(1)+'\n'+
+          '     2.3 estimativa rasterização/decode interno do html2canvas: '+_tm.html2canvasRasterEstMs.toFixed(1)+'\n'+
+          '  3. letterbox (canvas final 1080x1350): '+_tm.letterboxMs.toFixed(1)+'\n'+
+          '  4. canvas.toBlob (PNG): '+_tm.toBlobMs.toFixed(1)+'\n'+
+          '  ── TOTAL (compartilharCampo, do clique ao blob pronto): '+_totalMs.toFixed(1)+'ms'
+        );
+        if(console.table){
+          console.table({
+            'setup':_tm.setupMs,
+            'html2canvas total':_tm.html2canvasTotalMs,
+            'gap→onclone':_tm.gapCallToOncloneMs,
+            'onclone total':_tm.oncloneTotalMs,
+            'donut (agregado)':_tm.donutTotalMs,
+            'donut/jogador':_tm.donutCount?_tm.donutTotalMs/_tm.donutCount:0,
+            'gradiente champagne (agregado)':_tm.gradientTotalMs,
+            'gradiente/jogador':_tm.gradientCount?_tm.gradientTotalMs/_tm.gradientCount:0,
+            'rasterização interna (estimativa)':_tm.html2canvasRasterEstMs,
+            'letterbox':_tm.letterboxMs,
+            'toBlob':_tm.toBlobMs,
+            'TOTAL':_totalMs
+          });
+        }
         _shareBlob=blob;
         var url=URL.createObjectURL(blob);
         var img=document.getElementById('share-preview-img');
         img.src=url;img.style.display='block';
         document.getElementById('share-loading').style.display='none';
         _showShareReady();
+        _limparBastidor();
         _shareUnlock();
       },'image/png');
     }).catch(function(err){
+      console.log('[perf] compartilharCampo — falhou após '+(performance.now()-_t0).toFixed(1)+'ms. Parciais coletados:',_tm);
       document.getElementById('share-loading').textContent='Erro ao gerar imagem. Tente novamente.';
       console.error('compartilharCampo erro:',err);
+      if(typeof _limparBastidor==='function')_limparBastidor();
+      _shareUnlock();
+    });
+    },function(_erroBastidor){
+      // Falha ao montar o bastidor (ex.: iframe bloqueado pela CSP frame-src).
+      console.error('compartilharCampo — falha ao montar bastidor:',_erroBastidor);
+      document.getElementById('share-loading').textContent='Erro ao preparar a imagem. Tente novamente.';
       _shareUnlock();
     });
   },120);
