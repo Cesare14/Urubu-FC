@@ -1739,6 +1739,44 @@ function onScardTap(sc, tab) {
   clearTouchSel();
 }
 
+// ── LISTRAS DECORATIVAS DO CÍRCULO (campo tático) ────────────────────────────
+// Substitui o donut de nível (número + cor por faixa) dentro do
+// .circle-visual do campo tático (Titulares/Reservas/Projeção) por um padrão
+// puramente decorativo de listras horizontais vermelho/preto + borda preta,
+// IDÊNTICO para todo jogador — sem nenhuma variação por nível. Cores fixas em
+// vermelho de marca (#C52613, igual a var(--red) do style.css) e preto
+// literal (#0a0a0a): NÃO usar var(--black), pois essa variável vira
+// quase-branco no tema claro (é a cor de fundo de página, não um preto de
+// identidade). A função genérica nivelDonutEl()/drawDonut() (ui.js) permanece
+// intocada e continua sendo usada normalmente em Elenco, Mercado/Alvos e
+// Análise.
+function buildStripeCircle(size) {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'circle-stripes');
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+  var uid = 'stripeClip' + Math.random().toString(36).slice(2, 9);
+  var cx = size / 2, cy = size / 2;
+  var strokeW = size * 0.045; // espessura da borda preta
+  var innerR = cx - strokeW; // raio da área de listras (deixa espaço p/ borda)
+  var band = size / 6; // altura de cada listra
+  var step = band * 2; // repetição (listra + espaço)
+  var bands = '';
+  for (var y = -size; y <= size * 2; y += step) {
+    bands += '<rect x="-' + size + '" y="' + y + '" width="' + (size * 3) + '" height="' + band + '" fill="#C52613"/>';
+  }
+  svg.innerHTML =
+    '<defs><clipPath id="' + uid + '"><circle cx="' + cx + '" cy="' + cy + '" r="' + innerR + '"/></clipPath></defs>' +
+    '<g clip-path="url(#' + uid + ')">' +
+      '<rect x="0" y="0" width="' + size + '" height="' + size + '" fill="#0a0a0a"/>' +
+      bands +
+    '</g>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + (cx - strokeW / 2) + '" fill="none" stroke="#0a0a0a" stroke-width="' + strokeW + '"/>';
+  return svg;
+}
+
 // ── BUILD SCARD ──────────────────────────────────────────────────────────────
 function buildScard(i, tab) {
   var s = FMTS[ST.fmt[tab]][i];
@@ -1777,7 +1815,12 @@ function buildScard(i, tab) {
       // 0.3 = 6/40 e 12/40, a proporção já validada no desktop) — antes
       // eram fixos e não acompanhavam o tamanho real do donut em mobile,
       // deixando o traço relativamente mais grosso e o número desproporcional.
-      if (d.nivel) { var sdwC = nivelDonutEl(d.nivel, circleSize, { thick: circleSize * 0.15, numSize: circleSize * 0.3, bgFill: 'rgba(0,0,0,.78)' }); if (sdwC) circleWrap.appendChild(sdwC); }
+      // Padrão decorativo listras vermelho/preto — igual para todo jogador
+      // (inclusive .ftgt), sem número e sem variação por nível. Substitui a
+      // chamada anterior a nivelDonutEl() SOMENTE aqui; ui.js/drawDonut()
+      // continuam intocados e seguem usados em Elenco, Mercado e Análise.
+      var sdwC = buildStripeCircle(circleSize);
+      circleWrap.appendChild(sdwC);
       var clrC = document.createElement('button'); clrC.className = 'sclr'; clrC.innerHTML = '×';
       clrC.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
       clrC.onclick = function (e) { e.stopPropagation(); clearTouchSel(); ST.slots[tab][i] = null; save(); patchSlot(i, tab); };
