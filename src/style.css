@@ -34,6 +34,14 @@ body.light-mode{
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 body{transition:background var(--trans-slow),color var(--trans-slow);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* ── SELEÇÃO DE TEXTO: base restritiva + exceções explícitas ───────────
+   Por padrão, nenhum texto de interface (footer, botões, headers de
+   tabela, pills, scards, rótulos) é selecionável nem exibe cursor de
+   texto piscando. Campos de edição reais (input, textarea, select,
+   contenteditable) são reabilitados explicitamente logo abaixo. */
+body{user-select:none;-webkit-user-select:none}
+input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text;cursor:text}
+select{user-select:text;-webkit-user-select:text}
 /* Remove a aparência nativa de <button> (Chrome/WebView Android pode manter
    um preenchimento escuro de "pressionado" do próprio sistema mesmo com
    background:transparent no CSS, se o appearance nativo não for desligado) —
