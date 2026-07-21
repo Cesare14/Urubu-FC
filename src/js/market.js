@@ -20,12 +20,12 @@ function idadeBadge(v){
 // cores por seleção nacional — duplas via gradiente CSS
 var NAT_COLORS={
   'BRA':'linear-gradient(90deg,#009c3b 55%,#ffdf00 55%)',
-  'ARG':'linear-gradient(90deg,#74acdf 55%,#222 55%)',
+  'ARG':'linear-gradient(90deg,#75AADB 33%,#fff 33% 66%,#75AADB 66%)',
   'COL':'linear-gradient(90deg,#fcd116 50%,#ce1126 50%)',
   'CHI':'linear-gradient(90deg,#d52b1e 55%,#f0f0f0 55%)',
   'ESP':'linear-gradient(90deg,#c60b1e 30%,#f1bf00 30% 70%,#c60b1e 70%)',
   'EQU':'linear-gradient(90deg,#003893 50%,#e40000 50%)',
-  'URU':'linear-gradient(90deg,#5590cc 55%,#f0f0f0 55%)',
+  'URU':'repeating-linear-gradient(90deg,#fff 0,#fff 11%,#1E5AA8 11%,#1E5AA8 22%)',
   'ITA':'linear-gradient(90deg,#009246 33%,#f0f0f0 33% 66%,#ce2b37 66%)',
   'POR':'linear-gradient(90deg,#006600 40%,#ff0000 40%)',
   'FRA':'linear-gradient(90deg,#002395 33%,#f0f0f0 33% 66%,#ed2939 66%)',
@@ -33,7 +33,7 @@ var NAT_COLORS={
   'ENG':'linear-gradient(135deg,#cf142b 40%,#f0f0f0 40%)',
 };
 function natGradient(nat){return NAT_COLORS[nat]||null;}
-var NAT_SOL={'BRA':'#22c55e','ARG':'#74acdf','COL':'#fcd116','CHI':'#d52b1e','ESP':'#c60b1e','EQU':'#003893','URU':'#5590cc','ITA':'#009246','POR':'#006600','FRA':'#002395','ALE':'#222','ENG':'#cf142b'};
+var NAT_SOL={'BRA':'#22c55e','ARG':'#75AADB','COL':'#fcd116','CHI':'#d52b1e','ESP':'#c60b1e','EQU':'#003893','URU':'#1E5AA8','ITA':'#009246','POR':'#006600','FRA':'#002395','ALE':'#222','ENG':'#cf142b'};
 function natColor(nat){return NAT_SOL[nat]||PIE_COLS[nat?nat.charCodeAt(0)%PIE_COLS.length:0];}
 
 // ─── ícones de posição ────────────────────────────────────────────

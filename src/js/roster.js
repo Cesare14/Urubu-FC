@@ -277,7 +277,23 @@ function handleImportFile(e){
 }
 
 // MERCADO
+// injeta a definição SVG do clip-path do escudo uma única vez (usado por .tcard/.tcard-border no CSS)
+function ensureShieldClipDef(){
+  if(document.getElementById('tcardShieldClip'))return;
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('style','position:absolute;width:0;height:0');
+  const clip=document.createElementNS(NS,'clipPath');
+  clip.setAttribute('id','tcardShieldClip');
+  clip.setAttribute('clipPathUnits','objectBoundingBox');
+  const path=document.createElementNS(NS,'path');
+  path.setAttribute('d','M 0.04,0 L 0.96,0 L 0.96,0.5 C 0.96,0.78 0.76,0.95 0.5,1 C 0.24,0.95 0.04,0.78 0.04,0.5 Z');
+  clip.appendChild(path);
+  svg.appendChild(clip);
+  document.body.appendChild(svg);
+}
 function renderMercado(){
+  ensureShieldClipDef();
   const grid=document.getElementById('mgrid');grid.innerHTML='';
   const sq=ST.tsf.toLowerCase();
   const prioMap={'Baixa':1,'Média':2,'Alta':3,'Oportunidade':4};
@@ -290,46 +306,67 @@ function renderMercado(){
   const tgtCnt=document.getElementById('tgt-count');if(tgtCnt)tgtCnt.textContent=ST.targets.length+' alvo'+(ST.targets.length!==1?'s':'');
   if(!filtered.length){grid.innerHTML='<div class="empty"><p>Nenhum alvo cadastrado</p><span>Use "+ Alvo" para adicionar.</span></div>';return;}
   filtered.forEach(function(t,idx){
-    const c=document.createElement('div');c.className='tcard';c.setAttribute('draggable','true');
-    c.style.animationDelay=(idx*0.04)+'s';
-    c.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';});
-    c.addEventListener('dragend',function(e){});
+    // wrapper: contém a moldura dourada (tcard-border) + o escudo (tcard)
+    const wrap=document.createElement('div');wrap.className='tcard-wrap';wrap.setAttribute('draggable','true');
+    wrap.style.animationDelay=(idx*0.04)+'s';
+    wrap.addEventListener('dragstart',function(e){dragId='t:'+t.id;dragSi=null;e.dataTransfer.effectAllowed='move';});
+    wrap.addEventListener('dragend',function(e){});
+    const border=document.createElement('div');border.className='tcard-border';wrap.appendChild(border);
+    const c=document.createElement('div');c.className='tcard';
+    // cabeçalho: nome+clube / posição
     const hdr=document.createElement('div');hdr.className='tcard-hdr';
-    const info=document.createElement('div');
+    const info=document.createElement('div');info.className='tcard-namewrap';
     const tn=document.createElement('div');tn.className='tname';tn.textContent=t.name;
     const tc=document.createElement('div');tc.className='tclub';tc.textContent=t.club||'Clube não informado';
     info.appendChild(tn);info.appendChild(tc);
+    const posWrap=document.createElement('div');posWrap.className='tpos-wrap';
     const pbdg=document.createElement('span');pbdg.className='tpbdg';pbdg.textContent=t.pos;
-    hdr.appendChild(info);hdr.appendChild(pbdg);c.appendChild(hdr);
-    // stars
-    if(t.prio>0){const sw=document.createElement('div');sw.style.marginBottom='6px';sw.appendChild(starsEl(t.prio,true));c.appendChild(sw);}
-    // info rows
+    posWrap.appendChild(pbdg);
+    hdr.appendChild(info);hdr.appendChild(posWrap);c.appendChild(hdr);
+    // faixas fixas (altura uniforme): Prioridade / Idade / Valor / Nível
     const infoDiv=document.createElement('div');infoDiv.className='tinfo';
-    if(t.age)infoDiv.innerHTML+='<div class="trow"><span class="trl">Idade</span><span class="trv">'+t.age+' anos</span></div>';
-    if(t.val)infoDiv.innerHTML+='<div class="trow"><span class="trl">Valor</span><span class="trv">€ '+(+t.val).toFixed(1)+'M</span></div>';
+    // Prioridade
+    const prioRow=document.createElement('div');prioRow.className='trow';
+    const prioLbl=document.createElement('span');prioLbl.className='trl';prioLbl.textContent='Prioridade';
+    const prioVal=document.createElement('span');prioVal.className='trv tcard-stars';
+    if(t.prio>0){
+      prioVal.appendChild(starsEl(t.prio,true));
+    }else{prioVal.textContent='—';}
+    prioRow.appendChild(prioLbl);prioRow.appendChild(prioVal);infoDiv.appendChild(prioRow);
+    // Idade
+    const ageRow=document.createElement('div');ageRow.className='trow';
+    ageRow.innerHTML='<span class="trl">Idade</span><span class="trv">'+(t.age?t.age+' anos':'—')+'</span>';
+    infoDiv.appendChild(ageRow);
+    // Valor
+    const valRow=document.createElement('div');valRow.className='trow';
+    valRow.innerHTML='<span class="trl">Valor</span><span class="trv">'+(t.val?'€ '+(+t.val).toFixed(1)+'M':'—')+'</span>';
+    infoDiv.appendChild(valRow);
+    // Nível (chip escuro + donut, número dentro)
+    const nivelRow=document.createElement('div');nivelRow.className='trow';
+    const nivelLbl=document.createElement('span');nivelLbl.className='trl';nivelLbl.textContent='Nível';
+    const nivelVal=document.createElement('span');nivelVal.className='trv';nivelVal.style.cssText='display:flex;align-items:center;justify-content:flex-end';
     if(t.nivel){
-      const nivelRow=document.createElement('div');nivelRow.className='trow';nivelRow.style.alignItems='center';
-      const trl=document.createElement('span');trl.className='trl';trl.textContent='Nível';
-      const trv=document.createElement('div');trv.style.cssText='display:flex;align-items:center;gap:6px';
+      const chip=document.createElement('div');chip.className='tcard-nivel-chip';
       const donutEl=nivelDonutEl(t.nivel,28);donutEl.className+=' nivel-compact';
-      // remover o label interno do donut (fica só o número grande externo)
-      const innerLbl=donutEl.querySelector('.donut-num');if(innerLbl)innerLbl.remove();
-      trv.appendChild(donutEl);
-      const ratingNum=document.createElement('span');
-      ratingNum.style.cssText='font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:800;color:'+nivelColor(t.nivel)+';line-height:1;';
-      ratingNum.textContent=t.nivel;
-      trv.appendChild(ratingNum);
-      nivelRow.appendChild(trl);nivelRow.appendChild(trv);infoDiv.appendChild(nivelRow);
-    }
-    if(t.contract)infoDiv.innerHTML+='<div class="trow"><span class="trl">Contrato</span><span class="trv">'+sanitizeText(t.contract)+'</span></div>';
-    if(t.obs)infoDiv.innerHTML+='<div class="trow" style="flex-direction:column;align-items:flex-start;gap:1px"><span class="trl">Perfil</span><span class="trv" style="font-size:10px;white-space:normal;color:var(--gray-l)">'+sanitizeText(t.obs)+'</span></div>';
+      chip.appendChild(donutEl);
+      nivelVal.appendChild(chip);
+    }else{nivelVal.textContent='—';}
+    nivelRow.appendChild(nivelLbl);nivelRow.appendChild(nivelVal);infoDiv.appendChild(nivelRow);
     c.appendChild(infoDiv);
+    // ações: Editar+Remover (linha 1) / Contratar (linha 2, largura igual à linha 1)
     const acts=document.createElement('div');acts.className='tacts';
-    const eb=document.createElement('button');eb.className='tab';eb.title='Editar alvo';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openTgt(t.id);};
-    const db=document.createElement('button');db.className='tab dl';db.textContent='✕';db.onclick=function(){if(confirm('Remover '+t.name+'?')){ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();renderMercado();renderField();renderBar();}};
+    const actsRow=document.createElement('div');actsRow.className='tacts-row';
+    const eb=document.createElement('button');eb.className='tab';eb.title='Editar alvo';eb.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Editar';eb.onclick=function(){openTgt(t.id);};
+    const db=document.createElement('button');db.className='tab dl';db.innerHTML='✕ Remover';db.onclick=function(){if(confirm('Remover '+t.name+'?')){ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();renderMercado();renderField();renderBar();}};
+    actsRow.appendChild(eb);actsRow.appendChild(db);
     const pb=document.createElement('button');pb.className='tprom';pb.textContent='→ Contratar';pb.onclick=function(){ST.players.push({id:npi(),name:t.name,pos:t.pos,age:t.age||22,nat:'',status:'Compõe elenco',nivel:t.nivel||nivelDef('Compõe elenco'),valor:t.val||0,selecionavel:false,foto:'',obs:t.club?'Contratado de '+t.club:''});ST.targets=ST.targets.filter(function(x){return x.id!==t.id;});Object.keys(ST.slots).forEach(function(tab){ST.slots[tab]=ST.slots[tab].map(function(s){return s==='t:'+t.id?null:s;});});save();render();alert(t.name+' adicionado ao elenco.');};
-    acts.appendChild(eb);acts.appendChild(db);acts.appendChild(pb);c.appendChild(acts);
-    grid.appendChild(c);
+    acts.appendChild(actsRow);acts.appendChild(pb);c.appendChild(acts);
+    // logo do urubu na ponta do escudo
+    const logoWrap=document.createElement('div');logoWrap.className='tcard-logo';
+    const logoImg=document.createElement('img');logoImg.src='assets/urubu-logo.png';logoImg.alt='';logoImg.className='tcard-logo-img';
+    logoWrap.appendChild(logoImg);c.appendChild(logoWrap);
+    wrap.appendChild(c);
+    grid.appendChild(wrap);
   });
 }
 
