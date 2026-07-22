@@ -96,7 +96,7 @@ function renderAnalise(){
     const tgNivs=tg.filter(function(t){return t.nivel;}).map(function(t){return safeNivel(t.nivel);});
     if(tgNivs.length){
       const tav=parseFloat((tgNivs.reduce(function(a,b){return a+b;},0)/tgNivs.length).toFixed(1));
-      escGrid.appendChild(makeEscDonut(tav,'var(--cv)','Alvos'));
+      escGrid.appendChild(makeEscDonut(tav,'#FFD700','Alvos'));
     }
     cont.appendChild(escGrid);
   });
