@@ -154,28 +154,13 @@ function renderAnalise(){
     const natMap={};
     pl.forEach(function(p){const n=p.nat||'?';natMap[n]=(natMap[n]||0)+1;});
     const arr=Object.keys(natMap).sort(function(a,b){return natMap[b]-natMap[a];});
-    const data=arr.map(function(n){return{lbl:n,val:natMap[n],customColor:natColor(n)};});
+    const data=arr.map(function(n){return{lbl:n,val:natMap[n],customColor:natGradient(n)||natColor(n)};});
     {
-      // barras com gradiente por seleção
+      // barras com gradiente por seleção — via barChart, mesmo caminho de
+      // código que já aplica escala raiz quadrada (evita reimplementar a
+      // lógica em paralelo)
       const maxV=data[0]?data[0].val:1;
-      data.forEach(function(d){
-        const pct=maxV?Math.round(d.val/maxV*100):0;
-        const row=document.createElement('div');row.className='bar-row';
-        const lbl=document.createElement('span');lbl.className='bar-lbl';lbl.title=d.lbl;
-        const lt=document.createElement('span');lt.textContent=d.lbl;lbl.appendChild(lt);
-        const track=document.createElement('div');track.className='bar-track primary';
-        const fill=document.createElement('div');fill.className='bar-fill';
-        const grad=natGradient(d.lbl);
-        fill.style.background=grad||d.customColor;
-        fill.style.setProperty('--target-width',pct+'%');
-        fill.style.width='0';
-        track.appendChild(fill);
-        const num=document.createElement('span');num.className='bar-num';num.textContent=d.val+' jog.';
-        const tip=document.createElement('div');tip.className='bar-tooltip';tip.textContent=d.lbl+': '+d.val+' jogadores';
-        row.appendChild(lbl);row.appendChild(track);row.appendChild(num);row.appendChild(tip);
-        cont.appendChild(row);
-        requestAnimationFrame(function(){requestAnimationFrame(function(){fill.style.transition='width .6s cubic-bezier(.25,.46,.45,.94)';fill.style.width=pct+'%';});});
-      });
+      barChart(cont,data,maxV,null,function(v){return v+' jog.';},{primary:true,tooltipFn:function(d){return d.lbl+': '+d.val+' jogadores';},sqrtScale:true});
     }
   });
   // (c4 appendado no final)

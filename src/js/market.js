@@ -19,7 +19,7 @@ function idadeBadge(v){
 
 // cores por seleção nacional — duplas via gradiente CSS
 var NAT_COLORS={
-  'BRA':'linear-gradient(90deg,#009c3b 55%,#ffdf00 55%)',
+  'BRA':'linear-gradient(90deg,#009c3b 40%,#ffdf00 40% 70%,#002776 70%)',
   'ARG':'linear-gradient(90deg,#75AADB 33%,#fff 33% 66%,#75AADB 66%)',
   'COL':'linear-gradient(90deg,#fcd116 50%,#ce1126 50%)',
   'CHI':'linear-gradient(90deg,#d52b1e 55%,#f0f0f0 55%)',
