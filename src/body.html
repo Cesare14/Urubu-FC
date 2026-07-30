@@ -29,7 +29,13 @@
       <button class="ftab t-mkt" data-ft="C">Projeção</button>
     </div>
     <div class="ptop">
-      <span class="plbl" id="ftlbl">Formação</span>
+      <span class="fmts-wrap">
+        <button class="plbl plbl-btn" id="btn-fmts" title="Gerenciar formações salvas">Formações</button>
+        <span class="mf-wrap mf-fmts" id="mf-fmts-wrap">
+          <button class="mf-btn mf-btn-fmts" id="mf-fmts-btn" title="Trocar para uma formação salva"><span>▾</span></button>
+          <div class="mf-dropdown" id="mf-fmts-dd"></div>
+        </span>
+      </span>
       <div class="fmtabs" id="fmtabs"></div>
     </div>
     <div class="fwrap"><div class="field" id="field"></div></div>
@@ -169,6 +175,14 @@
     <div class="fg"><label class="fl">Contrato até</label><input class="fi" id="mtgt-contract" placeholder="Jun/2027"></div>
     <div class="fg"><label class="fl">Perfil / observações</label><input class="fi" id="mtgt-obs" placeholder="Ex: ponta veloz, canhoto..."></div>
     <div class="macts"><button class="btn btn-ghost" id="mtgt-cancel">Cancelar</button><button class="btn btn-red" id="mtgt-ok">Salvar</button></div>
+  </div>
+</div>
+<!-- MODAL FORMAÇÕES -->
+<div class="mover" id="modal-fmts" style="display:none">
+  <div class="modal">
+    <div class="mtitle">Formações</div>
+    <div class="fmts-list" id="fmts-list"></div>
+    <div class="macts"><button class="btn btn-ghost" id="mfmts-close">Fechar</button></div>
   </div>
 </div>
 <!-- MODAL COMPARTILHAR -->

@@ -51,10 +51,10 @@ function saveTgt(){
 }
 function updateTmkt(){const n=document.getElementById('mtgt-name').value.trim();document.getElementById('btn-tmkt').href='https://www.transfermarkt.com.br/schnellsuche/ergebnis/schnellsuche?query='+encodeURIComponent(n||'flamengo');}
 
-function render(){renderFmTabs();renderField();renderBar();renderTable();renderMercado();initFilters();initSortBtns();if(ST.rt==='analise')renderAnalise();}
+function render(){renderFmTabs();renderFmtsDropdownBtn();renderField();renderBar();renderTable();renderMercado();initFilters();initSortBtns();if(ST.rt==='analise')renderAnalise();}
 
 // EVENTS
-document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('click',function(){ST.ft=b.dataset.ft;document.querySelectorAll('[data-ft]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('ftlbl').textContent={A:'Formação',B:'Formação — Reservas',C:'Formação — Projeção'}[ST.ft];renderFmTabs();renderField();renderBar();});});
+document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('click',function(){ST.ft=b.dataset.ft;document.querySelectorAll('[data-ft]').forEach(function(x){x.classList.toggle('active',x===b);});fecharPopFuncao();renderFmTabs();renderField();renderBar();});});
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
@@ -66,6 +66,9 @@ document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('mpl-delete').onclick=function(){if(ST.epid!==null)deletePlayerById(ST.epid);};
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
 document.getElementById('mpl-sel-toggle').onclick=function(){mplSelVal=!mplSelVal;this.classList.toggle('on',mplSelVal);document.getElementById('mpl-sel-lbl').textContent=mplSelVal?'Sim':'Não';};
+document.getElementById('btn-fmts').onclick=abrirModalFmts;
+document.getElementById('mfmts-close').onclick=fecharModalFmts;
+document.getElementById('modal-fmts').onclick=function(e){if(e.target===e.currentTarget)fecharModalFmts();};
 document.getElementById('mtgt-cancel').onclick=closeTgt;
 document.getElementById('mtgt-ok').onclick=saveTgt;
 document.getElementById('modal-tgt').onclick=function(e){if(e.target===e.currentTarget)closeTgt();};
@@ -76,7 +79,7 @@ bindNumericGuard('mtgt-nivel',clampNivel);
 bindNumericGuard('mtgt-val',clampValor);
 document.getElementById('si-search').oninput=function(e){ST.sf=e.target.value;renderTable();};
 document.getElementById('tgt-search').oninput=function(e){ST.tsf=e.target.value;renderMercado();};
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();fecharPopFuncao();fecharModalFmts();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});
 
 // ── TEMA CLARO / ESCURO ─────────────────────────────────────────────────────
 (function initTheme(){
@@ -116,6 +119,29 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   if(!Array.isArray(dados.players))return;
   if(!dados.fmt||typeof dados.fmt!=='object'||Array.isArray(dados.fmt))return;
 
+  // Formações customizadas recebidas: validadas uma a uma (11 slots,
+  // coordenadas 0–100 e função dentro das 9 de POSITIONS). Qualquer formação
+  // fora do padrão é descartada em silêncio, como o resto deste bloco já faz.
+  var _fmtsRecebidas=validarCustomFmts(dados.customFmts);
+
+  // customFn recebido: só sobreposições de função válidas (slot 0–10 +
+  // posição conhecida). Chave inesperada é ignorada.
+  var _fnRecebido={};
+  if(dados.customFn&&typeof dados.customFn==='object'&&!Array.isArray(dados.customFn)){
+    Object.keys(dados.customFn).forEach(function(k){
+      var v=dados.customFn[k];
+      if(!v||typeof v!=='object'||Array.isArray(v))return;
+      var limpo={};
+      Object.keys(v).forEach(function(i){
+        var idx=parseInt(i,10);
+        if(isNaN(idx)||idx<0||idx>10)return;
+        if(POSITIONS.indexOf(v[i])===-1)return;
+        limpo[idx]=v[i];
+      });
+      if(Object.keys(limpo).length)_fnRecebido[k]=limpo;
+    });
+  }
+
   var TEXT_FIELDS=['name','obs','club','nat'];
   var MAX_TEXT=100;
   var schemaOk=dados.players.every(function(p){
@@ -148,7 +174,9 @@ document.getElementById('btn-theme').addEventListener('click',function(){
     slots:    JSON.parse(JSON.stringify(ST.slots||{})),
     fmt:      JSON.parse(JSON.stringify(ST.fmt||{})),
     slotsByFmt: JSON.parse(JSON.stringify(ST.slotsByFmt||{})),
-    customPos:  JSON.parse(JSON.stringify(ST.customPos||{}))
+    customPos:  JSON.parse(JSON.stringify(ST.customPos||{})),
+    customFn:   JSON.parse(JSON.stringify(ST.customFn||{})),
+    customFmts: JSON.parse(JSON.stringify(ST.customFmts||[]))
   };
 
   // Sobrescrever estado em memória com o recebido (sem salvar no localStorage)
@@ -157,6 +185,54 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   if(dados.fmt)       ST.fmt=dados.fmt;
   if(dados.slotsByFmt)ST.slotsByFmt=dados.slotsByFmt;
   if(dados.customPos) ST.customPos=dados.customPos;
+  ST.customFmts=_fmtsRecebidas;
+  ST.customFn=_fnRecebido;
+  // Se o link aponta para uma formação que não veio junto (ou veio inválida),
+  // a aba cai na formação de fábrica em vez de ficar com o campo vazio.
+  ['A','B','C'].forEach(function(t){
+    if(!fmtExists(ST.fmt[t]))ST.fmt[t]=FMT_FALLBACK;
+  });
+
+  // Devolve o estado real do usuário (guardado acima) para a memória.
+  function _restaurarLocal(){
+    ST.players=_localBackup.players;
+    ST.slots=_localBackup.slots;
+    ST.fmt=_localBackup.fmt;
+    ST.slotsByFmt=_localBackup.slotsByFmt;
+    ST.customPos=_localBackup.customPos;
+    ST.customFn=_localBackup.customFn;
+    ST.customFmts=_localBackup.customFmts;
+  }
+
+  // Acrescenta as formações do link à lista de quem recebeu, sem apagar nada.
+  // Cada uma ganha um id interno novo (para não colidir com os ids de quem
+  // recebeu) e, se o nome já existir, um sufixo "(2)", "(3)"...
+  function _mesclarFormacoes(destino,recebidas){
+    var usados={};
+    destino.forEach(function(f){usados[String(f.name).toLowerCase()]=true;});
+    var maior=0;
+    destino.forEach(function(f){
+      var n=parseInt(String(f.id).replace('cf_',''),10);
+      if(!isNaN(n)&&n>maior)maior=n;
+    });
+    var add=0;
+    recebidas.forEach(function(f){
+      var nome=String(f.name);
+      if(usados[nome.toLowerCase()]){
+        // Encurta a base para o sufixo caber dentro do limite de caracteres.
+        var base=nome.slice(0,Math.max(1,FMT_NAME_MAX-5));
+        var n=2,cand=base+' ('+n+')';
+        while(usados[cand.toLowerCase()]&&n<99){n++;cand=base+' ('+n+')';}
+        if(usados[cand.toLowerCase()])return; // caso extremo: desiste desta
+        nome=cand;
+      }
+      usados[nome.toLowerCase()]=true;
+      maior++;
+      destino.push({id:'cf_'+maior,name:nome,slots:f.slots});
+      add++;
+    });
+    return add;
+  }
 
   // Exibir banner de aviso
   var banner=document.createElement('div');
@@ -165,29 +241,56 @@ document.getElementById('btn-theme').addEventListener('click',function(){
     'position:fixed','bottom:0','left:0','right:0','z-index:9999',
     'background:#b91c1c','color:#fff','text-align:center',
     'padding:10px 16px','font-size:14px','display:flex',
-    'align-items:center','justify-content:center','gap:12px',
+    'align-items:center','justify-content:center','gap:8px',
+    'flex-wrap:wrap',
     'box-shadow:0 -2px 8px rgba(0,0,0,.5)'
   ].join(';');
   var texto=document.createElement('span');
   texto.textContent='👁 Você está vendo a escalação de outra pessoa.';
-  var btn=document.createElement('button');
-  btn.textContent='Carregar minha escalação';
-  btn.style.cssText=[
-    'background:#fff','color:#b91c1c','border:none','border-radius:6px',
-    'padding:5px 12px','font-size:13px','font-weight:700',
-    'cursor:pointer','white-space:nowrap'
-  ].join(';');
-  btn.onclick=function(){
-    ST.players=_localBackup.players;
-    ST.slots=_localBackup.slots;
-    ST.fmt=_localBackup.fmt;
-    ST.slotsByFmt=_localBackup.slotsByFmt;
-    ST.customPos=_localBackup.customPos;
+  banner.appendChild(texto);
+
+  function _btnBanner(rotulo,acao){
+    var b=document.createElement('button');
+    b.textContent=rotulo;
+    b.style.cssText=[
+      'background:#fff','color:#b91c1c','border:none','border-radius:6px',
+      'padding:5px 12px','font-size:13px','font-weight:700',
+      'cursor:pointer','white-space:nowrap'
+    ].join(';');
+    b.onclick=acao;
+    banner.appendChild(b);
+    return b;
+  }
+
+  // 1) Volta para o que era do usuário. Nada é gravado.
+  _btnBanner('Carregar minha escalação',function(){
+    _restaurarLocal();
     banner.remove();
     render();
-  };
-  banner.appendChild(texto);
-  banner.appendChild(btn);
+  });
+
+  // 2) Fica só com o desenho tático das formações recebidas, somando à lista de
+  //    quem recebeu. Elenco e escalações próprios continuam intactos.
+  if(_fmtsRecebidas.length){
+    _btnBanner('Salvar formações',function(){
+      _restaurarLocal();
+      var add=_mesclarFormacoes(ST.customFmts,_fmtsRecebidas);
+      save();
+      banner.remove();
+      render();
+      alert(add===1?'1 formação foi adicionada à sua lista.':add+' formações foram adicionadas à sua lista.');
+    });
+  }
+
+  // 3) Substitui elenco, escalações e formações pelos do link. Destrutivo, por
+  //    isso pede confirmação. Alvos de mercado e níveis da Série A não viajam
+  //    no link, então os do usuário permanecem como estavam.
+  _btnBanner('Salvar tudo',function(){
+    if(!confirm('Isso vai substituir o seu elenco, as suas escalações e as suas formações pelos do link.\n\nSeus alvos de mercado e os níveis da Série A não são afetados.\n\nContinuar?'))return;
+    save();
+    banner.remove();
+    render();
+  });
   document.body.appendChild(banner);
 
   render();

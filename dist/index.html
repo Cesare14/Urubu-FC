@@ -839,7 +839,66 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .pname{font-size:14px}
   .pbadge{font-size:11.5px}
   .stag{font-size:9px}
-}</style>
+}
+/* ── FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
+   Botão "Formações" (era só o rótulo .plbl da barra), botão Salvar ao
+   lado do Reset, popover de função do slot e a janela de gerenciamento.
+   Tudo em variáveis de tema, então o modo claro acompanha sozinho. */
+
+/* O rótulo virou botão: mantém a tipografia de .plbl e só ganha
+   affordance de clique (borda ao passar o mouse). */
+.plbl-btn{background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 6px;margin-left:-6px;cursor:pointer;transition:all .12s;font-family:'Barlow',sans-serif}
+.plbl-btn:hover{border-color:var(--dark4);color:var(--gray-l)}
+.plbl-btn:active{transform:scale(.96)}
+
+/* Nome customizado pode ser longo (até 20 caracteres): corta com "…" para
+   não empurrar o campo tático para baixo no celular. O nome inteiro fica
+   no title do botão. */
+.fmtab-save{font-size:11px;padding:3px 10px;letter-spacing:.5px}
+
+/* Botão "Formações": texto (abre o modal) + setinha (abre o dropdown de
+   troca rápida) lado a lado, reaproveitando .mf-wrap/.mf-btn/.mf-dropdown
+   já usados em Pos/Status do elenco — sem inventar um componente novo. */
+.fmts-wrap{display:inline-flex;align-items:center;gap:2px}
+.mf-btn.mf-btn-fmts{min-width:auto;padding:2px 5px;background:transparent;border:1px solid transparent;color:var(--gray);gap:0;border-radius:4px}
+.mf-btn.mf-btn-fmts span{font-size:12px;font-weight:700;line-height:1}
+.mf-btn.mf-btn-fmts:hover{color:var(--gray-l);border-color:var(--dark4)}
+.mf-btn.mf-btn-fmts.open{border-color:var(--dark4)}
+/* Sem nenhuma formação salva a setinha fica desabilitada — nada para trocar. */
+.mf-btn.mf-btn-fmts[disabled]{opacity:.35;cursor:default;pointer-events:none}
+/* Opção ativa no dropdown de formações (equivalente ao .mf-opt.sel, mas essa
+   lista é seleção única — troca ao clicar, sem multi-seleção nem "Todos"). */
+.mf-opt.fmt-ativa{background:var(--dark3);color:var(--white)}
+/* Nome longo é cortado só dentro do dropdown — na barra de botões ele nunca
+   mais aparece por extenso, então não precisa de max-width lá. */
+.mf-opt.fmt-opt span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+/* Popover de função do slot. position:fixed porque o #field tem
+   overflow:hidden e cortaria o popover se ele nascesse lá dentro. */
+.fnpop{position:fixed;z-index:120;background:var(--dark2);border:1px solid var(--dark4);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;box-shadow:0 6px 20px rgba(0,0,0,.55)}
+.fnpop-lbl{font-family:'Barlow',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray);white-space:nowrap}
+.fnpop-sel{min-width:104px;padding:5px 8px;font-size:13px}
+
+/* Lista da janela "Formações" — rola sozinha quando houver muitas. */
+.fmts-list{display:flex;flex-direction:column;gap:6px;max-height:min(46vh,300px);overflow-y:auto}
+.fmts-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;background:var(--dark3);border:1px solid var(--dark4);border-radius:6px}
+.fmts-item.em-uso{border-color:var(--red)}
+.fmts-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fmts-nome{font-family:'Barlow',sans-serif;font-size:13px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmts-uso{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--gray)}
+.fmts-acts{display:flex;gap:6px;flex-shrink:0}
+.fmts-btn{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px solid var(--dark4);background:transparent;color:var(--gray-l);cursor:pointer;transition:all .12s;white-space:nowrap}
+.fmts-btn:hover{border-color:var(--gray);color:var(--white)}
+.fmts-btn-del{color:var(--red);border-color:var(--red)}
+.fmts-btn-del:hover{background:rgba(197,38,19,.1);color:var(--red);border-color:var(--red)}
+.fmts-empty{font-family:'Barlow',sans-serif;font-size:12.5px;line-height:1.5;color:var(--gray);padding:6px 2px}
+
+/* Toque longo no slot precisa chegar ao JS: sem isso o iOS abre o menu
+   nativo de copiar/compartilhar e o Android inicia o arrasto nativo
+   (os cards preenchidos têm draggable=true). */
+.scard{-webkit-touch-callout:none}
+</style>
 </head>
 <body>
 <header class="hdr">
@@ -872,7 +931,13 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
       <button class="ftab t-mkt" data-ft="C">Projeção</button>
     </div>
     <div class="ptop">
-      <span class="plbl" id="ftlbl">Formação</span>
+      <span class="fmts-wrap">
+        <button class="plbl plbl-btn" id="btn-fmts" title="Gerenciar formações salvas">Formações</button>
+        <span class="mf-wrap mf-fmts" id="mf-fmts-wrap">
+          <button class="mf-btn mf-btn-fmts" id="mf-fmts-btn" title="Trocar para uma formação salva"><span>▾</span></button>
+          <div class="mf-dropdown" id="mf-fmts-dd"></div>
+        </span>
+      </span>
       <div class="fmtabs" id="fmtabs"></div>
     </div>
     <div class="fwrap"><div class="field" id="field"></div></div>
@@ -1014,6 +1079,14 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <div class="macts"><button class="btn btn-ghost" id="mtgt-cancel">Cancelar</button><button class="btn btn-red" id="mtgt-ok">Salvar</button></div>
   </div>
 </div>
+<!-- MODAL FORMAÇÕES -->
+<div class="mover" id="modal-fmts" style="display:none">
+  <div class="modal">
+    <div class="mtitle">Formações</div>
+    <div class="fmts-list" id="fmts-list"></div>
+    <div class="macts"><button class="btn btn-ghost" id="mfmts-close">Fechar</button></div>
+  </div>
+</div>
 <!-- MODAL COMPARTILHAR -->
 <div class="share-over" id="share-over" onclick="if(event.target===this)closeShare()">
   <div class="share-box">
@@ -1121,6 +1194,75 @@ const FMTS={
   '3-5-2':[[50,86,'GOL'],[70.4,76,'ZAG'],[50,78,'ZAG'],[29.6,76,'ZAG'],[85.7,52,'LD'],[65.3,49,'VOL'],[50,47,'MEI'],[34.7,49,'VOL'],[14.3,52,'LE'],[33,12,'CA'],[67,12,'CA']]
 };
 
+// ── FORMAÇÕES CUSTOMIZADAS ─────────────────────────────────────
+// FMTS (acima) permanece intocado: e a fonte das formacoes de fabrica.
+// As formacoes criadas pelo usuario vivem em ST.customFmts, cada uma com um
+// id interno estavel ('cf_1', 'cf_2', ...) que NUNCA muda. E esse id que vai
+// para ST.fmt[aba] e para as chaves de ST.slotsByFmt / ST.customPos / ST.customFn
+// — assim renomear a formacao nunca quebra a escalacao ja salva nela.
+const CUSTOM_FMT_SCHEMA_V=1;   // versao do schema de ST.customFmts (ver state.js)
+const FMT_FALLBACK='4-2-3-1';  // formacao de fabrica usada quando a atual some
+const FMT_NAME_MAX=20;         // limite de caracteres do nome de uma formacao
+
+function getCustomFmt(key){
+  if(!key||!ST.customFmts)return null;
+  for(var i=0;i<ST.customFmts.length;i++){if(ST.customFmts[i].id===key)return ST.customFmts[i];}
+  return null;
+}
+function isCustomFmt(key){return !!getCustomFmt(key);}
+// Os 11 slots [x,y,'POSICAO'] da formacao ativa, seja de fabrica ou customizada.
+function fmtSlots(key){
+  var c=getCustomFmt(key);
+  if(c)return c.slots;
+  return FMTS[key]||FMTS[FMT_FALLBACK];
+}
+// Nome exibido: formacao de fabrica usa a propria chave ('4-3-3').
+function fmtLabel(key){
+  var c=getCustomFmt(key);
+  return c?c.name:key;
+}
+function fmtExists(key){return !!FMTS[key]||!!getCustomFmt(key);}
+function nextCustomFmtId(){
+  var max=0;
+  (ST.customFmts||[]).forEach(function(f){
+    var n=parseInt(String(f.id).replace('cf_',''),10);
+    if(!isNaN(n)&&n>max)max=n;
+  });
+  return 'cf_'+(max+1);
+}
+// Validacao de uma formacao vinda de fora (localStorage, import JSON ou link
+// compartilhado). Retorna a formacao normalizada ou null se estiver invalida.
+// Exige exatamente 11 slots, coordenadas numericas em 0-100 e funcao dentro
+// das 9 de POSITIONS — sem isso, pmatch/autoFill nao teriam como funcionar.
+function validarCustomFmt(f){
+  if(!f||typeof f!=='object'||Array.isArray(f))return null;
+  if(typeof f.id!=='string'||!/^cf_[0-9]{1,6}$/.test(f.id))return null;
+  if(typeof f.name!=='string')return null;
+  var nome=f.name.trim();
+  if(!nome||nome.length>FMT_NAME_MAX)return null;
+  if(!Array.isArray(f.slots)||f.slots.length!==11)return null;
+  var slots=[];
+  for(var i=0;i<11;i++){
+    var s=f.slots[i];
+    if(!Array.isArray(s)||s.length<3)return null;
+    var x=Number(s[0]),y=Number(s[1]),pos=s[2];
+    if(!isFinite(x)||x<0||x>100)return null;
+    if(!isFinite(y)||y<0||y>100)return null;
+    if(typeof pos!=='string'||POSITIONS.indexOf(pos)===-1)return null;
+    slots.push([x,y,pos]);
+  }
+  return {id:f.id,name:(typeof sanitizeText==='function'?sanitizeText(nome):nome),slots:slots};
+}
+function validarCustomFmts(lista){
+  if(!Array.isArray(lista))return [];
+  var out=[],vistos={};
+  lista.forEach(function(f){
+    var ok=validarCustomFmt(f);
+    if(ok&&!vistos[ok.id]){vistos[ok.id]=true;out.push(ok);}
+  });
+  return out;
+}
+
 function pmatch(p,l){const m={GOL:['GOL'],LD:['LD'],LE:['LE'],ZAG:['ZAG'],VOL:['VOL'],MEI:['MEI'],CA:['CA'],PD:['PD','MEI'],PE:['PE','MEI']};return(m[l]||[l]).includes(p);}
 function nivelDef(s){return{Titular:80,Importante:70,'Compõe elenco':60,Vender:55,Dispensável:45}[s]||60;}
 function starChar(i,prio){
@@ -1166,6 +1308,8 @@ let ST={
   slots:{A:Array(11).fill(null),B:Array(11).fill(null),C:Array(11).fill(null)},
   slotsByFmt:{},
   customPos:{},
+  customFn:{},
+  customFmts:[],
   ft:'A',rt:'elenco',
   sf:'',filterPos:[],filterStatus:[],
   tsf:'',filterTPos:[],filterTPrio:[],
@@ -1208,7 +1352,7 @@ function syncSlotsToFmt(){
 }
 
 /* === state.js === */
-function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,serieA:ST.serieA}));}catch(e){}}
+function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,customFn:ST.customFn,customFmts:ST.customFmts,customFmtsV:CUSTOM_FMT_SCHEMA_V,serieA:ST.serieA}));}catch(e){}}
 function load(){
   try{
     const r=localStorage.getItem(SK);
@@ -1220,6 +1364,18 @@ function load(){
       ST.slots=Object.assign({A:Array(11).fill(null),B:Array(11).fill(null),C:Array(11).fill(null)},d.slots||{});
       ST.slotsByFmt=d.slotsByFmt||{};
       ST.customPos=d.customPos||{};
+      ST.customFn=d.customFn||{};
+      // Formações customizadas: sempre revalidadas na carga (o localStorage pode
+      // ter sido editado à mão ou vir de uma versão futura do schema). Formação
+      // inválida é descartada em silêncio em vez de quebrar o campo.
+      // d.customFmtsV guarda a versão do schema — hoje só é registrada; quando
+      // houver uma v2, é aqui que a migração vai entrar, antes de validar.
+      ST.customFmts=validarCustomFmts(d.customFmts);
+      // Se alguma aba apontava para uma formação que não existe mais (foi
+      // excluída, ou veio inválida acima), volta para a formação de fábrica.
+      ['A','B','C'].forEach(function(t){
+        if(!fmtExists(ST.fmt[t]))ST.fmt[t]=FMT_FALLBACK;
+      });
       // sincronizar: ST.slots[tab] reflete a escalação da formação atual de cada aba
       ['A','B','C'].forEach(function(t){
         var key=t+'|'+ST.fmt[t];
@@ -1260,10 +1416,10 @@ function slotEnt(tab,i){
   return null;
 }
 function autoFill(tab){
-  const f=FMTS[ST.fmt[tab]];ST.slots[tab]=Array(11).fill(null);
+  const f=fmtSlots(ST.fmt[tab]);ST.slots[tab]=Array(11).fill(null);
   const used=new Set();
   const pool=tab==='B'?ST.players.filter(function(p){return p.status==='Importante'||p.status==='Compõe elenco';}):ST.players.filter(function(p){return p.status==='Titular';});
-  f.forEach(function(s,i){const m=pool.find(function(p){return !used.has(p.id)&&pmatch(p.pos,s[2]);});if(m){ST.slots[tab][i]=m.id;used.add(m.id);}});
+  f.forEach(function(s,i){const fn=slotFn(tab,i);const m=pool.find(function(p){return !used.has(p.id)&&pmatch(p.pos,fn);});if(m){ST.slots[tab][i]=m.id;used.add(m.id);}});
 }
 
 // PHOTO
@@ -1577,7 +1733,25 @@ function snapToGrid(xPct, yPct) {
 function slotPos(tab, i) {
   var key = tab + '|' + ST.fmt[tab];
   if (ST.customPos[key] && ST.customPos[key][i]) return ST.customPos[key][i];
-  var s = FMTS[ST.fmt[tab]][i]; return [s[0], s[1]];
+  var s = fmtSlots(ST.fmt[tab])[i]; return [s[0], s[1]];
+}
+// Função (GOL/ZAG/VOL...) do slot i. Mesmo padrão do customPos acima: o valor
+// base vem da formação (de fábrica ou customizada) e pode ser sobreposto por
+// uma troca solta do usuário, guardada por aba+formação em ST.customFn. Ao
+// salvar a configuração como formação nova, essas trocas são congeladas dentro
+// dela e a sobreposição é limpa.
+function slotFn(tab, i) {
+  var key = tab + '|' + ST.fmt[tab];
+  if (ST.customFn && ST.customFn[key] && ST.customFn[key][i]) return ST.customFn[key][i];
+  var s = fmtSlots(ST.fmt[tab])[i];
+  return s ? s[2] : 'MEI';
+}
+function setSlotFn(tab, i, pos) {
+  if (POSITIONS.indexOf(pos) === -1) return; // dropdown fechado: nunca valor livre
+  var key = tab + '|' + ST.fmt[tab];
+  if (!ST.customFn) ST.customFn = {};
+  if (!ST.customFn[key]) ST.customFn[key] = {};
+  ST.customFn[key][i] = pos;
 }
 function setCustomPos(tab, i, xy) {
   var key = tab + '|' + ST.fmt[tab];
@@ -1587,6 +1761,63 @@ function setCustomPos(tab, i, xy) {
 function resetCustomPos(tab) {
   var key = tab + '|' + ST.fmt[tab];
   delete ST.customPos[key];
+  if (ST.customFn) delete ST.customFn[key];
+}
+
+// ── POPOVER DE FUNÇÃO DO SLOT ───────────────────────────────────────────────
+// Abre no clique curto (desktop) ou no toque longo de 500ms (mobile — 500ms é o
+// long_press_timeout padrão do Android). Usa um <select> nativo: dropdown
+// fechado com as 9 posições de POSITIONS, nunca texto livre, senão
+// pmatch/autoFill deixariam de casar jogadores com o slot. Trocar a função NÃO
+// mexe em ST.slots: o jogador que estiver no slot continua nele.
+var _fnpopEl = null;
+var _longPressFired = false; // suprime o tap que vem logo após o toque longo
+
+function fecharPopFuncao() {
+  if (_fnpopEl && _fnpopEl.parentNode) _fnpopEl.parentNode.removeChild(_fnpopEl);
+  _fnpopEl = null;
+  document.removeEventListener('click', _fnpopFora, true);
+}
+function _fnpopFora(e) {
+  if (_fnpopEl && !_fnpopEl.contains(e.target)) fecharPopFuncao();
+}
+function abrirPopFuncao(sc, tab, i) {
+  fecharPopFuncao();
+  clearTouchSel();
+  var pop = document.createElement('div');
+  pop.className = 'fnpop'; pop.id = 'fnpop';
+  var lbl = document.createElement('div'); lbl.className = 'fnpop-lbl'; lbl.textContent = 'Função do slot';
+  var sel = document.createElement('select'); sel.className = 'fs fnpop-sel';
+  var atual = slotFn(tab, i);
+  POSITIONS.forEach(function (pos) {
+    var o = document.createElement('option');
+    o.value = pos; o.textContent = pos;
+    if (pos === atual) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('click', function (e) { e.stopPropagation(); });
+  sel.addEventListener('change', function () {
+    setSlotFn(tab, i, sel.value);
+    save();
+    fecharPopFuncao();
+    patchSlot(i, tab);
+  });
+  pop.appendChild(lbl); pop.appendChild(sel);
+  document.body.appendChild(pop);
+
+  // Ancorado no próprio slot, preso à viewport (position:fixed no CSS): o
+  // #field tem overflow:hidden e cortaria o popover se ele nascesse lá dentro.
+  var r = sc.getBoundingClientRect();
+  var pw = pop.offsetWidth || 140, ph = pop.offsetHeight || 66;
+  var left = Math.max(8, Math.min(window.innerWidth - pw - 8, r.left + r.width / 2 - pw / 2));
+  var top = r.bottom + 6;
+  if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 6);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  _fnpopEl = pop;
+  // setTimeout: sem isso o próprio clique/toque que abriu o popover seria
+  // capturado logo abaixo e o fecharia no mesmo instante.
+  setTimeout(function () { document.addEventListener('click', _fnpopFora, true); }, 0);
 }
 
 // ── TOUCH DRAG ──────────────────────────────────────────────────────────────
@@ -1596,12 +1827,28 @@ function addTouchDrag(sc, tab) {
   var startX = 0, startY = 0;
   var moved = false;
   var MOVE_THRESHOLD = 8; // px para distinguir tap de drag
+  var pressTimer = null;
+  var LONGPRESS_DELAY = 500; // ms parado até abrir o popover de função
 
+  function cancelarLongPress() {
+    if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+  }
 
   sc.addEventListener('touchstart', function (e) {
     moved = false;
     var t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
+
+    // Toque longo parado → popover de função. Qualquer deslocamento acima do
+    // MOVE_THRESHOLD (abaixo, no touchmove) cancela: arrastar tem prioridade.
+    _longPressFired = false;
+    cancelarLongPress();
+    pressTimer = setTimeout(function () {
+      pressTimer = null;
+      if (moved) return;
+      _longPressFired = true;
+      abrirPopFuncao(sc, tab, +sc.dataset.si);
+    }, LONGPRESS_DELAY);
 
     // Criar clone após pequeno delay (evita conflito com tap)
     clone = null;
@@ -1613,6 +1860,7 @@ function addTouchDrag(sc, tab) {
 
     if (!moved && Math.sqrt(dx * dx + dy * dy) > MOVE_THRESHOLD) {
       moved = true;
+      cancelarLongPress();
       // Iniciar drag: criar clone fixo na viewport
       clone = sc.cloneNode(true);
       clone.classList.add('touch-drag-clone');
@@ -1645,6 +1893,7 @@ function addTouchDrag(sc, tab) {
   }, { passive: false });
 
   sc.addEventListener('touchend', function (e) {
+    cancelarLongPress();
     stopAutoScroll();
     var fElEnd = document.getElementById('field');
     if (fElEnd) fElEnd.style.touchAction = 'auto'; // libera scroll normal do campo ao soltar
@@ -1703,6 +1952,7 @@ function addTouchDrag(sc, tab) {
   }, { passive: false });
 
   sc.addEventListener('touchcancel', function () {
+    cancelarLongPress();
     stopAutoScroll();
     var fElCancel = document.getElementById('field');
     if (fElCancel) fElCancel.style.touchAction = 'auto';
@@ -1822,7 +2072,7 @@ function buildStripeCircle(size) {
 
 // ── BUILD SCARD ──────────────────────────────────────────────────────────────
 function buildScard(i, tab) {
-  var s = FMTS[ST.fmt[tab]][i];
+  var sfn = slotFn(tab, i);
   var ent = slotEnt(tab, i); var isTgt = ent && ent.type === 't';
   var isCircle = tab === 'A' || tab === 'B' || tab === 'C'; // Fase B do redesign: circular em Titulares, Reservas e Projeção. Mercado/Alvos é painel separado (market.js) e não passa por buildScard.
   var sc = document.createElement('div');
@@ -1930,11 +2180,11 @@ function buildScard(i, tab) {
       // estado não-.filled/.ftgt) — sem isso, o slot vazio ficava sem
       // nenhuma indicação visual de área de destino no redesign circular.
       var emptyWrap = document.createElement('div'); emptyWrap.className = 'circle-visual circle-visual--empty';
-      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = s[2];
+      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = sfn;
       emptyWrap.appendChild(semptyEl);
       sc.appendChild(emptyWrap);
     } else {
-      sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+      sc.innerHTML = '<span class="sempty">' + sfn + '</span>';
     }
   }
 
@@ -1972,7 +2222,22 @@ function buildScard(i, tab) {
     sc.addEventListener('click', function (e) {
       // click após drag já foi resolvido pelo touchend; só processar taps reais
       if (e.detail === 0) return; // evento sintético
+      // Toque longo acabou de abrir o popover de função: o navegador ainda
+      // dispara um click logo em seguida. Sem esta guarda, esse click cairia
+      // no tap-to-select e mexeria no jogador do slot sem o usuário pedir.
+      if (_longPressFired) { _longPressFired = false; return; }
       onScardTap(sc, tab);
+    });
+    // Menu nativo do navegador no toque longo (copiar/compartilhar no iOS,
+    // arrasto nativo no Android por causa do draggable=true) roubaria o gesto.
+    sc.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  } else {
+    // Desktop: clique curto no slot abre o popover de função. O arrasto usa a
+    // API de drag nativa (dragstart/drop), que não dispara click — então não
+    // há conflito entre mover o jogador e trocar a função do slot.
+    sc.addEventListener('click', function (e) {
+      if (e.target.closest('.sclr')) return; // o "×" tem ação própria
+      abrirPopFuncao(sc, tab, i);
     });
   }
 
@@ -2010,10 +2275,10 @@ function renderField() {
     '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.50"/>';
   field.appendChild(svg);
 
-  var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = ST.fmt[tab];
+  var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = fmtLabel(ST.fmt[tab]);
   field.appendChild(bdg);
 
-  FMTS[ST.fmt[tab]].forEach(function (s, i) {
+  fmtSlots(ST.fmt[tab]).forEach(function (s, i) {
     field.appendChild(buildScard(i, tab));
   });
 
@@ -2054,24 +2319,38 @@ function renderField() {
 // ── RENDER FM TABS ───────────────────────────────────────────────────────────
 function renderFmTabs() {
   const tab = ST.ft, el = document.getElementById('fmtabs'); el.innerHTML = '';
+  // Só as 4 formações de fábrica ficam na barra de botões — conjunto fechado
+  // e conhecido, então 1 clique faz sentido aqui. As customizadas (conjunto
+  // sem limite de tamanho) vivem no dropdown do botão "Formações", ao lado do
+  // rótulo — ver trocarViaDropdownFmts()/renderFmtsDropdown() mais abaixo.
+  // Se a formação ativa for uma customizada, nenhum destes 4 botões acende.
   Object.keys(FMTS).forEach(function (f) {
     const b = document.createElement('button');
     b.className = 'fmtab' + (f === ST.fmt[tab] ? ' active' : '');
     b.textContent = f;
     b.onclick = function () {
+      fecharPopFuncao();
       syncSlotsToFmt();
       ST.fmt[tab] = f;
       var key = tab + '|' + f;
       ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
-      save(); renderFmTabs(); renderField(); renderBar(); renderTable();
+      save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
     };
     el.appendChild(b);
   });
+  // Salvar: congela a configuração atual (posições + funções) como formação.
+  const sb = document.createElement('button');
+  sb.className = 'btn btn-ghost fmtab-save';
+  sb.textContent = '💾 Salvar';
+  sb.title = 'Salvar a configuração atual como formação';
+  sb.onclick = function () { salvarFormacaoAtual(); };
+  el.appendChild(sb);
   const rb = document.createElement('button');
   rb.className = 'btn btn-red fmtab-reset';
   rb.textContent = '↺ Reset';
   rb.title = 'Limpar escalação e posições desta formação';
   rb.onclick = function () {
+    fecharPopFuncao();
     resetCustomPos(tab);
     ST.slots[tab] = Array(11).fill(null);
     var key = tab + '|' + ST.fmt[tab]; ST.slotsByFmt[key] = Array(11).fill(null);
@@ -2079,6 +2358,242 @@ function renderFmTabs() {
     save(); renderField(); renderBar(); renderTable();
   };
   el.appendChild(rb);
+}
+
+// ── GERENCIAR FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
+var TAB_NOMES = { A: 'Titulares', B: 'Reservas', C: 'Projeção' };
+
+// Os 11 slots da aba como estão AGORA na tela: posição já com os ajustes
+// arrastados (customPos) e função já com as trocas do popover (customFn).
+function _slotsAtuais(tab) {
+  var out = [];
+  for (var i = 0; i < 11; i++) {
+    var pos = slotPos(tab, i);
+    out.push([pos[0], pos[1], slotFn(tab, i)]);
+  }
+  return out;
+}
+
+// Nome duplicado é bloqueado tanto entre as customizadas quanto contra as de
+// fábrica: dois botões com o mesmo rótulo na barra deixariam o usuário sem
+// saber qual é qual.
+function _erroNomeFmt(nome, ignorarId) {
+  nome = String(nome == null ? '' : nome).trim();
+  if (!nome) return 'O nome não pode ficar vazio.';
+  if (nome.length > FMT_NAME_MAX) return 'O nome deve ter no máximo ' + FMT_NAME_MAX + ' caracteres.';
+  if (FMTS[nome]) return 'Já existe uma formação de fábrica com esse nome.';
+  var alvo = sanitizeText(nome).toLowerCase();
+  var dup = (ST.customFmts || []).some(function (f) {
+    return f.id !== ignorarId && String(f.name).toLowerCase() === alvo;
+  });
+  if (dup) return 'Você já tem uma formação com esse nome.';
+  return null;
+}
+function _pedirNomeFmt(titulo, valorInicial, ignorarId) {
+  var nome = valorInicial || '';
+  for (;;) {
+    nome = prompt(titulo, nome);
+    if (nome === null) return null; // cancelou
+    nome = String(nome).trim();
+    var erro = _erroNomeFmt(nome, ignorarId);
+    if (!erro) return sanitizeText(nome);
+    alert(erro);
+  }
+}
+
+function salvarFormacaoAtual() {
+  fecharPopFuncao();
+  var tab = ST.ft;
+  var atual = ST.fmt[tab];
+  var custom = getCustomFmt(atual);
+  var slots = _slotsAtuais(tab);
+
+  if (custom) {
+    // Já estamos numa formação salva: sobrescrever ou tirar uma cópia nova?
+    var sobrescrever = confirm(
+      'Salvar alterações em "' + custom.name + '"?\n\n' +
+      'OK = salvar as alterações nesta formação\n' +
+      'Cancelar = salvar como uma formação nova'
+    );
+    if (sobrescrever) {
+      custom.slots = slots;
+      // Ajustes soltos viraram parte da formação: a sobreposição some.
+      delete ST.customPos[tab + '|' + atual];
+      if (ST.customFn) delete ST.customFn[tab + '|' + atual];
+      save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar();
+      return;
+    }
+  }
+
+  var nome = _pedirNomeFmt(
+    'Nome da nova formação (até ' + FMT_NAME_MAX + ' caracteres):',
+    custom ? '' : atual, null
+  );
+  if (nome === null) return;
+
+  var id = nextCustomFmtId();
+  ST.customFmts.push({ id: id, name: nome, slots: slots });
+
+  // A escalação que está em campo acompanha a formação nova (mesmos 11 slots).
+  ST.slotsByFmt[tab + '|' + id] = ST.slots[tab].slice();
+
+  // Os ajustes soltos foram congelados na formação nova: a formação de origem
+  // desta aba volta ao layout original e a nova nasce sem sobreposições.
+  delete ST.customPos[tab + '|' + atual];
+  if (ST.customFn) delete ST.customFn[tab + '|' + atual];
+  delete ST.customPos[tab + '|' + id];
+  if (ST.customFn) delete ST.customFn[tab + '|' + id];
+
+  ST.fmt[tab] = id;
+  save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+
+function renomearFormacao(id) {
+  var f = getCustomFmt(id);
+  if (!f) return;
+  var nome = _pedirNomeFmt('Novo nome da formação:', f.name, id);
+  if (nome === null) return;
+  f.name = nome;
+  // O id interno não muda, então escalação e posições salvas continuam ligadas.
+  save(); renderFmtsList(); renderFmTabs(); renderFmtsDropdownBtn(); renderField();
+}
+
+function excluirFormacao(id) {
+  var f = getCustomFmt(id);
+  if (!f) return;
+  var emUso = ['A', 'B', 'C'].filter(function (t) { return ST.fmt[t] === id; });
+  var msg = 'Excluir a formação "' + f.name + '"?';
+  if (emUso.length) {
+    msg += '\n\nEla está em uso em: ' + emUso.map(function (t) { return TAB_NOMES[t]; }).join(', ') +
+           '.\nEssa(s) aba(s) voltam para a formação ' + FMT_FALLBACK + '.';
+  }
+  msg += '\n\nEssa ação não pode ser desfeita.';
+  if (!confirm(msg)) return;
+
+  ST.customFmts = ST.customFmts.filter(function (x) { return x.id !== id; });
+  ['A', 'B', 'C'].forEach(function (t) {
+    var key = t + '|' + id;
+    delete ST.slotsByFmt[key];
+    delete ST.customPos[key];
+    if (ST.customFn) delete ST.customFn[key];
+    if (ST.fmt[t] === id) {
+      ST.fmt[t] = FMT_FALLBACK;
+      var fk = t + '|' + FMT_FALLBACK;
+      ST.slots[t] = ST.slotsByFmt[fk] ? ST.slotsByFmt[fk].slice() : Array(11).fill(null);
+    }
+  });
+  fecharPopFuncao();
+  save(); renderFmtsList(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+
+// ── JANELA "FORMAÇÕES" (lista + renomear + excluir) ──────────────────────────
+function abrirModalFmts() {
+  fecharPopFuncao();
+  closeAllDD();
+  renderFmtsList();
+  document.getElementById('modal-fmts').style.display = 'flex';
+}
+function fecharModalFmts() {
+  document.getElementById('modal-fmts').style.display = 'none';
+}
+function renderFmtsList() {
+  var el = document.getElementById('fmts-list');
+  if (!el) return;
+  el.innerHTML = '';
+  var lista = ST.customFmts || [];
+  if (!lista.length) {
+    var vazio = document.createElement('div');
+    vazio.className = 'fmts-empty';
+    vazio.textContent = 'Você ainda não salvou nenhuma formação. Mova os jogadores no campo, troque as funções dos slots e use o botão Salvar, ao lado do Reset.';
+    el.appendChild(vazio);
+    return;
+  }
+  lista.forEach(function (f) {
+    var abas = ['A', 'B', 'C'].filter(function (t) { return ST.fmt[t] === f.id; });
+    var row = document.createElement('div');
+    row.className = 'fmts-item' + (abas.length ? ' em-uso' : '');
+
+    var info = document.createElement('div'); info.className = 'fmts-info';
+    var nome = document.createElement('span'); nome.className = 'fmts-nome'; nome.textContent = f.name;
+    info.appendChild(nome);
+    if (abas.length) {
+      var uso = document.createElement('span'); uso.className = 'fmts-uso';
+      uso.textContent = 'Em uso · ' + abas.map(function (t) { return TAB_NOMES[t]; }).join(', ');
+      info.appendChild(uso);
+    }
+
+    var acts = document.createElement('div'); acts.className = 'fmts-acts';
+    var bRen = document.createElement('button'); bRen.className = 'fmts-btn'; bRen.textContent = 'Renomear';
+    bRen.onclick = function () { renomearFormacao(f.id); };
+    var bDel = document.createElement('button'); bDel.className = 'fmts-btn fmts-btn-del'; bDel.textContent = 'Excluir';
+    bDel.onclick = function () { excluirFormacao(f.id); };
+    acts.appendChild(bRen); acts.appendChild(bDel);
+
+    row.appendChild(info); row.appendChild(acts);
+    el.appendChild(row);
+  });
+}
+
+// ── DROPDOWN "MINHAS FORMAÇÕES" (troca rápida, ao lado do botão Formações) ──
+// Reaproveita o mesmo componente já usado nos filtros de Pos/Status do elenco
+// (positionMFDropdown/closeAllDD, definidos em ui.js): um <div class="mf-dropdown">
+// portado para #mf-portal ao abrir, fechado num clique fora ou no scroll.
+// Diferença para aquele uso: aqui é seleção única (troca ao clicar), não
+// multi-seleção — por isso não há linha "Todos" nem checkbox, só destaque na
+// formação ativa.
+function trocarViaDropdownFmts(id) {
+  var tab = ST.ft;
+  fecharPopFuncao();
+  closeAllDD();
+  syncSlotsToFmt();
+  ST.fmt[tab] = id;
+  var key = tab + '|' + id;
+  ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
+  save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+function renderFmtsDropdown() {
+  var dd = document.getElementById('mf-fmts-dd');
+  if (!dd) return;
+  dd.innerHTML = '';
+  var tab = ST.ft, lista = ST.customFmts || [];
+  lista.forEach(function (f) {
+    var ativa = f.id === ST.fmt[tab];
+    var opt = document.createElement('div');
+    opt.className = 'mf-opt fmt-opt' + (ativa ? ' fmt-ativa' : '');
+    var lbl = document.createElement('span'); lbl.textContent = f.name; lbl.title = f.name;
+    opt.appendChild(lbl);
+    opt.onclick = function (e) { e.stopPropagation(); trocarViaDropdownFmts(f.id); };
+    dd.appendChild(opt);
+  });
+}
+// Habilita/desabilita a setinha (sem nenhuma formação salva não há o que
+// trocar) e liga o clique que abre o dropdown — chamada sempre que a lista de
+// formações muda (salvar, renomear, excluir, ou ao carregar um link recebido).
+function renderFmtsDropdownBtn() {
+  var btn = document.getElementById('mf-fmts-btn');
+  var wrap = document.getElementById('mf-fmts-wrap');
+  if (!btn || !wrap) return;
+  var vazio = !(ST.customFmts && ST.customFmts.length);
+  btn.disabled = vazio;
+  if (vazio) {
+    closeAllDD();
+    var dd0 = document.getElementById('mf-fmts-dd');
+    if (dd0) dd0.innerHTML = ''; // não deixar opção fantasma de uma lista anterior
+    return;
+  }
+  renderFmtsDropdown();
+  btn.onclick = function (e) {
+    e.stopPropagation();
+    var dd = document.getElementById('mf-fmts-dd');
+    var open = dd.classList.contains('open');
+    closeAllDD();
+    if (!open) {
+      renderFmtsDropdown(); // sempre atual: nome/estado podem ter mudado
+      positionMFDropdown(dd, btn);
+      dd.classList.add('open');
+      btn.classList.add('open');
+    }
+  };
 }
 
 function renderBar() {
@@ -3970,7 +4485,9 @@ function compartilharLinkEscalacao(){
     slots:   ST.slots,
     fmt:     ST.fmt,
     slotsByFmt: ST.slotsByFmt,
-    customPos:  ST.customPos
+    customPos:  ST.customPos,
+    customFn:   ST.customFn,
+    customFmts: ST.customFmts
   };
 
   var json=JSON.stringify(dados);
@@ -4039,10 +4556,10 @@ function saveTgt(){
 }
 function updateTmkt(){const n=document.getElementById('mtgt-name').value.trim();document.getElementById('btn-tmkt').href='https://www.transfermarkt.com.br/schnellsuche/ergebnis/schnellsuche?query='+encodeURIComponent(n||'flamengo');}
 
-function render(){renderFmTabs();renderField();renderBar();renderTable();renderMercado();initFilters();initSortBtns();if(ST.rt==='analise')renderAnalise();}
+function render(){renderFmTabs();renderFmtsDropdownBtn();renderField();renderBar();renderTable();renderMercado();initFilters();initSortBtns();if(ST.rt==='analise')renderAnalise();}
 
 // EVENTS
-document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('click',function(){ST.ft=b.dataset.ft;document.querySelectorAll('[data-ft]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('ftlbl').textContent={A:'Formação',B:'Formação — Reservas',C:'Formação — Projeção'}[ST.ft];renderFmTabs();renderField();renderBar();});});
+document.querySelectorAll('[data-ft]').forEach(function(b){b.addEventListener('click',function(){ST.ft=b.dataset.ft;document.querySelectorAll('[data-ft]').forEach(function(x){x.classList.toggle('active',x===b);});fecharPopFuncao();renderFmTabs();renderField();renderBar();});});
 document.querySelectorAll('[data-rt]').forEach(function(b){b.addEventListener('click',function(){ST.rt=b.dataset.rt;document.querySelectorAll('[data-rt]').forEach(function(x){x.classList.toggle('active',x===b);});document.getElementById('pane-elenco').style.display=ST.rt==='elenco'?'flex':'none';document.getElementById('pane-mercado').style.display=ST.rt==='mercado'?'flex':'none';document.getElementById('pane-analise').style.display=ST.rt==='analise'?'flex':'none';if(ST.rt==='analise')renderAnalise();});});
 document.getElementById('btn-addpl').onclick=function(){openPl();};
 document.getElementById('btn-addtgt').onclick=function(){openTgt();};
@@ -4054,6 +4571,9 @@ document.getElementById('mpl-ok').onclick=savePl;
 document.getElementById('mpl-delete').onclick=function(){if(ST.epid!==null)deletePlayerById(ST.epid);};
 document.getElementById('modal-pl').onclick=function(e){if(e.target===e.currentTarget)closePl();};
 document.getElementById('mpl-sel-toggle').onclick=function(){mplSelVal=!mplSelVal;this.classList.toggle('on',mplSelVal);document.getElementById('mpl-sel-lbl').textContent=mplSelVal?'Sim':'Não';};
+document.getElementById('btn-fmts').onclick=abrirModalFmts;
+document.getElementById('mfmts-close').onclick=fecharModalFmts;
+document.getElementById('modal-fmts').onclick=function(e){if(e.target===e.currentTarget)fecharModalFmts();};
 document.getElementById('mtgt-cancel').onclick=closeTgt;
 document.getElementById('mtgt-ok').onclick=saveTgt;
 document.getElementById('modal-tgt').onclick=function(e){if(e.target===e.currentTarget)closeTgt();};
@@ -4064,7 +4584,7 @@ bindNumericGuard('mtgt-nivel',clampNivel);
 bindNumericGuard('mtgt-val',clampValor);
 document.getElementById('si-search').oninput=function(e){ST.sf=e.target.value;renderTable();};
 document.getElementById('tgt-search').oninput=function(e){ST.tsf=e.target.value;renderMercado();};
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePl();closeTgt();fecharPopFuncao();fecharModalFmts();}if(e.key==='Enter'){if(document.getElementById('modal-pl').style.display!=='none')savePl();else if(document.getElementById('modal-tgt').style.display!=='none')saveTgt();}});
 
 // ── TEMA CLARO / ESCURO ─────────────────────────────────────────────────────
 (function initTheme(){
@@ -4104,6 +4624,29 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   if(!Array.isArray(dados.players))return;
   if(!dados.fmt||typeof dados.fmt!=='object'||Array.isArray(dados.fmt))return;
 
+  // Formações customizadas recebidas: validadas uma a uma (11 slots,
+  // coordenadas 0–100 e função dentro das 9 de POSITIONS). Qualquer formação
+  // fora do padrão é descartada em silêncio, como o resto deste bloco já faz.
+  var _fmtsRecebidas=validarCustomFmts(dados.customFmts);
+
+  // customFn recebido: só sobreposições de função válidas (slot 0–10 +
+  // posição conhecida). Chave inesperada é ignorada.
+  var _fnRecebido={};
+  if(dados.customFn&&typeof dados.customFn==='object'&&!Array.isArray(dados.customFn)){
+    Object.keys(dados.customFn).forEach(function(k){
+      var v=dados.customFn[k];
+      if(!v||typeof v!=='object'||Array.isArray(v))return;
+      var limpo={};
+      Object.keys(v).forEach(function(i){
+        var idx=parseInt(i,10);
+        if(isNaN(idx)||idx<0||idx>10)return;
+        if(POSITIONS.indexOf(v[i])===-1)return;
+        limpo[idx]=v[i];
+      });
+      if(Object.keys(limpo).length)_fnRecebido[k]=limpo;
+    });
+  }
+
   var TEXT_FIELDS=['name','obs','club','nat'];
   var MAX_TEXT=100;
   var schemaOk=dados.players.every(function(p){
@@ -4136,7 +4679,9 @@ document.getElementById('btn-theme').addEventListener('click',function(){
     slots:    JSON.parse(JSON.stringify(ST.slots||{})),
     fmt:      JSON.parse(JSON.stringify(ST.fmt||{})),
     slotsByFmt: JSON.parse(JSON.stringify(ST.slotsByFmt||{})),
-    customPos:  JSON.parse(JSON.stringify(ST.customPos||{}))
+    customPos:  JSON.parse(JSON.stringify(ST.customPos||{})),
+    customFn:   JSON.parse(JSON.stringify(ST.customFn||{})),
+    customFmts: JSON.parse(JSON.stringify(ST.customFmts||[]))
   };
 
   // Sobrescrever estado em memória com o recebido (sem salvar no localStorage)
@@ -4145,6 +4690,54 @@ document.getElementById('btn-theme').addEventListener('click',function(){
   if(dados.fmt)       ST.fmt=dados.fmt;
   if(dados.slotsByFmt)ST.slotsByFmt=dados.slotsByFmt;
   if(dados.customPos) ST.customPos=dados.customPos;
+  ST.customFmts=_fmtsRecebidas;
+  ST.customFn=_fnRecebido;
+  // Se o link aponta para uma formação que não veio junto (ou veio inválida),
+  // a aba cai na formação de fábrica em vez de ficar com o campo vazio.
+  ['A','B','C'].forEach(function(t){
+    if(!fmtExists(ST.fmt[t]))ST.fmt[t]=FMT_FALLBACK;
+  });
+
+  // Devolve o estado real do usuário (guardado acima) para a memória.
+  function _restaurarLocal(){
+    ST.players=_localBackup.players;
+    ST.slots=_localBackup.slots;
+    ST.fmt=_localBackup.fmt;
+    ST.slotsByFmt=_localBackup.slotsByFmt;
+    ST.customPos=_localBackup.customPos;
+    ST.customFn=_localBackup.customFn;
+    ST.customFmts=_localBackup.customFmts;
+  }
+
+  // Acrescenta as formações do link à lista de quem recebeu, sem apagar nada.
+  // Cada uma ganha um id interno novo (para não colidir com os ids de quem
+  // recebeu) e, se o nome já existir, um sufixo "(2)", "(3)"...
+  function _mesclarFormacoes(destino,recebidas){
+    var usados={};
+    destino.forEach(function(f){usados[String(f.name).toLowerCase()]=true;});
+    var maior=0;
+    destino.forEach(function(f){
+      var n=parseInt(String(f.id).replace('cf_',''),10);
+      if(!isNaN(n)&&n>maior)maior=n;
+    });
+    var add=0;
+    recebidas.forEach(function(f){
+      var nome=String(f.name);
+      if(usados[nome.toLowerCase()]){
+        // Encurta a base para o sufixo caber dentro do limite de caracteres.
+        var base=nome.slice(0,Math.max(1,FMT_NAME_MAX-5));
+        var n=2,cand=base+' ('+n+')';
+        while(usados[cand.toLowerCase()]&&n<99){n++;cand=base+' ('+n+')';}
+        if(usados[cand.toLowerCase()])return; // caso extremo: desiste desta
+        nome=cand;
+      }
+      usados[nome.toLowerCase()]=true;
+      maior++;
+      destino.push({id:'cf_'+maior,name:nome,slots:f.slots});
+      add++;
+    });
+    return add;
+  }
 
   // Exibir banner de aviso
   var banner=document.createElement('div');
@@ -4153,29 +4746,56 @@ document.getElementById('btn-theme').addEventListener('click',function(){
     'position:fixed','bottom:0','left:0','right:0','z-index:9999',
     'background:#b91c1c','color:#fff','text-align:center',
     'padding:10px 16px','font-size:14px','display:flex',
-    'align-items:center','justify-content:center','gap:12px',
+    'align-items:center','justify-content:center','gap:8px',
+    'flex-wrap:wrap',
     'box-shadow:0 -2px 8px rgba(0,0,0,.5)'
   ].join(';');
   var texto=document.createElement('span');
   texto.textContent='👁 Você está vendo a escalação de outra pessoa.';
-  var btn=document.createElement('button');
-  btn.textContent='Carregar minha escalação';
-  btn.style.cssText=[
-    'background:#fff','color:#b91c1c','border:none','border-radius:6px',
-    'padding:5px 12px','font-size:13px','font-weight:700',
-    'cursor:pointer','white-space:nowrap'
-  ].join(';');
-  btn.onclick=function(){
-    ST.players=_localBackup.players;
-    ST.slots=_localBackup.slots;
-    ST.fmt=_localBackup.fmt;
-    ST.slotsByFmt=_localBackup.slotsByFmt;
-    ST.customPos=_localBackup.customPos;
+  banner.appendChild(texto);
+
+  function _btnBanner(rotulo,acao){
+    var b=document.createElement('button');
+    b.textContent=rotulo;
+    b.style.cssText=[
+      'background:#fff','color:#b91c1c','border:none','border-radius:6px',
+      'padding:5px 12px','font-size:13px','font-weight:700',
+      'cursor:pointer','white-space:nowrap'
+    ].join(';');
+    b.onclick=acao;
+    banner.appendChild(b);
+    return b;
+  }
+
+  // 1) Volta para o que era do usuário. Nada é gravado.
+  _btnBanner('Carregar minha escalação',function(){
+    _restaurarLocal();
     banner.remove();
     render();
-  };
-  banner.appendChild(texto);
-  banner.appendChild(btn);
+  });
+
+  // 2) Fica só com o desenho tático das formações recebidas, somando à lista de
+  //    quem recebeu. Elenco e escalações próprios continuam intactos.
+  if(_fmtsRecebidas.length){
+    _btnBanner('Salvar formações',function(){
+      _restaurarLocal();
+      var add=_mesclarFormacoes(ST.customFmts,_fmtsRecebidas);
+      save();
+      banner.remove();
+      render();
+      alert(add===1?'1 formação foi adicionada à sua lista.':add+' formações foram adicionadas à sua lista.');
+    });
+  }
+
+  // 3) Substitui elenco, escalações e formações pelos do link. Destrutivo, por
+  //    isso pede confirmação. Alvos de mercado e níveis da Série A não viajam
+  //    no link, então os do usuário permanecem como estavam.
+  _btnBanner('Salvar tudo',function(){
+    if(!confirm('Isso vai substituir o seu elenco, as suas escalações e as suas formações pelos do link.\n\nSeus alvos de mercado e os níveis da Série A não são afetados.\n\nContinuar?'))return;
+    save();
+    banner.remove();
+    render();
+  });
   document.body.appendChild(banner);
 
   render();

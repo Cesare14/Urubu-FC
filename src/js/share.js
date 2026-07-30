@@ -1002,7 +1002,9 @@ function compartilharLinkEscalacao(){
     slots:   ST.slots,
     fmt:     ST.fmt,
     slotsByFmt: ST.slotsByFmt,
-    customPos:  ST.customPos
+    customPos:  ST.customPos,
+    customFn:   ST.customFn,
+    customFmts: ST.customFmts
   };
 
   var json=JSON.stringify(dados);

@@ -827,3 +827,61 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .pbadge{font-size:11.5px}
   .stag{font-size:9px}
 }
+/* ── FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
+   Botão "Formações" (era só o rótulo .plbl da barra), botão Salvar ao
+   lado do Reset, popover de função do slot e a janela de gerenciamento.
+   Tudo em variáveis de tema, então o modo claro acompanha sozinho. */
+
+/* O rótulo virou botão: mantém a tipografia de .plbl e só ganha
+   affordance de clique (borda ao passar o mouse). */
+.plbl-btn{background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 6px;margin-left:-6px;cursor:pointer;transition:all .12s;font-family:'Barlow',sans-serif}
+.plbl-btn:hover{border-color:var(--dark4);color:var(--gray-l)}
+.plbl-btn:active{transform:scale(.96)}
+
+/* Nome customizado pode ser longo (até 20 caracteres): corta com "…" para
+   não empurrar o campo tático para baixo no celular. O nome inteiro fica
+   no title do botão. */
+.fmtab-save{font-size:11px;padding:3px 10px;letter-spacing:.5px}
+
+/* Botão "Formações": texto (abre o modal) + setinha (abre o dropdown de
+   troca rápida) lado a lado, reaproveitando .mf-wrap/.mf-btn/.mf-dropdown
+   já usados em Pos/Status do elenco — sem inventar um componente novo. */
+.fmts-wrap{display:inline-flex;align-items:center;gap:2px}
+.mf-btn.mf-btn-fmts{min-width:auto;padding:2px 5px;background:transparent;border:1px solid transparent;color:var(--gray);gap:0;border-radius:4px}
+.mf-btn.mf-btn-fmts span{font-size:12px;font-weight:700;line-height:1}
+.mf-btn.mf-btn-fmts:hover{color:var(--gray-l);border-color:var(--dark4)}
+.mf-btn.mf-btn-fmts.open{border-color:var(--dark4)}
+/* Sem nenhuma formação salva a setinha fica desabilitada — nada para trocar. */
+.mf-btn.mf-btn-fmts[disabled]{opacity:.35;cursor:default;pointer-events:none}
+/* Opção ativa no dropdown de formações (equivalente ao .mf-opt.sel, mas essa
+   lista é seleção única — troca ao clicar, sem multi-seleção nem "Todos"). */
+.mf-opt.fmt-ativa{background:var(--dark3);color:var(--white)}
+/* Nome longo é cortado só dentro do dropdown — na barra de botões ele nunca
+   mais aparece por extenso, então não precisa de max-width lá. */
+.mf-opt.fmt-opt span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+/* Popover de função do slot. position:fixed porque o #field tem
+   overflow:hidden e cortaria o popover se ele nascesse lá dentro. */
+.fnpop{position:fixed;z-index:120;background:var(--dark2);border:1px solid var(--dark4);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;box-shadow:0 6px 20px rgba(0,0,0,.55)}
+.fnpop-lbl{font-family:'Barlow',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray);white-space:nowrap}
+.fnpop-sel{min-width:104px;padding:5px 8px;font-size:13px}
+
+/* Lista da janela "Formações" — rola sozinha quando houver muitas. */
+.fmts-list{display:flex;flex-direction:column;gap:6px;max-height:min(46vh,300px);overflow-y:auto}
+.fmts-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;background:var(--dark3);border:1px solid var(--dark4);border-radius:6px}
+.fmts-item.em-uso{border-color:var(--red)}
+.fmts-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fmts-nome{font-family:'Barlow',sans-serif;font-size:13px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmts-uso{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--gray)}
+.fmts-acts{display:flex;gap:6px;flex-shrink:0}
+.fmts-btn{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:5px;border:1px solid var(--dark4);background:transparent;color:var(--gray-l);cursor:pointer;transition:all .12s;white-space:nowrap}
+.fmts-btn:hover{border-color:var(--gray);color:var(--white)}
+.fmts-btn-del{color:var(--red);border-color:var(--red)}
+.fmts-btn-del:hover{background:rgba(197,38,19,.1);color:var(--red);border-color:var(--red)}
+.fmts-empty{font-family:'Barlow',sans-serif;font-size:12.5px;line-height:1.5;color:var(--gray);padding:6px 2px}
+
+/* Toque longo no slot precisa chegar ao JS: sem isso o iOS abre o menu
+   nativo de copiar/compartilhar e o Android inicia o arrasto nativo
+   (os cards preenchidos têm draggable=true). */
+.scard{-webkit-touch-callout:none}

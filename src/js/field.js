@@ -77,7 +77,25 @@ function snapToGrid(xPct, yPct) {
 function slotPos(tab, i) {
   var key = tab + '|' + ST.fmt[tab];
   if (ST.customPos[key] && ST.customPos[key][i]) return ST.customPos[key][i];
-  var s = FMTS[ST.fmt[tab]][i]; return [s[0], s[1]];
+  var s = fmtSlots(ST.fmt[tab])[i]; return [s[0], s[1]];
+}
+// Função (GOL/ZAG/VOL...) do slot i. Mesmo padrão do customPos acima: o valor
+// base vem da formação (de fábrica ou customizada) e pode ser sobreposto por
+// uma troca solta do usuário, guardada por aba+formação em ST.customFn. Ao
+// salvar a configuração como formação nova, essas trocas são congeladas dentro
+// dela e a sobreposição é limpa.
+function slotFn(tab, i) {
+  var key = tab + '|' + ST.fmt[tab];
+  if (ST.customFn && ST.customFn[key] && ST.customFn[key][i]) return ST.customFn[key][i];
+  var s = fmtSlots(ST.fmt[tab])[i];
+  return s ? s[2] : 'MEI';
+}
+function setSlotFn(tab, i, pos) {
+  if (POSITIONS.indexOf(pos) === -1) return; // dropdown fechado: nunca valor livre
+  var key = tab + '|' + ST.fmt[tab];
+  if (!ST.customFn) ST.customFn = {};
+  if (!ST.customFn[key]) ST.customFn[key] = {};
+  ST.customFn[key][i] = pos;
 }
 function setCustomPos(tab, i, xy) {
   var key = tab + '|' + ST.fmt[tab];
@@ -87,6 +105,63 @@ function setCustomPos(tab, i, xy) {
 function resetCustomPos(tab) {
   var key = tab + '|' + ST.fmt[tab];
   delete ST.customPos[key];
+  if (ST.customFn) delete ST.customFn[key];
+}
+
+// ── POPOVER DE FUNÇÃO DO SLOT ───────────────────────────────────────────────
+// Abre no clique curto (desktop) ou no toque longo de 500ms (mobile — 500ms é o
+// long_press_timeout padrão do Android). Usa um <select> nativo: dropdown
+// fechado com as 9 posições de POSITIONS, nunca texto livre, senão
+// pmatch/autoFill deixariam de casar jogadores com o slot. Trocar a função NÃO
+// mexe em ST.slots: o jogador que estiver no slot continua nele.
+var _fnpopEl = null;
+var _longPressFired = false; // suprime o tap que vem logo após o toque longo
+
+function fecharPopFuncao() {
+  if (_fnpopEl && _fnpopEl.parentNode) _fnpopEl.parentNode.removeChild(_fnpopEl);
+  _fnpopEl = null;
+  document.removeEventListener('click', _fnpopFora, true);
+}
+function _fnpopFora(e) {
+  if (_fnpopEl && !_fnpopEl.contains(e.target)) fecharPopFuncao();
+}
+function abrirPopFuncao(sc, tab, i) {
+  fecharPopFuncao();
+  clearTouchSel();
+  var pop = document.createElement('div');
+  pop.className = 'fnpop'; pop.id = 'fnpop';
+  var lbl = document.createElement('div'); lbl.className = 'fnpop-lbl'; lbl.textContent = 'Função do slot';
+  var sel = document.createElement('select'); sel.className = 'fs fnpop-sel';
+  var atual = slotFn(tab, i);
+  POSITIONS.forEach(function (pos) {
+    var o = document.createElement('option');
+    o.value = pos; o.textContent = pos;
+    if (pos === atual) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('click', function (e) { e.stopPropagation(); });
+  sel.addEventListener('change', function () {
+    setSlotFn(tab, i, sel.value);
+    save();
+    fecharPopFuncao();
+    patchSlot(i, tab);
+  });
+  pop.appendChild(lbl); pop.appendChild(sel);
+  document.body.appendChild(pop);
+
+  // Ancorado no próprio slot, preso à viewport (position:fixed no CSS): o
+  // #field tem overflow:hidden e cortaria o popover se ele nascesse lá dentro.
+  var r = sc.getBoundingClientRect();
+  var pw = pop.offsetWidth || 140, ph = pop.offsetHeight || 66;
+  var left = Math.max(8, Math.min(window.innerWidth - pw - 8, r.left + r.width / 2 - pw / 2));
+  var top = r.bottom + 6;
+  if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 6);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  _fnpopEl = pop;
+  // setTimeout: sem isso o próprio clique/toque que abriu o popover seria
+  // capturado logo abaixo e o fecharia no mesmo instante.
+  setTimeout(function () { document.addEventListener('click', _fnpopFora, true); }, 0);
 }
 
 // ── TOUCH DRAG ──────────────────────────────────────────────────────────────
@@ -96,12 +171,28 @@ function addTouchDrag(sc, tab) {
   var startX = 0, startY = 0;
   var moved = false;
   var MOVE_THRESHOLD = 8; // px para distinguir tap de drag
+  var pressTimer = null;
+  var LONGPRESS_DELAY = 500; // ms parado até abrir o popover de função
 
+  function cancelarLongPress() {
+    if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+  }
 
   sc.addEventListener('touchstart', function (e) {
     moved = false;
     var t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
+
+    // Toque longo parado → popover de função. Qualquer deslocamento acima do
+    // MOVE_THRESHOLD (abaixo, no touchmove) cancela: arrastar tem prioridade.
+    _longPressFired = false;
+    cancelarLongPress();
+    pressTimer = setTimeout(function () {
+      pressTimer = null;
+      if (moved) return;
+      _longPressFired = true;
+      abrirPopFuncao(sc, tab, +sc.dataset.si);
+    }, LONGPRESS_DELAY);
 
     // Criar clone após pequeno delay (evita conflito com tap)
     clone = null;
@@ -113,6 +204,7 @@ function addTouchDrag(sc, tab) {
 
     if (!moved && Math.sqrt(dx * dx + dy * dy) > MOVE_THRESHOLD) {
       moved = true;
+      cancelarLongPress();
       // Iniciar drag: criar clone fixo na viewport
       clone = sc.cloneNode(true);
       clone.classList.add('touch-drag-clone');
@@ -145,6 +237,7 @@ function addTouchDrag(sc, tab) {
   }, { passive: false });
 
   sc.addEventListener('touchend', function (e) {
+    cancelarLongPress();
     stopAutoScroll();
     var fElEnd = document.getElementById('field');
     if (fElEnd) fElEnd.style.touchAction = 'auto'; // libera scroll normal do campo ao soltar
@@ -203,6 +296,7 @@ function addTouchDrag(sc, tab) {
   }, { passive: false });
 
   sc.addEventListener('touchcancel', function () {
+    cancelarLongPress();
     stopAutoScroll();
     var fElCancel = document.getElementById('field');
     if (fElCancel) fElCancel.style.touchAction = 'auto';
@@ -322,7 +416,7 @@ function buildStripeCircle(size) {
 
 // ── BUILD SCARD ──────────────────────────────────────────────────────────────
 function buildScard(i, tab) {
-  var s = FMTS[ST.fmt[tab]][i];
+  var sfn = slotFn(tab, i);
   var ent = slotEnt(tab, i); var isTgt = ent && ent.type === 't';
   var isCircle = tab === 'A' || tab === 'B' || tab === 'C'; // Fase B do redesign: circular em Titulares, Reservas e Projeção. Mercado/Alvos é painel separado (market.js) e não passa por buildScard.
   var sc = document.createElement('div');
@@ -430,11 +524,11 @@ function buildScard(i, tab) {
       // estado não-.filled/.ftgt) — sem isso, o slot vazio ficava sem
       // nenhuma indicação visual de área de destino no redesign circular.
       var emptyWrap = document.createElement('div'); emptyWrap.className = 'circle-visual circle-visual--empty';
-      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = s[2];
+      var semptyEl = document.createElement('span'); semptyEl.className = 'sempty'; semptyEl.textContent = sfn;
       emptyWrap.appendChild(semptyEl);
       sc.appendChild(emptyWrap);
     } else {
-      sc.innerHTML = '<span class="sempty">' + s[2] + '</span>';
+      sc.innerHTML = '<span class="sempty">' + sfn + '</span>';
     }
   }
 
@@ -472,7 +566,22 @@ function buildScard(i, tab) {
     sc.addEventListener('click', function (e) {
       // click após drag já foi resolvido pelo touchend; só processar taps reais
       if (e.detail === 0) return; // evento sintético
+      // Toque longo acabou de abrir o popover de função: o navegador ainda
+      // dispara um click logo em seguida. Sem esta guarda, esse click cairia
+      // no tap-to-select e mexeria no jogador do slot sem o usuário pedir.
+      if (_longPressFired) { _longPressFired = false; return; }
       onScardTap(sc, tab);
+    });
+    // Menu nativo do navegador no toque longo (copiar/compartilhar no iOS,
+    // arrasto nativo no Android por causa do draggable=true) roubaria o gesto.
+    sc.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  } else {
+    // Desktop: clique curto no slot abre o popover de função. O arrasto usa a
+    // API de drag nativa (dragstart/drop), que não dispara click — então não
+    // há conflito entre mover o jogador e trocar a função do slot.
+    sc.addEventListener('click', function (e) {
+      if (e.target.closest('.sclr')) return; // o "×" tem ação própria
+      abrirPopFuncao(sc, tab, i);
     });
   }
 
@@ -510,10 +619,10 @@ function renderField() {
     '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.50"/>';
   field.appendChild(svg);
 
-  var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = ST.fmt[tab];
+  var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = fmtLabel(ST.fmt[tab]);
   field.appendChild(bdg);
 
-  FMTS[ST.fmt[tab]].forEach(function (s, i) {
+  fmtSlots(ST.fmt[tab]).forEach(function (s, i) {
     field.appendChild(buildScard(i, tab));
   });
 
@@ -554,24 +663,38 @@ function renderField() {
 // ── RENDER FM TABS ───────────────────────────────────────────────────────────
 function renderFmTabs() {
   const tab = ST.ft, el = document.getElementById('fmtabs'); el.innerHTML = '';
+  // Só as 4 formações de fábrica ficam na barra de botões — conjunto fechado
+  // e conhecido, então 1 clique faz sentido aqui. As customizadas (conjunto
+  // sem limite de tamanho) vivem no dropdown do botão "Formações", ao lado do
+  // rótulo — ver trocarViaDropdownFmts()/renderFmtsDropdown() mais abaixo.
+  // Se a formação ativa for uma customizada, nenhum destes 4 botões acende.
   Object.keys(FMTS).forEach(function (f) {
     const b = document.createElement('button');
     b.className = 'fmtab' + (f === ST.fmt[tab] ? ' active' : '');
     b.textContent = f;
     b.onclick = function () {
+      fecharPopFuncao();
       syncSlotsToFmt();
       ST.fmt[tab] = f;
       var key = tab + '|' + f;
       ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
-      save(); renderFmTabs(); renderField(); renderBar(); renderTable();
+      save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
     };
     el.appendChild(b);
   });
+  // Salvar: congela a configuração atual (posições + funções) como formação.
+  const sb = document.createElement('button');
+  sb.className = 'btn btn-ghost fmtab-save';
+  sb.textContent = '💾 Salvar';
+  sb.title = 'Salvar a configuração atual como formação';
+  sb.onclick = function () { salvarFormacaoAtual(); };
+  el.appendChild(sb);
   const rb = document.createElement('button');
   rb.className = 'btn btn-red fmtab-reset';
   rb.textContent = '↺ Reset';
   rb.title = 'Limpar escalação e posições desta formação';
   rb.onclick = function () {
+    fecharPopFuncao();
     resetCustomPos(tab);
     ST.slots[tab] = Array(11).fill(null);
     var key = tab + '|' + ST.fmt[tab]; ST.slotsByFmt[key] = Array(11).fill(null);
@@ -579,6 +702,242 @@ function renderFmTabs() {
     save(); renderField(); renderBar(); renderTable();
   };
   el.appendChild(rb);
+}
+
+// ── GERENCIAR FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
+var TAB_NOMES = { A: 'Titulares', B: 'Reservas', C: 'Projeção' };
+
+// Os 11 slots da aba como estão AGORA na tela: posição já com os ajustes
+// arrastados (customPos) e função já com as trocas do popover (customFn).
+function _slotsAtuais(tab) {
+  var out = [];
+  for (var i = 0; i < 11; i++) {
+    var pos = slotPos(tab, i);
+    out.push([pos[0], pos[1], slotFn(tab, i)]);
+  }
+  return out;
+}
+
+// Nome duplicado é bloqueado tanto entre as customizadas quanto contra as de
+// fábrica: dois botões com o mesmo rótulo na barra deixariam o usuário sem
+// saber qual é qual.
+function _erroNomeFmt(nome, ignorarId) {
+  nome = String(nome == null ? '' : nome).trim();
+  if (!nome) return 'O nome não pode ficar vazio.';
+  if (nome.length > FMT_NAME_MAX) return 'O nome deve ter no máximo ' + FMT_NAME_MAX + ' caracteres.';
+  if (FMTS[nome]) return 'Já existe uma formação de fábrica com esse nome.';
+  var alvo = sanitizeText(nome).toLowerCase();
+  var dup = (ST.customFmts || []).some(function (f) {
+    return f.id !== ignorarId && String(f.name).toLowerCase() === alvo;
+  });
+  if (dup) return 'Você já tem uma formação com esse nome.';
+  return null;
+}
+function _pedirNomeFmt(titulo, valorInicial, ignorarId) {
+  var nome = valorInicial || '';
+  for (;;) {
+    nome = prompt(titulo, nome);
+    if (nome === null) return null; // cancelou
+    nome = String(nome).trim();
+    var erro = _erroNomeFmt(nome, ignorarId);
+    if (!erro) return sanitizeText(nome);
+    alert(erro);
+  }
+}
+
+function salvarFormacaoAtual() {
+  fecharPopFuncao();
+  var tab = ST.ft;
+  var atual = ST.fmt[tab];
+  var custom = getCustomFmt(atual);
+  var slots = _slotsAtuais(tab);
+
+  if (custom) {
+    // Já estamos numa formação salva: sobrescrever ou tirar uma cópia nova?
+    var sobrescrever = confirm(
+      'Salvar alterações em "' + custom.name + '"?\n\n' +
+      'OK = salvar as alterações nesta formação\n' +
+      'Cancelar = salvar como uma formação nova'
+    );
+    if (sobrescrever) {
+      custom.slots = slots;
+      // Ajustes soltos viraram parte da formação: a sobreposição some.
+      delete ST.customPos[tab + '|' + atual];
+      if (ST.customFn) delete ST.customFn[tab + '|' + atual];
+      save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar();
+      return;
+    }
+  }
+
+  var nome = _pedirNomeFmt(
+    'Nome da nova formação (até ' + FMT_NAME_MAX + ' caracteres):',
+    custom ? '' : atual, null
+  );
+  if (nome === null) return;
+
+  var id = nextCustomFmtId();
+  ST.customFmts.push({ id: id, name: nome, slots: slots });
+
+  // A escalação que está em campo acompanha a formação nova (mesmos 11 slots).
+  ST.slotsByFmt[tab + '|' + id] = ST.slots[tab].slice();
+
+  // Os ajustes soltos foram congelados na formação nova: a formação de origem
+  // desta aba volta ao layout original e a nova nasce sem sobreposições.
+  delete ST.customPos[tab + '|' + atual];
+  if (ST.customFn) delete ST.customFn[tab + '|' + atual];
+  delete ST.customPos[tab + '|' + id];
+  if (ST.customFn) delete ST.customFn[tab + '|' + id];
+
+  ST.fmt[tab] = id;
+  save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+
+function renomearFormacao(id) {
+  var f = getCustomFmt(id);
+  if (!f) return;
+  var nome = _pedirNomeFmt('Novo nome da formação:', f.name, id);
+  if (nome === null) return;
+  f.name = nome;
+  // O id interno não muda, então escalação e posições salvas continuam ligadas.
+  save(); renderFmtsList(); renderFmTabs(); renderFmtsDropdownBtn(); renderField();
+}
+
+function excluirFormacao(id) {
+  var f = getCustomFmt(id);
+  if (!f) return;
+  var emUso = ['A', 'B', 'C'].filter(function (t) { return ST.fmt[t] === id; });
+  var msg = 'Excluir a formação "' + f.name + '"?';
+  if (emUso.length) {
+    msg += '\n\nEla está em uso em: ' + emUso.map(function (t) { return TAB_NOMES[t]; }).join(', ') +
+           '.\nEssa(s) aba(s) voltam para a formação ' + FMT_FALLBACK + '.';
+  }
+  msg += '\n\nEssa ação não pode ser desfeita.';
+  if (!confirm(msg)) return;
+
+  ST.customFmts = ST.customFmts.filter(function (x) { return x.id !== id; });
+  ['A', 'B', 'C'].forEach(function (t) {
+    var key = t + '|' + id;
+    delete ST.slotsByFmt[key];
+    delete ST.customPos[key];
+    if (ST.customFn) delete ST.customFn[key];
+    if (ST.fmt[t] === id) {
+      ST.fmt[t] = FMT_FALLBACK;
+      var fk = t + '|' + FMT_FALLBACK;
+      ST.slots[t] = ST.slotsByFmt[fk] ? ST.slotsByFmt[fk].slice() : Array(11).fill(null);
+    }
+  });
+  fecharPopFuncao();
+  save(); renderFmtsList(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+
+// ── JANELA "FORMAÇÕES" (lista + renomear + excluir) ──────────────────────────
+function abrirModalFmts() {
+  fecharPopFuncao();
+  closeAllDD();
+  renderFmtsList();
+  document.getElementById('modal-fmts').style.display = 'flex';
+}
+function fecharModalFmts() {
+  document.getElementById('modal-fmts').style.display = 'none';
+}
+function renderFmtsList() {
+  var el = document.getElementById('fmts-list');
+  if (!el) return;
+  el.innerHTML = '';
+  var lista = ST.customFmts || [];
+  if (!lista.length) {
+    var vazio = document.createElement('div');
+    vazio.className = 'fmts-empty';
+    vazio.textContent = 'Você ainda não salvou nenhuma formação. Mova os jogadores no campo, troque as funções dos slots e use o botão Salvar, ao lado do Reset.';
+    el.appendChild(vazio);
+    return;
+  }
+  lista.forEach(function (f) {
+    var abas = ['A', 'B', 'C'].filter(function (t) { return ST.fmt[t] === f.id; });
+    var row = document.createElement('div');
+    row.className = 'fmts-item' + (abas.length ? ' em-uso' : '');
+
+    var info = document.createElement('div'); info.className = 'fmts-info';
+    var nome = document.createElement('span'); nome.className = 'fmts-nome'; nome.textContent = f.name;
+    info.appendChild(nome);
+    if (abas.length) {
+      var uso = document.createElement('span'); uso.className = 'fmts-uso';
+      uso.textContent = 'Em uso · ' + abas.map(function (t) { return TAB_NOMES[t]; }).join(', ');
+      info.appendChild(uso);
+    }
+
+    var acts = document.createElement('div'); acts.className = 'fmts-acts';
+    var bRen = document.createElement('button'); bRen.className = 'fmts-btn'; bRen.textContent = 'Renomear';
+    bRen.onclick = function () { renomearFormacao(f.id); };
+    var bDel = document.createElement('button'); bDel.className = 'fmts-btn fmts-btn-del'; bDel.textContent = 'Excluir';
+    bDel.onclick = function () { excluirFormacao(f.id); };
+    acts.appendChild(bRen); acts.appendChild(bDel);
+
+    row.appendChild(info); row.appendChild(acts);
+    el.appendChild(row);
+  });
+}
+
+// ── DROPDOWN "MINHAS FORMAÇÕES" (troca rápida, ao lado do botão Formações) ──
+// Reaproveita o mesmo componente já usado nos filtros de Pos/Status do elenco
+// (positionMFDropdown/closeAllDD, definidos em ui.js): um <div class="mf-dropdown">
+// portado para #mf-portal ao abrir, fechado num clique fora ou no scroll.
+// Diferença para aquele uso: aqui é seleção única (troca ao clicar), não
+// multi-seleção — por isso não há linha "Todos" nem checkbox, só destaque na
+// formação ativa.
+function trocarViaDropdownFmts(id) {
+  var tab = ST.ft;
+  fecharPopFuncao();
+  closeAllDD();
+  syncSlotsToFmt();
+  ST.fmt[tab] = id;
+  var key = tab + '|' + id;
+  ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
+  save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
+}
+function renderFmtsDropdown() {
+  var dd = document.getElementById('mf-fmts-dd');
+  if (!dd) return;
+  dd.innerHTML = '';
+  var tab = ST.ft, lista = ST.customFmts || [];
+  lista.forEach(function (f) {
+    var ativa = f.id === ST.fmt[tab];
+    var opt = document.createElement('div');
+    opt.className = 'mf-opt fmt-opt' + (ativa ? ' fmt-ativa' : '');
+    var lbl = document.createElement('span'); lbl.textContent = f.name; lbl.title = f.name;
+    opt.appendChild(lbl);
+    opt.onclick = function (e) { e.stopPropagation(); trocarViaDropdownFmts(f.id); };
+    dd.appendChild(opt);
+  });
+}
+// Habilita/desabilita a setinha (sem nenhuma formação salva não há o que
+// trocar) e liga o clique que abre o dropdown — chamada sempre que a lista de
+// formações muda (salvar, renomear, excluir, ou ao carregar um link recebido).
+function renderFmtsDropdownBtn() {
+  var btn = document.getElementById('mf-fmts-btn');
+  var wrap = document.getElementById('mf-fmts-wrap');
+  if (!btn || !wrap) return;
+  var vazio = !(ST.customFmts && ST.customFmts.length);
+  btn.disabled = vazio;
+  if (vazio) {
+    closeAllDD();
+    var dd0 = document.getElementById('mf-fmts-dd');
+    if (dd0) dd0.innerHTML = ''; // não deixar opção fantasma de uma lista anterior
+    return;
+  }
+  renderFmtsDropdown();
+  btn.onclick = function (e) {
+    e.stopPropagation();
+    var dd = document.getElementById('mf-fmts-dd');
+    var open = dd.classList.contains('open');
+    closeAllDD();
+    if (!open) {
+      renderFmtsDropdown(); // sempre atual: nome/estado podem ter mudado
+      positionMFDropdown(dd, btn);
+      dd.classList.add('open');
+      btn.classList.add('open');
+    }
+  };
 }
 
 function renderBar() {

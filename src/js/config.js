@@ -13,6 +13,75 @@ const FMTS={
   '3-5-2':[[50,86,'GOL'],[70.4,76,'ZAG'],[50,78,'ZAG'],[29.6,76,'ZAG'],[85.7,52,'LD'],[65.3,49,'VOL'],[50,47,'MEI'],[34.7,49,'VOL'],[14.3,52,'LE'],[33,12,'CA'],[67,12,'CA']]
 };
 
+// ── FORMAÇÕES CUSTOMIZADAS ─────────────────────────────────────
+// FMTS (acima) permanece intocado: e a fonte das formacoes de fabrica.
+// As formacoes criadas pelo usuario vivem em ST.customFmts, cada uma com um
+// id interno estavel ('cf_1', 'cf_2', ...) que NUNCA muda. E esse id que vai
+// para ST.fmt[aba] e para as chaves de ST.slotsByFmt / ST.customPos / ST.customFn
+// — assim renomear a formacao nunca quebra a escalacao ja salva nela.
+const CUSTOM_FMT_SCHEMA_V=1;   // versao do schema de ST.customFmts (ver state.js)
+const FMT_FALLBACK='4-2-3-1';  // formacao de fabrica usada quando a atual some
+const FMT_NAME_MAX=20;         // limite de caracteres do nome de uma formacao
+
+function getCustomFmt(key){
+  if(!key||!ST.customFmts)return null;
+  for(var i=0;i<ST.customFmts.length;i++){if(ST.customFmts[i].id===key)return ST.customFmts[i];}
+  return null;
+}
+function isCustomFmt(key){return !!getCustomFmt(key);}
+// Os 11 slots [x,y,'POSICAO'] da formacao ativa, seja de fabrica ou customizada.
+function fmtSlots(key){
+  var c=getCustomFmt(key);
+  if(c)return c.slots;
+  return FMTS[key]||FMTS[FMT_FALLBACK];
+}
+// Nome exibido: formacao de fabrica usa a propria chave ('4-3-3').
+function fmtLabel(key){
+  var c=getCustomFmt(key);
+  return c?c.name:key;
+}
+function fmtExists(key){return !!FMTS[key]||!!getCustomFmt(key);}
+function nextCustomFmtId(){
+  var max=0;
+  (ST.customFmts||[]).forEach(function(f){
+    var n=parseInt(String(f.id).replace('cf_',''),10);
+    if(!isNaN(n)&&n>max)max=n;
+  });
+  return 'cf_'+(max+1);
+}
+// Validacao de uma formacao vinda de fora (localStorage, import JSON ou link
+// compartilhado). Retorna a formacao normalizada ou null se estiver invalida.
+// Exige exatamente 11 slots, coordenadas numericas em 0-100 e funcao dentro
+// das 9 de POSITIONS — sem isso, pmatch/autoFill nao teriam como funcionar.
+function validarCustomFmt(f){
+  if(!f||typeof f!=='object'||Array.isArray(f))return null;
+  if(typeof f.id!=='string'||!/^cf_[0-9]{1,6}$/.test(f.id))return null;
+  if(typeof f.name!=='string')return null;
+  var nome=f.name.trim();
+  if(!nome||nome.length>FMT_NAME_MAX)return null;
+  if(!Array.isArray(f.slots)||f.slots.length!==11)return null;
+  var slots=[];
+  for(var i=0;i<11;i++){
+    var s=f.slots[i];
+    if(!Array.isArray(s)||s.length<3)return null;
+    var x=Number(s[0]),y=Number(s[1]),pos=s[2];
+    if(!isFinite(x)||x<0||x>100)return null;
+    if(!isFinite(y)||y<0||y>100)return null;
+    if(typeof pos!=='string'||POSITIONS.indexOf(pos)===-1)return null;
+    slots.push([x,y,pos]);
+  }
+  return {id:f.id,name:(typeof sanitizeText==='function'?sanitizeText(nome):nome),slots:slots};
+}
+function validarCustomFmts(lista){
+  if(!Array.isArray(lista))return [];
+  var out=[],vistos={};
+  lista.forEach(function(f){
+    var ok=validarCustomFmt(f);
+    if(ok&&!vistos[ok.id]){vistos[ok.id]=true;out.push(ok);}
+  });
+  return out;
+}
+
 function pmatch(p,l){const m={GOL:['GOL'],LD:['LD'],LE:['LE'],ZAG:['ZAG'],VOL:['VOL'],MEI:['MEI'],CA:['CA'],PD:['PD','MEI'],PE:['PE','MEI']};return(m[l]||[l]).includes(p);}
 function nivelDef(s){return{Titular:80,Importante:70,'Compõe elenco':60,Vender:55,Dispensável:45}[s]||60;}
 function starChar(i,prio){
@@ -58,6 +127,8 @@ let ST={
   slots:{A:Array(11).fill(null),B:Array(11).fill(null),C:Array(11).fill(null)},
   slotsByFmt:{},
   customPos:{},
+  customFn:{},
+  customFmts:[],
   ft:'A',rt:'elenco',
   sf:'',filterPos:[],filterStatus:[],
   tsf:'',filterTPos:[],filterTPrio:[],

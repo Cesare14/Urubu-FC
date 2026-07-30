@@ -1,4 +1,4 @@
-function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,serieA:ST.serieA}));}catch(e){}}
+function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,customFn:ST.customFn,customFmts:ST.customFmts,customFmtsV:CUSTOM_FMT_SCHEMA_V,serieA:ST.serieA}));}catch(e){}}
 function load(){
   try{
     const r=localStorage.getItem(SK);
@@ -10,6 +10,18 @@ function load(){
       ST.slots=Object.assign({A:Array(11).fill(null),B:Array(11).fill(null),C:Array(11).fill(null)},d.slots||{});
       ST.slotsByFmt=d.slotsByFmt||{};
       ST.customPos=d.customPos||{};
+      ST.customFn=d.customFn||{};
+      // Formações customizadas: sempre revalidadas na carga (o localStorage pode
+      // ter sido editado à mão ou vir de uma versão futura do schema). Formação
+      // inválida é descartada em silêncio em vez de quebrar o campo.
+      // d.customFmtsV guarda a versão do schema — hoje só é registrada; quando
+      // houver uma v2, é aqui que a migração vai entrar, antes de validar.
+      ST.customFmts=validarCustomFmts(d.customFmts);
+      // Se alguma aba apontava para uma formação que não existe mais (foi
+      // excluída, ou veio inválida acima), volta para a formação de fábrica.
+      ['A','B','C'].forEach(function(t){
+        if(!fmtExists(ST.fmt[t]))ST.fmt[t]=FMT_FALLBACK;
+      });
       // sincronizar: ST.slots[tab] reflete a escalação da formação atual de cada aba
       ['A','B','C'].forEach(function(t){
         var key=t+'|'+ST.fmt[t];
@@ -50,10 +62,10 @@ function slotEnt(tab,i){
   return null;
 }
 function autoFill(tab){
-  const f=FMTS[ST.fmt[tab]];ST.slots[tab]=Array(11).fill(null);
+  const f=fmtSlots(ST.fmt[tab]);ST.slots[tab]=Array(11).fill(null);
   const used=new Set();
   const pool=tab==='B'?ST.players.filter(function(p){return p.status==='Importante'||p.status==='Compõe elenco';}):ST.players.filter(function(p){return p.status==='Titular';});
-  f.forEach(function(s,i){const m=pool.find(function(p){return !used.has(p.id)&&pmatch(p.pos,s[2]);});if(m){ST.slots[tab][i]=m.id;used.add(m.id);}});
+  f.forEach(function(s,i){const fn=slotFn(tab,i);const m=pool.find(function(p){return !used.has(p.id)&&pmatch(p.pos,fn);});if(m){ST.slots[tab][i]=m.id;used.add(m.id);}});
 }
 
 // PHOTO
