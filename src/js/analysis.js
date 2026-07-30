@@ -19,7 +19,7 @@ function renderAnalise(){
 
   // ── 1. IDADE MÉDIA ──────────────────────────────────────────────
   const c1=makeCard(false,'Idade Média',['bar'],function(cont){
-    cardDesc(cont,'A idade média do elenco é um indicador de janela competitiva: um time muito jovem tende a ganhar valor de mercado com o tempo, mas pode pecar em experiência decisiva; um elenco mais velho costuma entregar resultado imediato, com risco de perda de rendimento físico nas temporadas seguintes. O detalhamento por posição ajuda a enxergar onde o envelhecimento está concentrado.');
+    cardDesc(cont,'Idade média do elenco por posição');
     const ages=pl.map(function(p){return p.age||0;}).filter(Boolean);
     const avg=ages.length?(ages.reduce(function(a,b){return a+b;},0)/ages.length).toFixed(1):0;
     const bd=idadeBadge(parseFloat(avg));
@@ -38,7 +38,7 @@ function renderAnalise(){
 
   // ── 2. NÍVEL MÉDIO ──────────────────────────────────────────────
   const c2=makeCard(false,'Nível Médio',['bar'],function(cont){
-    cardDesc(cont,'Nível médio dos jogadores agrupados por status — Titular, Importante, Compõe elenco, Vender e Dispensável. É uma forma rápida de enxergar o equilíbrio geral do time: um Nível médio alto entre os Titulares indica um time competitivo; uma diferença grande entre Titulares e Reservas pode sinalizar falta de profundidade de elenco. A comparação entre escalações ajuda a decidir se vale reforçar o banco ou se a Projeção (com possíveis contratações) eleva o nível de forma significativa.');
+    cardDesc(cont,'Nível médio por status');
     const nivs=pl.filter(function(p){return p.nivel;}).map(function(p){return safeNivel(p.nivel);});
     const avg=nivs.length?(nivs.reduce(function(a,b){return a+b;},0)/nivs.length).toFixed(1):0;
     const bd=nivelBadge(parseFloat(avg));
@@ -104,7 +104,7 @@ function renderAnalise(){
 
   // ── 3. VALOR DO ELENCO ──────────────────────────────────────────
   const c3=makeCard(true,'Valor do Elenco',['bar'],function(cont,type){
-    cardDesc(cont,'Pense nessas barras como "força relativa de investimento", não como proporção direta de euros. Já o ranking de "Top jogadores por valor" evidencia onde está concentrado o capital do elenco — útil para embasar decisões de venda ou renovação de contrato.');
+    cardDesc(cont,'Valor total do elenco e por jogador');
     const total=pl.reduce(function(a,p){return a+safeValor(p.valor);},0);
     const tgTotal=tg.reduce(function(a,t){return a+safeValor(t.val);},0);
 
@@ -150,7 +150,7 @@ function renderAnalise(){
 
   // ── 4. NACIONALIDADES ───────────────────────────────────────────
   const c4=makeCard(true,'Jogadores por Nacionalidade',['bar'],function(cont,type){
-    cardDesc(cont,'Mostra a distribuição de nacionalidades no elenco. Útil pra planejar contratações e ficar de olho no limite de estrangeiros das competições.');
+    cardDesc(cont,'Quantidade de jogadores por nacionalidade');
     const natMap={};
     pl.forEach(function(p){const n=p.nat||'?';natMap[n]=(natMap[n]||0)+1;});
     const arr=Object.keys(natMap).sort(function(a,b){return natMap[b]-natMap[a];});
@@ -168,7 +168,7 @@ function renderAnalise(){
   // ── 5. STATUS ───────────────────────────────────────────────────
   var STATUS_HIER={'Titular':'#60a5fa','Importante':'#22c55e','Compõe elenco':'#f97316','Vender':'#ef4444','Dispensável':'#9ca3af'};
   const c5=makeCard(false,'Por Status',['bar'],function(cont,type){
-    cardDesc(cont,'Mede a quantidade de jogadores em cada categoria — Titular, Importante, Compõe elenco, Vender, Dispensável. Serve para avaliar o tamanho e a distribuição do elenco: um número baixo de Titulares em relação ao total pode indicar dependência de poucos jogadores-chave; um número alto em "Vender" ou "Dispensável" sinaliza necessidade de reformulação do elenco.');
+    cardDesc(cont,'Quantidade de jogadores por status (Titular, Compõe Elenco, Vender, Dispensável)');
     const data=SLIST.map(function(s){return{lbl:s,val:pl.filter(function(p){return p.status===s;}).length,customColor:STATUS_HIER[s]};}).filter(function(d){return d.val>0;});
     {
       const maxV=data.length?Math.max.apply(null,data.map(function(d){return d.val;})):1;
@@ -179,7 +179,7 @@ function renderAnalise(){
 
   // ── 6. SELECIONÁVEIS ────────────────────────────────────────────
   const c6=makeCard(false,'Selecionáveis por Seleção',['bar'],function(cont){
-    cardDesc(cont,'Mostra quantos jogadores do elenco podem ser convocados por suas seleções nacionais e o detalhamento por país. Jogadores convocados podem desfalcar o time em datas FIFA, e essa visão ajuda a antecipar esse impacto por origem.');
+    cardDesc(cont,'Jogadores convocáveis por seleção');
     const selMap={};
     pl.filter(function(p){return p.selecionavel;}).forEach(function(p){const n=p.nat||'?';selMap[n]=(selMap[n]||0)+1;});
     const arr=Object.keys(selMap).sort(function(a,b){return selMap[b]-selMap[a];});
@@ -235,7 +235,7 @@ function renderAnalise(){
   c7right.appendChild(c7hint);c7right.appendChild(c7sbtn);
   c7title.appendChild(c7lbl);c7title.appendChild(c7right);
   c7.appendChild(c7title);
-  cardDesc(c7,'Este painel permite comparar o nível médio do elenco do Flamengo com os demais times da Série A. O Flamengo é preenchido automaticamente com base no elenco cadastrado no site; os demais clubes ficam em aberto para você inserir manualmente, seja com base em avaliação própria ou em fontes externas de scouting. É uma forma de benchmarking direto contra a concorrência do campeonato. Clique no donut de um time para editar o nível.');
+  cardDesc(c7,'Comparativo do Flamengo com os demais elencos da Série A');
 
   // ─ lista única: cada clube = rank + componente (input OU donut) + nome
   const salist=document.createElement('div');salist.className='sa-list';
