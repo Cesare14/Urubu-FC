@@ -78,7 +78,9 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .ftab.active{color:var(--white);border-bottom-color:var(--red)}
 .ftab.t-res.active{border-bottom-color:var(--c3);color:var(--c3)}
 .ftab.t-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
-.ptop{padding:9px 13px 7px;border-bottom:1px solid var(--dark3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.ptop{padding:9px 13px 7px;border-bottom:1px solid var(--dark3);display:flex;flex-direction:column;gap:6px}
+.ptop-row1{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.fmtabs-acoes{display:flex;gap:3px;flex-wrap:wrap}
 .plbl{font-family:'Barlow',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--gray)}
 .fmtabs{display:flex;gap:3px;flex-wrap:wrap}
 .fmtab{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;padding:3px 7px;border-radius:3px;border:1px solid var(--dark4);background:transparent;color:var(--gray);cursor:pointer;transition:all .12s}
@@ -931,13 +933,16 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
       <button class="ftab t-mkt" data-ft="C">Projeção</button>
     </div>
     <div class="ptop">
-      <span class="fmts-wrap">
-        <button class="plbl plbl-btn" id="btn-fmts" title="Gerenciar formações salvas">Formações</button>
-        <span class="mf-wrap mf-fmts" id="mf-fmts-wrap">
-          <button class="mf-btn mf-btn-fmts" id="mf-fmts-btn" title="Trocar para uma formação salva"><span>▾</span></button>
-          <div class="mf-dropdown" id="mf-fmts-dd"></div>
+      <div class="ptop-row1">
+        <span class="fmts-wrap">
+          <button class="plbl plbl-btn" id="btn-fmts" title="Gerenciar formações salvas">Formações</button>
+          <span class="mf-wrap mf-fmts" id="mf-fmts-wrap">
+            <button class="mf-btn mf-btn-fmts" id="mf-fmts-btn" title="Trocar para uma formação salva"><span>▾</span></button>
+            <div class="mf-dropdown" id="mf-fmts-dd"></div>
+          </span>
         </span>
-      </span>
+        <div class="fmtabs-acoes" id="fmtabs-acoes"></div>
+      </div>
       <div class="fmtabs" id="fmtabs"></div>
     </div>
     <div class="fwrap"><div class="field" id="field"></div></div>
@@ -1310,6 +1315,7 @@ let ST={
   customPos:{},
   customFn:{},
   customFmts:[],
+  fmtUsage:{},
   ft:'A',rt:'elenco',
   sf:'',filterPos:[],filterStatus:[],
   tsf:'',filterTPos:[],filterTPrio:[],
@@ -1352,7 +1358,7 @@ function syncSlotsToFmt(){
 }
 
 /* === state.js === */
-function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,customFn:ST.customFn,customFmts:ST.customFmts,customFmtsV:CUSTOM_FMT_SCHEMA_V,serieA:ST.serieA}));}catch(e){}}
+function save(){try{syncSlotsToFmt();localStorage.setItem(SK,JSON.stringify({players:ST.players,targets:ST.targets,fmt:ST.fmt,slots:ST.slots,slotsByFmt:ST.slotsByFmt,customPos:ST.customPos,customFn:ST.customFn,customFmts:ST.customFmts,customFmtsV:CUSTOM_FMT_SCHEMA_V,fmtUsage:ST.fmtUsage,serieA:ST.serieA}));}catch(e){}}
 function load(){
   try{
     const r=localStorage.getItem(SK);
@@ -1371,6 +1377,11 @@ function load(){
       // d.customFmtsV guarda a versão do schema — hoje só é registrada; quando
       // houver uma v2, é aqui que a migração vai entrar, antes de validar.
       ST.customFmts=validarCustomFmts(d.customFmts);
+      // Ranking de uso (frecência) das formações, por chave (nome de fábrica ou
+      // id customizado). Ausente/corrompido -> objeto vazio; cada formação sem
+      // registro é tratada como "nunca usada" (score=0) por getFmtScore(), e as
+      // 4 de fábrica ganham um score-piso logo abaixo — nunca lança erro.
+      ST.fmtUsage=(d.fmtUsage&&typeof d.fmtUsage==='object'&&!Array.isArray(d.fmtUsage))?d.fmtUsage:{};
       // Se alguma aba apontava para uma formação que não existe mais (foi
       // excluída, ou veio inválida acima), volta para a formação de fábrica.
       ['A','B','C'].forEach(function(t){
@@ -1397,11 +1408,62 @@ function load(){
         if(t.nivel===undefined)t.nivel=0;
         if(t.prio===undefined)t.prio=0;
       });
+      _initFmtUsageFabrica();
     } else {
       ST.players=DEF.map(function(p){return Object.assign({},p);});
+      ST.fmtUsage={};
+      _initFmtUsageFabrica();
       autoFill('A');
     }
-  }catch(e){ST.players=DEF.map(function(p){return Object.assign({},p);});autoFill('A');}
+  }catch(e){ST.players=DEF.map(function(p){return Object.assign({},p);});ST.fmtUsage={};_initFmtUsageFabrica();autoFill('A');}
+}
+
+// Piso de ranking: as 4 formações de fábrica sempre têm um score mínimo
+// (score=1) mesmo antes de qualquer clique do usuário — sem isso a Linha 2
+// ficaria vazia/arbitrária na primeira visita. Só cria o registro se ainda
+// não existir (nunca pisa em score real já acumulado por uso).
+// IMPORTANTE: lastUsed do piso é o momento da própria inicialização (agora),
+// não epoch 0 — sob a fórmula de meia-vida de 30 dias, um "lastUsed" no
+// passado distante (ex: 1970) decai score=1 para ~0 quase instantaneamente
+// (dezenas de milhares de dias / 30 já satura 0.5^n), o que faria o piso
+// sumir do ranking assim que qualquer formação real fosse usada — o oposto
+// do que este piso existe para garantir.
+function _initFmtUsageFabrica(){
+  Object.keys(FMTS).forEach(function(k){
+    if(!ST.fmtUsage[k])ST.fmtUsage[k]={score:1,lastUsed:Date.now()};
+  });
+}
+
+// Score efetivo (decaído) de uma formação NO MOMENTO da leitura — nunca
+// escreve em ST.fmtUsage. Meia-vida de 30 dias: score cai pela metade a
+// cada 30 dias sem uso. Formação sem registro = nunca usada = 0.
+function getFmtScoreEfetivo(key){
+  const u=ST.fmtUsage[key];
+  if(!u)return 0;
+  const dias=(Date.now()-(u.lastUsed||0))/86400000;
+  return (u.score||0)*Math.pow(0.5,dias/30);
+}
+
+// Registra uso efetivo de uma formação (clique no botão da Linha 2 ou troca
+// via dropdown do item 18) — decai o score até agora e soma +1, na mesma
+// operação. É o ÚNICO lugar que persiste mudança de score (leitura de
+// ranking usa getFmtScoreEfetivo() acima, sem persistir nada).
+function registrarUsoFmt(key){
+  const efetivo=getFmtScoreEfetivo(key);
+  ST.fmtUsage[key]={score:efetivo+1,lastUsed:Date.now()};
+}
+
+// Bônus de criação: formação customizada recém-criada nasce com score maior
+// que o maior score efetivo existente no momento — garante topo do ranking
+// imediatamente, sem inflar o histórico de uso real (é um bônus único; usos
+// seguintes seguem a regra normal de registrarUsoFmt()).
+function initFmtUsageNovaCustom(key){
+  let maior=0;
+  Object.keys(ST.fmtUsage).forEach(function(k){
+    const s=getFmtScoreEfetivo(k);
+    if(s>maior)maior=s;
+  });
+  ST.fmtUsage[key]={score:maior+1,lastUsed:Date.now()};
 }
 
 function gp(id){return ST.players.find(function(p){return p.id===id;});}
@@ -1420,6 +1482,35 @@ function autoFill(tab){
   const used=new Set();
   const pool=tab==='B'?ST.players.filter(function(p){return p.status==='Importante'||p.status==='Compõe elenco';}):ST.players.filter(function(p){return p.status==='Titular';});
   f.forEach(function(s,i){const fn=slotFn(tab,i);const m=pool.find(function(p){return !used.has(p.id)&&pmatch(p.pos,fn);});if(m){ST.slots[tab][i]=m.id;used.add(m.id);}});
+}
+
+// Ação do botão "Auto-escalar": preenche SOMENTE os slots vazios da aba ativa,
+// sem nunca tocar em slots já ocupados manualmente. Diferente de autoFill():
+// não zera ST.slots[tab], usa cascata de status por aba e escolhe, entre
+// candidatos compatíveis, o de maior nível. Jogadores-alvo do Mercado nunca
+// entram no pool. Não altera as demais abas.
+function autoFillEmpty(tab){
+  const used=new Set();
+  // Ids já ocupados nos demais slots desta mesma aba não podem ser reusados.
+  ST.slots[tab].forEach(function(k){if(typeof k==='number')used.add(k);});
+  // Camadas de status em cascata, por aba. B mantém a regra já existente
+  // (sem fallback em duas camadas separadas); A e C caem de Titular para
+  // Importante quando não houver titular compatível disponível.
+  const camadas=tab==='B'
+    ?[function(p){return p.status==='Importante'||p.status==='Compõe elenco';}]
+    :[function(p){return p.status==='Titular';},function(p){return p.status==='Importante';}];
+  for(let i=0;i<11;i++){
+    if(ST.slots[tab][i]!=null)continue; // nunca sobrescreve slot já ocupado
+    const fn=slotFn(tab,i);
+    let escolhido=null;
+    for(let c=0;c<camadas.length&&!escolhido;c++){
+      const candidatos=ST.players
+        .filter(function(p){return !used.has(p.id)&&camadas[c](p)&&pmatch(p.pos,fn);})
+        .sort(function(a,b){return (b.nivel||0)-(a.nivel||0);});
+      if(candidatos.length)escolhido=candidatos[0];
+    }
+    if(escolhido){ST.slots[tab][i]=escolhido.id;used.add(escolhido.id);}
+  }
 }
 
 // PHOTO
@@ -2316,37 +2407,79 @@ function renderField() {
   }
 }
 
+// Lista ordenada (score decrescente, desempate por ordem de criação/fábrica
+// via chave, determinístico) de TODAS as formações candidatas ao ranking —
+// fábrica e customizadas competem juntas, sem distinção.
+function _fmtsRankeadas() {
+  var chaves = Object.keys(FMTS).concat((ST.customFmts || []).map(function (f) { return f.id; }));
+  return chaves
+    .map(function (k) { return { key: k, score: getFmtScoreEfetivo(k) }; })
+    .sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0); // empate: determinístico
+    });
+}
+
 // ── RENDER FM TABS ───────────────────────────────────────────────────────────
 function renderFmTabs() {
   const tab = ST.ft, el = document.getElementById('fmtabs'); el.innerHTML = '';
-  // Só as 4 formações de fábrica ficam na barra de botões — conjunto fechado
-  // e conhecido, então 1 clique faz sentido aqui. As customizadas (conjunto
-  // sem limite de tamanho) vivem no dropdown do botão "Formações", ao lado do
-  // rótulo — ver trocarViaDropdownFmts()/renderFmtsDropdown() mais abaixo.
-  // Se a formação ativa for uma customizada, nenhum destes 4 botões acende.
-  Object.keys(FMTS).forEach(function (f) {
+  const elAcoes = document.getElementById('fmtabs-acoes'); elAcoes.innerHTML = '';
+
+  // Linha 2 — Top 4 formações por score de uso (frecência), fábrica e
+  // customizadas competindo no mesmo ranking. A formação ativa da aba é
+  // sempre exibida mesmo se estiver fora do top 4 (5º botão avulso nesta
+  // sessão de render — não é "promovida" ao ranking permanente por isso).
+  var rankeadas = _fmtsRankeadas();
+  var top4 = rankeadas.slice(0, 4);
+  var ativaNoTop4 = top4.some(function (r) { return r.key === ST.fmt[tab]; });
+  var exibidas = top4.slice();
+  if (!ativaNoTop4) {
+    var ativa = rankeadas.find(function (r) { return r.key === ST.fmt[tab]; });
+    if (ativa) exibidas.push(ativa);
+  }
+  exibidas.forEach(function (r) {
+    var f = r.key;
     const b = document.createElement('button');
     b.className = 'fmtab' + (f === ST.fmt[tab] ? ' active' : '');
-    b.textContent = f;
+    b.textContent = fmtLabel(f);
     b.onclick = function () {
       fecharPopFuncao();
       syncSlotsToFmt();
       ST.fmt[tab] = f;
+      registrarUsoFmt(f);
       var key = tab + '|' + f;
       ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
       save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
     };
     el.appendChild(b);
   });
+
+  // Linha 1 — Formações ▾ (rótulo/dropdown já estão no HTML) + ações, nesta
+  // ordem: Auto-escalar, Salvar, Reset.
+  // Auto-escalar: preenche só os slots vazios da aba ativa (ver autoFillEmpty
+  // em state.js). Nunca sobrescreve slot já ocupado; não mexe nas outras abas.
+  const ab = document.createElement('button');
+  ab.className = 'btn btn-ghost fmtab-save';
+  ab.textContent = '✨ Auto-escalar';
+  ab.title = 'Preencher automaticamente os slots vazios desta aba';
+  ab.onclick = function () {
+    fecharPopFuncao();
+    autoFillEmpty(tab);
+    save(); renderField(); renderBar(); renderTable();
+  };
+  elAcoes.appendChild(ab);
   // Salvar: congela a configuração atual (posições + funções) como formação.
   const sb = document.createElement('button');
   sb.className = 'btn btn-ghost fmtab-save';
   sb.textContent = '💾 Salvar';
   sb.title = 'Salvar a configuração atual como formação';
   sb.onclick = function () { salvarFormacaoAtual(); };
-  el.appendChild(sb);
+  elAcoes.appendChild(sb);
+  // Reset: rebaixado visualmente (outline/neutro) — ação destrutiva não deve
+  // competir em destaque com ações construtivas (Salvar/Auto-escalar).
+  // Comportamento ao clicar é idêntico ao de antes, só a classe CSS mudou.
   const rb = document.createElement('button');
-  rb.className = 'btn btn-red fmtab-reset';
+  rb.className = 'btn btn-ghost fmtab-reset';
   rb.textContent = '↺ Reset';
   rb.title = 'Limpar escalação e posições desta formação';
   rb.onclick = function () {
@@ -2357,7 +2490,7 @@ function renderFmTabs() {
     clearTouchSel();
     save(); renderField(); renderBar(); renderTable();
   };
-  el.appendChild(rb);
+  elAcoes.appendChild(rb);
 }
 
 // ── GERENCIAR FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
@@ -2433,6 +2566,9 @@ function salvarFormacaoAtual() {
 
   var id = nextCustomFmtId();
   ST.customFmts.push({ id: id, name: nome, slots: slots });
+  // Bônus de visibilidade única: formação recém-criada nasce no topo do
+  // ranking (Linha 2), sem contar como "uso" repetido — ver initFmtUsageNovaCustom.
+  initFmtUsageNovaCustom(id);
 
   // A escalação que está em campo acompanha a formação nova (mesmos 11 slots).
   ST.slotsByFmt[tab + '|' + id] = ST.slots[tab].slice();
@@ -2471,6 +2607,7 @@ function excluirFormacao(id) {
   if (!confirm(msg)) return;
 
   ST.customFmts = ST.customFmts.filter(function (x) { return x.id !== id; });
+  delete ST.fmtUsage[id];
   ['A', 'B', 'C'].forEach(function (t) {
     var key = t + '|' + id;
     delete ST.slotsByFmt[key];
@@ -2547,6 +2684,7 @@ function trocarViaDropdownFmts(id) {
   closeAllDD();
   syncSlotsToFmt();
   ST.fmt[tab] = id;
+  registrarUsoFmt(id);
   var key = tab + '|' + id;
   ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
   save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();

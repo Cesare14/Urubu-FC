@@ -129,6 +129,7 @@ let ST={
   customPos:{},
   customFn:{},
   customFmts:[],
+  fmtUsage:{},
   ft:'A',rt:'elenco',
   sf:'',filterPos:[],filterStatus:[],
   tsf:'',filterTPos:[],filterTPrio:[],

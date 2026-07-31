@@ -65,7 +65,9 @@ body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;
 .ftab.active{color:var(--white);border-bottom-color:var(--red)}
 .ftab.t-res.active{border-bottom-color:var(--c3);color:var(--c3)}
 .ftab.t-mkt.active{border-bottom-color:var(--cv);color:var(--cv)}
-.ptop{padding:9px 13px 7px;border-bottom:1px solid var(--dark3);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.ptop{padding:9px 13px 7px;border-bottom:1px solid var(--dark3);display:flex;flex-direction:column;gap:6px}
+.ptop-row1{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.fmtabs-acoes{display:flex;gap:3px;flex-wrap:wrap}
 .plbl{font-family:'Barlow',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--gray)}
 .fmtabs{display:flex;gap:3px;flex-wrap:wrap}
 .fmtab{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;padding:3px 7px;border-radius:3px;border:1px solid var(--dark4);background:transparent;color:var(--gray);cursor:pointer;transition:all .12s}

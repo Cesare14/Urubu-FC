@@ -660,37 +660,79 @@ function renderField() {
   }
 }
 
+// Lista ordenada (score decrescente, desempate por ordem de criação/fábrica
+// via chave, determinístico) de TODAS as formações candidatas ao ranking —
+// fábrica e customizadas competem juntas, sem distinção.
+function _fmtsRankeadas() {
+  var chaves = Object.keys(FMTS).concat((ST.customFmts || []).map(function (f) { return f.id; }));
+  return chaves
+    .map(function (k) { return { key: k, score: getFmtScoreEfetivo(k) }; })
+    .sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0); // empate: determinístico
+    });
+}
+
 // ── RENDER FM TABS ───────────────────────────────────────────────────────────
 function renderFmTabs() {
   const tab = ST.ft, el = document.getElementById('fmtabs'); el.innerHTML = '';
-  // Só as 4 formações de fábrica ficam na barra de botões — conjunto fechado
-  // e conhecido, então 1 clique faz sentido aqui. As customizadas (conjunto
-  // sem limite de tamanho) vivem no dropdown do botão "Formações", ao lado do
-  // rótulo — ver trocarViaDropdownFmts()/renderFmtsDropdown() mais abaixo.
-  // Se a formação ativa for uma customizada, nenhum destes 4 botões acende.
-  Object.keys(FMTS).forEach(function (f) {
+  const elAcoes = document.getElementById('fmtabs-acoes'); elAcoes.innerHTML = '';
+
+  // Linha 2 — Top 4 formações por score de uso (frecência), fábrica e
+  // customizadas competindo no mesmo ranking. A formação ativa da aba é
+  // sempre exibida mesmo se estiver fora do top 4 (5º botão avulso nesta
+  // sessão de render — não é "promovida" ao ranking permanente por isso).
+  var rankeadas = _fmtsRankeadas();
+  var top4 = rankeadas.slice(0, 4);
+  var ativaNoTop4 = top4.some(function (r) { return r.key === ST.fmt[tab]; });
+  var exibidas = top4.slice();
+  if (!ativaNoTop4) {
+    var ativa = rankeadas.find(function (r) { return r.key === ST.fmt[tab]; });
+    if (ativa) exibidas.push(ativa);
+  }
+  exibidas.forEach(function (r) {
+    var f = r.key;
     const b = document.createElement('button');
     b.className = 'fmtab' + (f === ST.fmt[tab] ? ' active' : '');
-    b.textContent = f;
+    b.textContent = fmtLabel(f);
     b.onclick = function () {
       fecharPopFuncao();
       syncSlotsToFmt();
       ST.fmt[tab] = f;
+      registrarUsoFmt(f);
       var key = tab + '|' + f;
       ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
       save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
     };
     el.appendChild(b);
   });
+
+  // Linha 1 — Formações ▾ (rótulo/dropdown já estão no HTML) + ações, nesta
+  // ordem: Auto-escalar, Salvar, Reset.
+  // Auto-escalar: preenche só os slots vazios da aba ativa (ver autoFillEmpty
+  // em state.js). Nunca sobrescreve slot já ocupado; não mexe nas outras abas.
+  const ab = document.createElement('button');
+  ab.className = 'btn btn-ghost fmtab-save';
+  ab.textContent = '✨ Auto-escalar';
+  ab.title = 'Preencher automaticamente os slots vazios desta aba';
+  ab.onclick = function () {
+    fecharPopFuncao();
+    autoFillEmpty(tab);
+    save(); renderField(); renderBar(); renderTable();
+  };
+  elAcoes.appendChild(ab);
   // Salvar: congela a configuração atual (posições + funções) como formação.
   const sb = document.createElement('button');
   sb.className = 'btn btn-ghost fmtab-save';
   sb.textContent = '💾 Salvar';
   sb.title = 'Salvar a configuração atual como formação';
   sb.onclick = function () { salvarFormacaoAtual(); };
-  el.appendChild(sb);
+  elAcoes.appendChild(sb);
+  // Reset: rebaixado visualmente (outline/neutro) — ação destrutiva não deve
+  // competir em destaque com ações construtivas (Salvar/Auto-escalar).
+  // Comportamento ao clicar é idêntico ao de antes, só a classe CSS mudou.
   const rb = document.createElement('button');
-  rb.className = 'btn btn-red fmtab-reset';
+  rb.className = 'btn btn-ghost fmtab-reset';
   rb.textContent = '↺ Reset';
   rb.title = 'Limpar escalação e posições desta formação';
   rb.onclick = function () {
@@ -701,7 +743,7 @@ function renderFmTabs() {
     clearTouchSel();
     save(); renderField(); renderBar(); renderTable();
   };
-  el.appendChild(rb);
+  elAcoes.appendChild(rb);
 }
 
 // ── GERENCIAR FORMAÇÕES CUSTOMIZADAS ────────────────────────────────────────
@@ -777,6 +819,9 @@ function salvarFormacaoAtual() {
 
   var id = nextCustomFmtId();
   ST.customFmts.push({ id: id, name: nome, slots: slots });
+  // Bônus de visibilidade única: formação recém-criada nasce no topo do
+  // ranking (Linha 2), sem contar como "uso" repetido — ver initFmtUsageNovaCustom.
+  initFmtUsageNovaCustom(id);
 
   // A escalação que está em campo acompanha a formação nova (mesmos 11 slots).
   ST.slotsByFmt[tab + '|' + id] = ST.slots[tab].slice();
@@ -815,6 +860,7 @@ function excluirFormacao(id) {
   if (!confirm(msg)) return;
 
   ST.customFmts = ST.customFmts.filter(function (x) { return x.id !== id; });
+  delete ST.fmtUsage[id];
   ['A', 'B', 'C'].forEach(function (t) {
     var key = t + '|' + id;
     delete ST.slotsByFmt[key];
@@ -891,6 +937,7 @@ function trocarViaDropdownFmts(id) {
   closeAllDD();
   syncSlotsToFmt();
   ST.fmt[tab] = id;
+  registrarUsoFmt(id);
   var key = tab + '|' + id;
   ST.slots[tab] = ST.slotsByFmt[key] ? ST.slotsByFmt[key].slice() : Array(11).fill(null);
   save(); renderFmTabs(); renderFmtsDropdownBtn(); renderField(); renderBar(); renderTable();
