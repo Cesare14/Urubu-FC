@@ -319,3 +319,30 @@ document.getElementById('btn-share-team-opt').addEventListener('click',function(
   compartilharLinkEscalacao();
 });
 // ────────────────────────────────────────────────────────────────────────────
+
+// ── ONBOARDING (boas-vindas) ─────────────────────────────────────────────────
+function openOnboarding(){
+  document.getElementById('onboard-over').classList.add('open');
+}
+function closeOnboarding(marcarVisto){
+  document.getElementById('onboard-over').classList.remove('open');
+  if(marcarVisto)localStorage.setItem('ufc_onboard','1');
+}
+document.getElementById('onboard-close-x').onclick=function(){closeOnboarding(true);};
+document.getElementById('onboard-ok').onclick=function(){closeOnboarding(true);};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOnboarding(true);});
+
+(function initOnboarding(){
+  if(localStorage.getItem('ufc_onboard')==='1')return;
+  function mostrar(){
+    if(localStorage.getItem('ufc_onboard')!=='1')openOnboarding();
+  }
+  // Se o cookie banner ainda não foi resolvido nesta visita, aguarda a decisão
+  // do usuário (aceitar/recusar) antes de mostrar o onboarding, para não
+  // sobrepor os dois. Se o cookie já tiver sido decidido antes, mostra logo.
+  if(localStorage.getItem('ufc_cookie')===null){
+    window._onboardPending=mostrar;
+  }else{
+    setTimeout(mostrar,400);
+  }
+})();

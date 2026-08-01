@@ -428,6 +428,20 @@ tr:hover .dh{color:var(--gray)}
 .legal-body{font-size:12px;line-height:1.7;color:var(--gray-l)}
 .legal-body h3{font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin:14px 0 6px}
 .legal-close{margin-top:20px;display:flex;justify-content:flex-end}
+.onboard-over{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:250;display:none;align-items:center;justify-content:center;padding:20px}
+.onboard-over.open{display:flex}
+.onboard-box{background:var(--dark2);border:1px solid var(--dark4);border-radius:10px;padding:28px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;position:relative}
+.onboard-box::-webkit-scrollbar{width:3px}.onboard-box::-webkit-scrollbar-thumb{background:var(--dark4)}
+.onboard-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--gray);font-size:18px;line-height:1;cursor:pointer;padding:6px;border-radius:6px;transition:color .15s,background .15s}
+.onboard-close:hover{color:var(--white);background:rgba(255,255,255,.06)}
+.onboard-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:18px;color:var(--white);padding-right:24px}
+.onboard-list{display:flex;flex-direction:column;gap:14px;margin-bottom:22px}
+.onboard-item{display:flex;gap:12px;align-items:flex-start}
+.onboard-icon{font-size:19px;flex:0 0 26px;text-align:center;line-height:1.5}
+.onboard-text{font-size:12.5px;line-height:1.6;color:var(--gray-l)}
+.onboard-actions{display:flex;justify-content:flex-end}
+body.light-mode .onboard-box{background:#f0f0ec;border-color:#c0c0bc}
+body.light-mode .onboard-close:hover{background:rgba(0,0,0,.06)}
 
 .info-box{max-width:640px;max-height:86vh}
 .info-tabs{margin-bottom:16px;border-bottom:1px solid var(--dark4);padding-bottom:12px}
@@ -696,6 +710,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .modal{width:calc(100% - 24px);margin:12px}
   .legal-box{width:calc(100% - 32px)}
   .info-box{width:calc(100% - 32px);max-height:90dvh;overflow-y:auto}
+  .onboard-box{width:calc(100% - 32px);max-height:90dvh;overflow-y:auto}
   .info-tabgroup{gap:5px}
   .info-tab-btn{font-size:10px;padding:4px 10px}
   .share-box{width:calc(100% - 32px)}

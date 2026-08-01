@@ -67,7 +67,8 @@ var INFO_CONTENT={
       {label:'Como usar',body:`<div class="info-section-title">Como usar o Urubu FC</div>
 <p>Arraste jogadores da tabela do Elenco direto pro campo tático, ou selecione um jogador e toque na posição desejada (no celular, os dois métodos funcionam). Use os filtros de Posição e Status para organizar rapidamente quem está disponível.</p>
 <p>Na aba Mercado/Alvos, marque prioridade em estrelas pros jogadores que você gostaria de contratar. Ao final, use o botão Compartilhar para gerar uma imagem do seu campo tático ou um link direto da sua escalação.</p>
-<p>Na aba Análise você tem acesso a informações aprofundadas do elenco, como idade, nível, valor, nacionalidade e potencial de convocação de jogadores, detalhados e agrupados por posição e status. Ainda é possível comparar o nível com os demais elencos da Série A. Cada gráfico — ou todos eles — pode ser compartilhado para suas conversas, discussões e postagens nas redes sociais.</p>`},
+<p>Na aba Análise você tem acesso a informações aprofundadas do elenco, como idade, nível, valor, nacionalidade e potencial de convocação de jogadores, detalhados e agrupados por posição e status. Ainda é possível comparar o nível com os demais elencos da Série A. Cada gráfico — ou todos eles — pode ser compartilhado para suas conversas, discussões e postagens nas redes sociais.</p>
+<p><button class="btn btn-ghost" onclick="openOnboarding()">🔄 Rever tutorial de boas-vindas</button></p>`},
       {label:'FAQ',body:`<div class="info-section-title">Perguntas frequentes</div>
 <div class="info-faq-q">O Urubu FC é um site ou produto oficial do Flamengo?</div>
 <p>Não. É um projeto independente, feito por um torcedor comum, sem qualquer vínculo oficial com o clube.</p>
@@ -182,10 +183,17 @@ function loadGA4(){
   s.src='https://www.googletagmanager.com/gtag/js?id=G-X02RE64K4B';
   document.head.appendChild(s);
 }
+function _dispararOnboardingPendente(){
+  if(typeof window._onboardPending==='function'){
+    var fn=window._onboardPending;window._onboardPending=null;
+    setTimeout(fn,300);
+  }
+}
 function acceptCookies(){
   localStorage.setItem('ufc_cookie','1');
   var cb=document.getElementById('cookie-bar');if(cb)cb.style.display='none';
   loadGA4();
+  _dispararOnboardingPendente();
 }
 function declineCookies(){
   localStorage.setItem('ufc_cookie','0');
@@ -193,6 +201,7 @@ function declineCookies(){
   if(window._ga4Loaded&&typeof gtag==='function'){
     gtag('consent','update',{analytics_storage:'denied'});
   }
+  _dispararOnboardingPendente();
 }
 document.addEventListener('DOMContentLoaded',function initCookieBanner(){
   var consent=localStorage.getItem('ufc_cookie');

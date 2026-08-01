@@ -453,6 +453,20 @@ tr:hover .dh{color:var(--gray)}
 .legal-body{font-size:12px;line-height:1.7;color:var(--gray-l)}
 .legal-body h3{font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin:14px 0 6px}
 .legal-close{margin-top:20px;display:flex;justify-content:flex-end}
+.onboard-over{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:250;display:none;align-items:center;justify-content:center;padding:20px}
+.onboard-over.open{display:flex}
+.onboard-box{background:var(--dark2);border:1px solid var(--dark4);border-radius:10px;padding:28px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;position:relative}
+.onboard-box::-webkit-scrollbar{width:3px}.onboard-box::-webkit-scrollbar-thumb{background:var(--dark4)}
+.onboard-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--gray);font-size:18px;line-height:1;cursor:pointer;padding:6px;border-radius:6px;transition:color .15s,background .15s}
+.onboard-close:hover{color:var(--white);background:rgba(255,255,255,.06)}
+.onboard-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:18px;color:var(--white);padding-right:24px}
+.onboard-list{display:flex;flex-direction:column;gap:14px;margin-bottom:22px}
+.onboard-item{display:flex;gap:12px;align-items:flex-start}
+.onboard-icon{font-size:19px;flex:0 0 26px;text-align:center;line-height:1.5}
+.onboard-text{font-size:12.5px;line-height:1.6;color:var(--gray-l)}
+.onboard-actions{display:flex;justify-content:flex-end}
+body.light-mode .onboard-box{background:#f0f0ec;border-color:#c0c0bc}
+body.light-mode .onboard-close:hover{background:rgba(0,0,0,.06)}
 
 .info-box{max-width:640px;max-height:86vh}
 .info-tabs{margin-bottom:16px;border-bottom:1px solid var(--dark4);padding-bottom:12px}
@@ -721,6 +735,7 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
   .modal{width:calc(100% - 24px);margin:12px}
   .legal-box{width:calc(100% - 32px)}
   .info-box{width:calc(100% - 32px);max-height:90dvh;overflow-y:auto}
+  .onboard-box{width:calc(100% - 32px);max-height:90dvh;overflow-y:auto}
   .info-tabgroup{gap:5px}
   .info-tab-btn{font-size:10px;padding:4px 10px}
   .share-box{width:calc(100% - 32px)}
@@ -1147,6 +1162,21 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
     <div class="info-tabs" id="info-tabs"></div>
     <div class="legal-body" id="info-body"></div>
     <div class="legal-close"><button class="btn btn-red" onclick="closeInfo()">Fechar</button></div>
+  </div>
+</div>
+
+<!-- ONBOARDING (boas-vindas) -->
+<div class="onboard-over" id="onboard-over" onclick="if(event.target===this)closeOnboarding(true)">
+  <div class="onboard-box">
+    <button class="onboard-close" id="onboard-close-x" aria-label="Fechar">✕</button>
+    <div class="onboard-title">Bem-vindo ao Urubu FC</div>
+    <div class="onboard-list">
+      <div class="onboard-item"><span class="onboard-icon">🖐️</span><span class="onboard-text">Monte seu time — arraste os jogadores pro campo (ou toque-toque no mobile)</span></div>
+      <div class="onboard-item"><span class="onboard-icon">⚡</span><span class="onboard-text">Toque em Auto-escalar para preencher a escalação com os jogadores de maior nível por posição</span></div>
+      <div class="onboard-item"><span class="onboard-icon">🧩</span><span class="onboard-text">Escolha, personalize e crie formações táticas</span></div>
+      <div class="onboard-item"><span class="onboard-icon">📤</span><span class="onboard-text">Compartilhe — gere a imagem da sua escalação pra postar</span></div>
+    </div>
+    <div class="onboard-actions"><button class="btn btn-red" id="onboard-ok">Entendi</button></div>
   </div>
 </div>
 
@@ -4975,6 +5005,33 @@ document.getElementById('btn-share-team-opt').addEventListener('click',function(
 });
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── ONBOARDING (boas-vindas) ─────────────────────────────────────────────────
+function openOnboarding(){
+  document.getElementById('onboard-over').classList.add('open');
+}
+function closeOnboarding(marcarVisto){
+  document.getElementById('onboard-over').classList.remove('open');
+  if(marcarVisto)localStorage.setItem('ufc_onboard','1');
+}
+document.getElementById('onboard-close-x').onclick=function(){closeOnboarding(true);};
+document.getElementById('onboard-ok').onclick=function(){closeOnboarding(true);};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOnboarding(true);});
+
+(function initOnboarding(){
+  if(localStorage.getItem('ufc_onboard')==='1')return;
+  function mostrar(){
+    if(localStorage.getItem('ufc_onboard')!=='1')openOnboarding();
+  }
+  // Se o cookie banner ainda não foi resolvido nesta visita, aguarda a decisão
+  // do usuário (aceitar/recusar) antes de mostrar o onboarding, para não
+  // sobrepor os dois. Se o cookie já tiver sido decidido antes, mostra logo.
+  if(localStorage.getItem('ufc_cookie')===null){
+    window._onboardPending=mostrar;
+  }else{
+    setTimeout(mostrar,400);
+  }
+})();
+
 /* === legal.js === */
 var LEGAL_CONTENT={
   privacy:{
@@ -5045,7 +5102,8 @@ var INFO_CONTENT={
       {label:'Como usar',body:`<div class="info-section-title">Como usar o Urubu FC</div>
 <p>Arraste jogadores da tabela do Elenco direto pro campo tático, ou selecione um jogador e toque na posição desejada (no celular, os dois métodos funcionam). Use os filtros de Posição e Status para organizar rapidamente quem está disponível.</p>
 <p>Na aba Mercado/Alvos, marque prioridade em estrelas pros jogadores que você gostaria de contratar. Ao final, use o botão Compartilhar para gerar uma imagem do seu campo tático ou um link direto da sua escalação.</p>
-<p>Na aba Análise você tem acesso a informações aprofundadas do elenco, como idade, nível, valor, nacionalidade e potencial de convocação de jogadores, detalhados e agrupados por posição e status. Ainda é possível comparar o nível com os demais elencos da Série A. Cada gráfico — ou todos eles — pode ser compartilhado para suas conversas, discussões e postagens nas redes sociais.</p>`},
+<p>Na aba Análise você tem acesso a informações aprofundadas do elenco, como idade, nível, valor, nacionalidade e potencial de convocação de jogadores, detalhados e agrupados por posição e status. Ainda é possível comparar o nível com os demais elencos da Série A. Cada gráfico — ou todos eles — pode ser compartilhado para suas conversas, discussões e postagens nas redes sociais.</p>
+<p><button class="btn btn-ghost" onclick="openOnboarding()">🔄 Rever tutorial de boas-vindas</button></p>`},
       {label:'FAQ',body:`<div class="info-section-title">Perguntas frequentes</div>
 <div class="info-faq-q">O Urubu FC é um site ou produto oficial do Flamengo?</div>
 <p>Não. É um projeto independente, feito por um torcedor comum, sem qualquer vínculo oficial com o clube.</p>
@@ -5160,10 +5218,17 @@ function loadGA4(){
   s.src='https://www.googletagmanager.com/gtag/js?id=G-X02RE64K4B';
   document.head.appendChild(s);
 }
+function _dispararOnboardingPendente(){
+  if(typeof window._onboardPending==='function'){
+    var fn=window._onboardPending;window._onboardPending=null;
+    setTimeout(fn,300);
+  }
+}
 function acceptCookies(){
   localStorage.setItem('ufc_cookie','1');
   var cb=document.getElementById('cookie-bar');if(cb)cb.style.display='none';
   loadGA4();
+  _dispararOnboardingPendente();
 }
 function declineCookies(){
   localStorage.setItem('ufc_cookie','0');
@@ -5171,6 +5236,7 @@ function declineCookies(){
   if(window._ga4Loaded&&typeof gtag==='function'){
     gtag('consent','update',{analytics_storage:'denied'});
   }
+  _dispararOnboardingPendente();
 }
 document.addEventListener('DOMContentLoaded',function initCookieBanner(){
   var consent=localStorage.getItem('ufc_cookie');
