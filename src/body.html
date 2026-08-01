@@ -21,7 +21,7 @@
   </div>
 </header>
 <div class="scrollwrap" id="scrollwrap">
-<div class="main">
+<main class="main">
   <div class="lpanel" id="lpanel">
     <div class="ftabs">
       <button class="ftab active" data-ft="A">Titulares</button>
@@ -119,19 +119,19 @@
       <div class="awrap"><div class="agrid" id="agrid"></div></div>
     </div>
   </div>
-</div>
+</main>
 <!-- MODAL JOGADOR -->
 <div class="mover" id="modal-pl" style="display:none">
   <div class="modal">
     <div class="mtitle" id="mpl-title">Novo Jogador</div>
     <div class="fg"><label class="fl">Nome</label><input class="fi" id="mpl-name" placeholder="Nome do jogador"></div>
     <div class="frow">
-      <div class="fg"><label class="fl">Posição</label><select class="fs" id="mpl-pos"><option>GOL</option><option>ZAG</option><option>LD</option><option>LE</option><option>VOL</option><option>MEI</option><option>PD</option><option>PE</option><option selected>CA</option></select></div>
+      <div class="fg"><label class="fl" for="mpl-pos">Posição</label><select class="fs" id="mpl-pos"><option>GOL</option><option>ZAG</option><option>LD</option><option>LE</option><option>VOL</option><option>MEI</option><option>PD</option><option>PE</option><option selected>CA</option></select></div>
       <div class="fg"><label class="fl">Idade</label><input class="fi" id="mpl-age" type="number" min="15" max="45" placeholder="22"></div>
     </div>
     <div class="frow">
       <div class="fg" style="flex:0 0 80px"><label class="fl">Nac.</label><input class="fi" id="mpl-nat" placeholder="BRA"></div>
-      <div class="fg"><label class="fl">Status</label><select class="fs" id="mpl-status"><option>Titular</option><option>Importante</option><option selected>Compõe elenco</option><option>Vender</option><option>Dispensável</option></select></div>
+      <div class="fg"><label class="fl" for="mpl-status">Status</label><select class="fs" id="mpl-status"><option>Titular</option><option>Importante</option><option selected>Compõe elenco</option><option>Vender</option><option>Dispensável</option></select></div>
     </div>
     <div class="frow">
       <div class="fg"><label class="fl">Nível (0–100)</label><input class="fi" id="mpl-nivel" type="number" min="0" max="100" placeholder="75"></div>
@@ -161,7 +161,7 @@
       </div>
     </div>
     <div class="frow">
-      <div class="fg"><label class="fl">Posição desejada</label><select class="fs" id="mtgt-pos"><option>GOL</option><option>ZAG</option><option>LD</option><option>LE</option><option>VOL</option><option>MEI</option><option>PD</option><option>PE</option><option selected>CA</option></select></div>
+      <div class="fg"><label class="fl" for="mtgt-pos">Posição desejada</label><select class="fs" id="mtgt-pos"><option>GOL</option><option>ZAG</option><option>LD</option><option>LE</option><option>VOL</option><option>MEI</option><option>PD</option><option>PE</option><option selected>CA</option></select></div>
       <div class="fg"><label class="fl">Idade</label><input class="fi" id="mtgt-age" type="number" min="15" max="45" placeholder="—"></div>
     </div>
     <div class="frow">
