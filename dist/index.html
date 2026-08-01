@@ -1147,10 +1147,10 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 <!-- FOOTER -->
 <footer class="site-footer">
   © 2026 Urubu FC <span>•</span>
-  <a onclick="openLegal('privacy')">Política de Privacidade</a> <span>•</span>
-  <a onclick="openLegal('terms')">Termos de Uso</a> <span>•</span>
-  <a onclick="openInfo('sobre')">Sobre</a> <span>•</span>
-  <a onclick="openInfo('ajuda')">Ajuda</a>
+  <a href="#privacy" onclick="event.preventDefault();openLegal('privacy')">Política de Privacidade</a> <span>•</span>
+  <a href="#terms" onclick="event.preventDefault();openLegal('terms')">Termos de Uso</a> <span>•</span>
+  <a href="#sobre" onclick="event.preventDefault();openInfo('sobre')">Sobre</a> <span>•</span>
+  <a href="#ajuda" onclick="event.preventDefault();openInfo('ajuda')">Ajuda</a>
 </footer>
 </div><!-- /scrollwrap -->
 
@@ -1192,8 +1192,8 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
 <div class="cookie-bar" id="cookie-bar">
   <div class="cookie-txt">
     Utilizamos cookies essenciais para o funcionamento desta plataforma e para análise de desempenho. Ao continuar, você concorda com nossa
-    <a onclick="openLegal('privacy')">Política de Privacidade</a> e com a
-    <a onclick="openLegal('terms')">Lei Geral de Proteção de Dados (LGPD)</a>.
+    <a href="#privacy" onclick="event.preventDefault();openLegal('privacy')">Política de Privacidade</a> e com a
+    <a href="#terms" onclick="event.preventDefault();openLegal('terms')">Lei Geral de Proteção de Dados (LGPD)</a>.
   </div>
   <div class="cookie-btns">
     <button class="cookie-decline" onclick="declineCookies()">Recusar</button>
