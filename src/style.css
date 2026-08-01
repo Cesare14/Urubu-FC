@@ -457,8 +457,16 @@ body.light-mode .onboard-close:hover{background:rgba(0,0,0,.06)}
 .info-btn-item .ib-title{font-family:'Barlow',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.3px;color:var(--white);margin-bottom:3px}
 
 /* Hierarquia título/subtítulo dentro do modal Sobre/Ajuda — escopado em #info-body para não afetar #legal-over */
-.info-section-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--red);margin:0 0 14px}
-#info-body h3{font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--gray-l);margin:0;padding-top:16px;margin-top:16px;border-top:1px solid rgba(255,255,255,.07)}
+.info-section-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--red);margin:0 0 14px;display:flex;align-items:center;gap:7px}
+#info-body h3{font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--red);margin:0;padding-top:16px;margin-top:16px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:7px}
+.info-icon{font-size:.8em;line-height:1;flex-shrink:0}
+.info-summary{display:flex;flex-direction:column;gap:2px;margin:0 0 18px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--dark4);border-radius:8px}
+.info-summary-item{display:flex;align-items:center;gap:9px;padding:6px 4px;border-radius:6px;color:var(--gray-l);text-decoration:none;font-family:'Barlow',sans-serif;font-size:12.5px;font-weight:600;transition:background .15s,color .15s;cursor:pointer}
+.info-summary-item:hover{background:rgba(255,255,255,.05);color:var(--white)}
+.info-summary-item .is-num{flex:0 0 14px;color:var(--gray);font-weight:700;font-size:11px;text-align:right}
+.info-summary-item .is-ico{flex:0 0 18px;text-align:center;font-size:14px}
+.info-summary-item .is-txt{flex:1}
+body.light-mode .info-summary{background:rgba(0,0,0,.03)}
 .info-panel h3:first-of-type{padding-top:0;margin-top:0;border-top:none}
 .info-faq-q{font-family:'Barlow',sans-serif;font-size:12.5px;font-weight:700;color:var(--white);margin:16px 0 4px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}
 .info-panel .info-faq-q:first-child{padding-top:0;margin-top:0;border-top:none}
