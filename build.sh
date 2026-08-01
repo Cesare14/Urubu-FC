@@ -57,6 +57,7 @@ JS_FILES=(
 } > "$OUT"
 
 cp ads.txt dist/ads.txt
+cp robots.txt dist/robots.txt
 cp -r "$SRC/assets" dist/assets
 
 LINES=$(wc -l < "$OUT")
