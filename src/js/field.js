@@ -603,6 +603,8 @@ function renderField() {
   field.innerHTML = '';
   if (IS_TOUCH) field.style.touchAction = 'auto';
 
+  var fragment = document.createDocumentFragment();
+
   var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'fsvg');
   svg.setAttribute('viewBox', '0 0 140 153');
@@ -617,14 +619,16 @@ function renderField() {
     '<circle cx="70" cy="13" r="1.1" fill="' + sl + '"/>' +
     '<circle cx="70" cy="140" r="1.1" fill="' + sl + '"/>' +
     '<image href="' + logoB64 + '" x="3" y="3" width="30" height="24" opacity="0.50"/>';
-  field.appendChild(svg);
+  fragment.appendChild(svg);
 
   var bdg = document.createElement('span'); bdg.className = 'fbadge'; bdg.textContent = fmtLabel(ST.fmt[tab]);
-  field.appendChild(bdg);
+  fragment.appendChild(bdg);
 
   fmtSlots(ST.fmt[tab]).forEach(function (s, i) {
-    field.appendChild(buildScard(i, tab));
+    fragment.appendChild(buildScard(i, tab));
   });
+
+  field.appendChild(fragment);
 
   // ── MOUSE DROP no campo vazio (desktop) ──────────────────────
   field.ondragover = function (e) {

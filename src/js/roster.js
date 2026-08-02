@@ -169,6 +169,8 @@ function renderTable(){
     return ms&&mp&&mst;
   });
   filtered=sortArr(filtered,ST.sortKey,ST.sortAsc);
+  const trFragment=document.createDocumentFragment();
+  const tipFragment=document.createDocumentFragment();
   filtered.forEach(function(p){
     const onf=Object.values(ST.slots).some(function(a){return a.includes(p.id);});
     const tr=document.createElement('tr');if(onf)tr.classList.add('onf');
@@ -196,7 +198,7 @@ function renderTable(){
       tip.appendChild(row);
     });
     if(p.obs){const obsRow=document.createElement('div');obsRow.className='p-tooltip-row';obsRow.style.cssText='flex-direction:column;gap:1px;border-top:1px solid var(--dark3);margin-top:4px;padding-top:4px';obsRow.innerHTML='<span class="p-tooltip-lbl">Obs.</span><span style="font-size:10px;color:var(--gray-l)">'+sanitizeText(p.obs)+'</span>';tip.appendChild(obsRow);}
-    document.body.appendChild(tip);
+    tipFragment.appendChild(tip);
     nwrap.addEventListener('mouseenter',function(){
       const r=nwrap.getBoundingClientRect();
       tip.style.left=r.left+'px';
@@ -219,18 +221,21 @@ function renderTable(){
     tdS.style.cssText='position:relative;cursor:pointer';
     const stag=statusTagEl(p.status);tdS.appendChild(stag);
     const sel=document.createElement('select');sel.className='ssel';
+    sel.id='status-'+p.id;
     sel.setAttribute('aria-label','Status de '+p.name);
     sel.style.cssText='position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:12px';
     SLIST.forEach(function(s){const o=document.createElement('option');o.value=s;o.textContent=s;if(s===p.status)o.selected=true;sel.appendChild(o);});
     sel.onchange=function(e){const pl=gp(p.id);if(pl)pl.status=e.target.value;save();renderTable();renderBar();if(ST.rt==='analise')renderAnalise();};
     tdS.appendChild(sel);tr.appendChild(tdS);
-    const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=sanitizeText(e.target.value);save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
+    const tdO=document.createElement('td');const oi=document.createElement('input');oi.className='oi';oi.id='obs-'+p.id;oi.setAttribute('aria-label','Observação de '+p.name);oi.value=p.obs||'';oi.placeholder='obs...';oi.onblur=function(e){const pl=gp(p.id);if(pl)pl.obs=sanitizeText(e.target.value);save();};oi.onkeydown=function(e){if(e.key==='Enter')oi.blur();};tdO.appendChild(oi);tr.appendChild(tdO);
     const tdAct=document.createElement('td');tdAct.className='abts';
     const abtsInner=document.createElement('div');abtsInner.className='abts-inner';
     const eb=document.createElement('button');eb.className='ab';eb.title='Editar jogador';eb.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';eb.onclick=function(){openPl(p.id);};
     abtsInner.appendChild(eb);tdAct.appendChild(abtsInner);tr.appendChild(tdAct);
-    tbody.appendChild(tr);
+    trFragment.appendChild(tr);
   });
+  tbody.appendChild(trFragment);
+  document.body.appendChild(tipFragment);
   document.getElementById('hdr-count').textContent=ST.players.length+' jogadores';
 }
 
