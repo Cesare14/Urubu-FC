@@ -1015,15 +1015,15 @@ body.light-mode .cookie-bar{background:#e8e8e4;border-color:#c0c0bc;}
       <div class="ss">
         <table>
           <thead><tr id="thead-row">
-            <th></th>
-            <th>Nome</th>
-            <th class="sortable" data-sort="pos"><div class="th-filterable"><span class="th-sort-lbl">Pos<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-pos-wrap"><button class="mf-btn mf-btn-th" id="mf-pos-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-pos-dd"></div></div></div></th>
-            <th class="sortable" data-sort="age">Id.<span class="sort-arrow"></span></th>
-            <th>Nac.</th>
-            <th class="sortable" data-sort="nivel">Nível<span class="sort-arrow"></span></th>
-            <th id="th-status" class="sortable" data-sort="status"><div class="th-filterable"><span class="th-sort-lbl">Status</span><span class="sort-arrow"></span><div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></div></th>
-            <th>Observação</th>
-            <th></th>
+            <th scope="col"></th>
+            <th scope="col">Nome</th>
+            <th scope="col" class="sortable" data-sort="pos"><div class="th-filterable"><span class="th-sort-lbl">Pos<span class="sort-arrow"></span></span><div class="mf-wrap mf-th" id="mf-pos-wrap"><button class="mf-btn mf-btn-th" id="mf-pos-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-pos-dd"></div></div></div></th>
+            <th scope="col" class="sortable" data-sort="age">Id.<span class="sort-arrow"></span></th>
+            <th scope="col">Nac.</th>
+            <th scope="col" class="sortable" data-sort="nivel">Nível<span class="sort-arrow"></span></th>
+            <th scope="col" id="th-status" class="sortable" data-sort="status"><div class="th-filterable"><span class="th-sort-lbl">Status</span><span class="sort-arrow"></span><div class="mf-wrap mf-th" id="mf-status-wrap"><button class="mf-btn mf-btn-th" id="mf-status-btn"><span>▾</span></button><div class="mf-dropdown" id="mf-status-dd"></div></div></div></th>
+            <th scope="col">Observação</th>
+            <th scope="col"></th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -3017,6 +3017,7 @@ function renderTable(){
     tdS.style.cssText='position:relative;cursor:pointer';
     const stag=statusTagEl(p.status);tdS.appendChild(stag);
     const sel=document.createElement('select');sel.className='ssel';
+    sel.setAttribute('aria-label','Status de '+p.name);
     sel.style.cssText='position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:12px';
     SLIST.forEach(function(s){const o=document.createElement('option');o.value=s;o.textContent=s;if(s===p.status)o.selected=true;sel.appendChild(o);});
     sel.onchange=function(e){const pl=gp(p.id);if(pl)pl.status=e.target.value;save();renderTable();renderBar();if(ST.rt==='analise')renderAnalise();};

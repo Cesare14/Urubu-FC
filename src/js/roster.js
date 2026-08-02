@@ -219,6 +219,7 @@ function renderTable(){
     tdS.style.cssText='position:relative;cursor:pointer';
     const stag=statusTagEl(p.status);tdS.appendChild(stag);
     const sel=document.createElement('select');sel.className='ssel';
+    sel.setAttribute('aria-label','Status de '+p.name);
     sel.style.cssText='position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:12px';
     SLIST.forEach(function(s){const o=document.createElement('option');o.value=s;o.textContent=s;if(s===p.status)o.selected=true;sel.appendChild(o);});
     sel.onchange=function(e){const pl=gp(p.id);if(pl)pl.status=e.target.value;save();renderTable();renderBar();if(ST.rt==='analise')renderAnalise();};
